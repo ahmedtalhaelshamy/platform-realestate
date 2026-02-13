@@ -70,14 +70,13 @@ export default async function LocationDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  // 🔥 التعديل الجوهري هنا في الـ Query
   const query = `{
     "locationData": *[_type == "location" && slug.current == $slug][0]{
       _id, nameAr, nameEn, descriptionAr, descriptionEn, image
     },
     
-    // ✅ تصحيح: غيرنا location->slug لـ city->slug عشان يجيب الأحياء صح
-    "districtsWithProjects": *[_type == "district" && city->slug.current == $slug] | order(order asc) {
+    // ✅✅✅ التصحيح هنا: استخدمنا location بدل city عشان يطابق الـ Schema بتاعتك
+    "districtsWithProjects": *[_type == "district" && location->slug.current == $slug] | order(order asc) {
       _id, nameAr, nameEn, "slug": slug.current, image,
       "projects": *[_type == "project" && references(^._id)] | order(isNewLaunch desc, _createdAt desc) {
         _id, titleAr, titleEn, price, installments, downPayment,
@@ -100,8 +99,9 @@ export default async function LocationDetailPage({ params }) {
   const { locationData, districtsWithProjects, generalProjects } = data;
   const locName = isAr ? locationData.nameAr : locationData.nameEn;
 
-  // ✅ فلتر لعرض الأحياء التي بها مشاريع فقط (ممكن تشيل الفلتر لو عايز تعرض الأحياء الفاضية)
-  const activeDistricts = districtsWithProjects.filter(d => d.projects.length > 0);
+  // ✅✅✅ التصحيح الثاني: لغيت الفلتر عشان الأحياء تظهر حتى لو لسه مفيهاش مشاريع
+  // (لما تضيف مشاريع بعدين، ممكن ترجع الفلتر لو حابب)
+  const activeDistricts = districtsWithProjects; 
 
   const breadcrumbItems = [
     { label: isAr ? 'المناطق' : 'Locations', href: `/${lang}/locations` },
@@ -197,9 +197,18 @@ export default async function LocationDetailPage({ params }) {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {district.projects.map((project) => (
-                    <ProjectCard key={project._id} lang={lang} data={project} isActive={true} />
-                ))}
+                {/* هنا بنعرض المشاريع لو موجودة، ولو مفيش ممكن نحط رسالة */}
+                {district.projects && district.projects.length > 0 ? (
+                    district.projects.map((project) => (
+                        <ProjectCard key={project._id} lang={lang} data={project} isActive={true} />
+                    ))
+                ) : (
+                    <div className="col-span-full py-10 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                        <p className="text-slate-400 text-sm font-bold">
+                            {isAr ? 'سيتم إضافة مشاريع قريباً في هذا الحي' : 'Projects coming soon to this district'}
+                        </p>
+                    </div>
+                )}
             </div>
           </section>
         ))}
