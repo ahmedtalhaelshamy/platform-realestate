@@ -7,15 +7,17 @@ export default defineType({
   type: 'document',
   icon: MapPin,
   
-  // ✅ 1. تنظيم الواجهة في تبويبات (Tabs)
+  // ✅ تقسيم الواجهة
   groups: [
-    { name: 'main', title: 'البيانات الأساسية', default: true },
-    { name: 'content', title: 'المحتوى والمقال' },
-    { name: 'seo', title: 'SEO & Google 🚀' },
+    { name: 'main', title: '🏠 البيانات الأساسية', default: true },
+    { name: 'content', title: '📝 المحتوى والمقال' },
+    { name: 'seo', title: '🔍 SEO & Google' },
   ],
 
   fields: [
-    // --- 🔹 تبويب البيانات الأساسية ---
+    // ================================
+    // 1️⃣ البيانات الأساسية (Main Info)
+    // ================================
     defineField({
       name: 'nameAr',
       title: 'اسم الحي (عربي)',
@@ -44,10 +46,11 @@ export default defineType({
       validation: (rule) => rule.required(),
     }),
 
+    // ✅ الحقل ده مهم جداً عشان يربط الحي بالمنطقة
     defineField({
-      name: 'location',
+      name: 'location', // (تأكدنا إن ده الاسم المستخدم في الكود الجديد)
       title: 'المنطقة التابع لها (Parent Location)',
-      description: 'اختر المنطقة الكبرى التي يتبع لها هذا الحي (مثال: القاهرة الجديدة)',
+      description: 'اختر المنطقة الكبرى التي يتبع لها هذا الحي (مثال: اختر القاهرة الجديدة لحي النرجس)',
       type: 'reference',
       group: 'main',
       to: [{ type: 'location' }], 
@@ -59,28 +62,37 @@ export default defineType({
       title: 'صورة الحي',
       type: 'image',
       group: 'main',
-      options: { 
-        hotspot: true 
-      },
+      options: { hotspot: true },
     }),
 
-    // --- 🔹 تبويب المحتوى (Rich Text) ---
+    // ✅ (إضافة جديدة) حقل الترتيب عشان تتحكم مين يظهر الأول
+    defineField({
+      name: 'order',
+      title: 'ترتيب العرض (Sorting Order)',
+      type: 'number',
+      group: 'main',
+      initialValue: 0,
+    }),
+
+    // ================================
+    // 2️⃣ المحتوى (Rich Text)
+    // ================================
     defineField({
       name: 'descriptionAr',
-      title: 'وصف الحي (عربي)',
+      title: 'وصف الحي والمقال (عربي)',
       type: 'array',
       group: 'content',
       of: [
         { 
           type: 'block',
-          // ✅ تم إضافة H2 و H3 لتحسين هيكلية المقال
           styles: [
             {title: 'Normal', value: 'normal'},
-            {title: 'Heading 2', value: 'h2'},
-            {title: 'Heading 3', value: 'h3'},
-            {title: 'Quote', value: 'blockquote'},
+            {title: 'عنوان رئيسي (H2)', value: 'h2'},
+            {title: 'عنوان فرعي (H3)', value: 'h3'},
+            {title: 'اقتباس', value: 'blockquote'},
           ],
-        }
+        },
+        { type: 'image', options: { hotspot: true } } // ✅ السماح بإضافة صور وسط الكلام
       ],
     }),
 
@@ -98,33 +110,35 @@ export default defineType({
             {title: 'Heading 3', value: 'h3'},
             {title: 'Quote', value: 'blockquote'},
           ],
-        }
+        },
+        { type: 'image', options: { hotspot: true } } // ✅ السماح بإضافة صور وسط الكلام
       ],
     }),
 
-    // --- 🔹 تبويب الـ SEO ---
-    // ✅ استدعاء كبسولة الـ SEO
+    // ================================
+    // 3️⃣ إعدادات السيو (SEO)
+    // ================================
     defineField({
       name: 'seo',
       title: 'إعدادات محركات البحث',
-      type: 'seo', // 👈 الربط بالملف الذي أنشأناه
+      type: 'seo', // ✅ استدعاء الكبسولة الجاهزة
       group: 'seo'
     })
   ],
 
-  // تحسين العرض في القائمة
+  // تحسين شكل الكارت في القائمة
   preview: {
     select: {
       title: 'nameAr',
       subtitle: 'nameEn',
-      areaAr: 'location.nameAr',
+      areaAr: 'location.nameAr', // بيجيب اسم المنطقة الأب
       media: 'image',
     },
     prepare(selection) {
       const { title, subtitle, areaAr, media } = selection
       return {
         title: title,
-        subtitle: areaAr ? `${subtitle} - (${areaAr})` : subtitle,
+        subtitle: areaAr ? `${subtitle} (تابع لـ: ${areaAr})` : subtitle,
         media: media,
       }
     },
