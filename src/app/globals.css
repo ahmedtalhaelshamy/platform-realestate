@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* 1. تفعيل النزول الناعم وتحسين الـ Rendering */
+html {
+  scroll-behavior: smooth;
+  /* منع اهتزاز الصفحة عند فتح المودال أو المنيو */
+  scrollbar-gutter: stable;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a; /* Slate-900 لون أهدأ قليلاً من الأسود الصريح */
+  --brand-red: #C02026;
+}
+
+/* 2. ربط متغيرات التايلوند بالخطوط والألوان */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-red: var(--brand-red);
+  --font-cairo: var(--font-cairo);
+  --font-jakarta: var(--font-jakarta);
+}
+
+/* إلغاء الوضع الليلي القسري إذا كنت تريد الموقع أبيض دائماً كما في العقارات */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff; 
+    --foreground: #0f172a;
+  }
+}
+
+/* 3. إعدادات الـ Body الأساسية */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jakarta), var(--font-cairo), sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* منع السكرول العرضي تماماً */
+}
+
+/* 4. 🔥 الحل النهائي والذكي لتقطع الحروف العربية 🔥 */
+/* تم تحسينه ليؤثر فقط على النصوص العربية دون تدمير ستايل النصوص الإنجليزية */
+[dir="rtl"], 
+[lang="ar"] {
+  font-family: var(--font-cairo), sans-serif !important;
+}
+
+[dir="rtl"] *, 
+[lang="ar"] * {
+  /* تصفير المسافات لمنع التقطع في العربي */
+  letter-spacing: 0px !important;
+  /* تفعيل الروابط لضمان اتصال الحروف */
+  font-feature-settings: "rlig" 1, "calt" 1, "clig" 1, "liga" 1 !important;
+  font-variant-ligatures: common-ligatures !important;
+}
+
+/* استثناء النصوص الإنجليزية داخل المحتوى العربي من خط القاهرة لجمالية التصميم */
+[dir="rtl"] en, 
+[dir="rtl"] .font-sans {
+  font-family: var(--font-jakarta), sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+/* 5. ميزات تجربة المستخدم (UX Helpers) */
+
+/* إخفاء شريط التمرير مع الحفاظ على الوظيفة */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* تحسين شكل الـ Selection (لما العميل يحدد نص) */
+::selection {
+  background-color: rgba(192, 32, 38, 0.1);
+  color: var(--brand-red);
+}
+
+/* 6. ✨ الأنميشن الخاص بصفحات المشاريع ومن نحن ✨ */
+/* تم إضافتها هنا لتعمل في كل الموقع */
+
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* كلاسات جاهزة للاستخدام */
+.animate-slow-zoom {
+  animation: slow-zoom 20s infinite alternate linear;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite ease-in-out;
+}
+
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
