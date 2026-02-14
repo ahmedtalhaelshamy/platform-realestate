@@ -16,8 +16,8 @@ export const CONTACT_INFO = {
   
   // ✅ 2. تحديث روابط الخرائط (تأكد من استبدال هذا الرابط باللوكيشن الفعلي بتاعك)
   // هذا رابط عام للتجمع الخامس كمثال، يفضل تجيب الرابط الدقيق لمكتبك
-  googleMapsUrl: "https://maps.app.goo.gl/yourRealLocationID", 
-  googleMapsEmbed: "https://www.google.com/maps/embed?pb=...", // لو هتستخدم iframe في صفحة تواصل معنا
+  googleMapsUrl: "https://maps.app.goo.gl/pMCL9EqfqtSov6rt9?g_st=ic", 
+  googleMapsEmbed: "https://maps.app.goo.gl/pMCL9EqfqtSov6rt9?g_st=ic", // لو هتستخدم iframe في صفحة تواصل معنا
 
   social: {
     facebook: "https://www.facebook.com/PlatformRealEstate.eg",

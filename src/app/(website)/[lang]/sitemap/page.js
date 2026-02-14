@@ -58,4 +58,9 @@ export default async function HTMLSitemap({ params }) {
       </div>
     </main>
   );
+  
+}
+
+export async function generateStaticParams() {
+  return [{ lang: 'ar' }, { lang: 'en' }];
 }

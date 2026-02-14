@@ -1,9 +1,9 @@
-import imageUrlBuilder from '@sanity/image-url'
-import { client } from './client' // تأكد أن client.js موجود في نفس المجلد src/sanity/
+import createImageUrlBuilder from '@sanity/image-url'
+import { client } from './client' // تأكد إن المسار لملف client صح
 
-const builder = imageUrlBuilder(client)
+const builder = createImageUrlBuilder(client)
 
 export function urlFor(source) {
-  if (!source) return { url: () => "" }; // حماية إضافية لو مفيش صورة
+  // ✅ شيلنا الشرط عشان الدالة ترجع دايماً Builder يقبل الـ width والـ height
   return builder.image(source)
 }

@@ -4,11 +4,11 @@ import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة
+// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة لضمان ثبات الصفحة وسرعتها
 export const revalidate = 3600; 
 
 /**
- * 🛠️ دالة تطهير وتحويل أي مدخل (PortableText أو مصفوفات) إلى نص صافي (String)
+ * 🛠️ دالة تطهير وتحويل أي مدخل إلى نص صافي (String) - هامة للـ SEO
  */
 function cleanToPlainText(input) {
   if (!input) return "";
@@ -44,14 +44,23 @@ const getSafeImageUrl = (source) => {
 
 /**
  * 1️⃣ التوليد الثابت (Static Generation)
+ * هذه الدالة هي المسؤولة عن تحويل الصفحة من ƒ إلى ●
  */
 export async function generateStaticParams() {
-  const query = `*[_type == "project" && defined(slug.current)]{ "slug": slug.current }`;
+  // ✅ إضافة فلتر !(_id in path("drafts.**")) لضمان عدم حدوث خطأ أثناء الـ Build
+  const query = `*[_type == "project" && defined(slug.current) && !(_id in path("drafts.**"))]{ 
+    "slug": slug.current 
+  }`;
+  
   try {
     const projects = await client.fetch(query);
     const languages = ['ar', 'en'];
+    
     return projects.flatMap((project) =>
-      languages.map((lang) => ({ lang, slug: project.slug }))
+      languages.map((lang) => ({ 
+        lang: lang, 
+        slug: project.slug 
+      }))
     );
   } catch (error) {
     console.error("Static Params Fetch Error:", error);
@@ -66,7 +75,7 @@ export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
   
-  const query = `*[_type == "project" && slug.current == $slug][0]{ 
+  const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{ 
     titleAr, titleEn, seo, mainImage 
   }`;
   
@@ -79,8 +88,6 @@ export async function generateMetadata({ params }) {
     : (seo?.metaTitleEn || data.titleEn || CONTACT_INFO.siteNameEn);
   
   const description = (isAr ? seo?.metaDescAr : seo?.metaDescEn) || '';
-  
-  // استخدام صورة الـ OG Image المخصصة لو وجدت، وإلا صورة الهيرو
   const imageUrl = seo?.ogImage ? getSafeImageUrl(seo.ogImage) : getSafeImageUrl(data.mainImage);
 
   return {
@@ -110,18 +117,18 @@ export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  const query = `*[_type == "project" && slug.current == $slug][0]{
+  const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
     "slug": slug.current,
     "brochureUrl": brochure.asset->url,
     "districtData": district->{ nameAr, nameEn, "slug": slug.current },
     "locationData": location->{ nameAr, nameEn, "slug": slug.current },
     "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn },
-    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id][0...4]{
+    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
         _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
     },
     "author": author->{ name, image, jobTitle },
-    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id][0...3]{
+    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
         _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
     }
   }`;
@@ -143,13 +150,12 @@ export default async function ProjectDetailPage({ params }) {
     { label: isAr ? data.titleAr : data.titleEn }
   ];
 
-  // 🏆 [SEO] Schema Markup - تجميع الـ JSON-LD بشكل احترافي
+  // 🏆 [SEO] Schema Markup
   const mainSchema = {
     '@context': 'https://schema.org',
     '@type': data.seo?.schemaType || 'RealEstateListing',
     'name': sanitizedData.computedH1,
-    'description': cleanToPlainText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200) || 
-                   cleanToPlainText(isAr ? data.introContentAr : data.introContentEn).substring(0, 200),
+    'description': cleanToPlainText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
     'image': getSafeImageUrl(data.mainImage),
     'url': `${CONTACT_INFO.domain}/${lang}/projects/${slug}`,
     'address': {
@@ -157,50 +163,15 @@ export default async function ProjectDetailPage({ params }) {
       'addressLocality': sanitizedData.districtName,
       'addressRegion': sanitizedData.cityName,
       'addressCountry': 'EG'
-    },
-    'offers': {
-      '@type': 'Offer',
-      'price': data.price,
-      'priceCurrency': data.currency || 'EGP'
-    },
-    'brand': {
-      '@type': 'Organization',
-      'name': isAr ? data.developer?.nameAr : data.developer?.nameEn
     }
   };
 
-  // إضافة الأسئلة الشائعة للـ Schema إذا وجدت
-  let faqSchema = null;
-  if (data.faqs && data.faqs.length > 0) {
-    faqSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': data.faqs.map(faq => ({
-        '@type': 'Question',
-        'name': isAr ? faq.questionAr : faq.questionEn,
-        'acceptedAnswer': {
-          '@type': 'Answer',
-          'text': isAr ? faq.answerAr : faq.answerEn
-        }
-      }))
-    };
-  }
-
   return (
     <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
-      {/* حقن الـ Schema الأساسية */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
       />
-      
-      {/* حقن الـ FAQ Schema إذا وجدت */}
-      {faqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
-      )}
       
       <ProjectClientUI 
           data={sanitizedData} 

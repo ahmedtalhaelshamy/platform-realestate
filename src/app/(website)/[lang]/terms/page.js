@@ -145,3 +145,7 @@ export default async function TermsPage({ params }) {
     </main>
   );
 }
+
+export async function generateStaticParams() {
+  return [{ lang: 'ar' }, { lang: 'en' }];
+}

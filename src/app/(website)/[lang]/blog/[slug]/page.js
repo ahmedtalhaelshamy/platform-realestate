@@ -10,7 +10,21 @@ import ShareBtn from '@/components/ShareBtn';
 
 export const revalidate = 3600; 
 
-// 1. Metadata Function
+// ✅ 1. إضافة دالة توليد الصفحات الثابتة (SSG)
+export async function generateStaticParams() {
+  const query = `*[_type == "post" && defined(slug.current)]{
+    "slug": slug.current,
+    "lang": language
+  }`;
+  const posts = await client.fetch(query);
+
+  return posts.map((post) => ({
+    lang: post.lang || 'ar', 
+    slug: post.slug,
+  }));
+}
+
+// 2. Metadata Function
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === "ar";
@@ -44,7 +58,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// 2. Main Page Component
+// 3. Main Page Component
 export default async function PostPage({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === "ar";
