@@ -2,7 +2,7 @@ import ProjectCard from '@/components/ProjectCard';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { 
   Building2, Info, LayoutGrid, Phone, ShieldCheck, 
-  MessageCircle, HelpCircle, ArrowUpRight, Award, CheckCircle2, Sparkles, ChevronRight
+  MessageCircle, HelpCircle, ArrowUpRight, Award, CheckCircle2, Sparkles, ChevronRight 
 } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -11,10 +11,12 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 
+// ✅ إجبار الصفحة على أن تكون Static بالكامل لضمان سرعة الأرشفة
+export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
 /**
- * ✅ نظام تنسيق النصوص - تم تحسينه للقراءة الطويلة (Readability)
+ * ✅ نظام تنسيق النصوص - تحسين القراءة
  */
 const devPortableTextComponents = {
   block: {
@@ -32,9 +34,13 @@ const devPortableTextComponents = {
   }
 };
 
+/**
+ * ✅ 1. توليد المسارات وقت الـ Build (SSG)
+ * إضافة فلتر المسودات لضمان عدم حدوث خطأ أثناء البناء
+ */
 export async function generateStaticParams() {
   try {
-    const query = `*[_type == "developer" && defined(slug.current)]{ "slug": slug.current }`;
+    const query = `*[_type == "developer" && defined(slug.current) && !(_id in path("drafts.**"))]{ "slug": slug.current }`;
     const developers = await client.fetch(query);
     return developers.flatMap((dev) =>
       ['ar', 'en'].map((lang) => ({ lang, slug: dev.slug }))
@@ -45,21 +51,42 @@ export async function generateStaticParams() {
   }
 }
 
+/**
+ * ✅ 2. الـ SEO Metadata (حل مشكلة الـ Canonical)
+ */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === 'ar';
-  const data = await client.fetch(`*[_type == "developer" && slug.current == $slug][0]{nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn}`, { slug });
+  
+  // جلب بيانات الميتا مع استبعاد المسودات
+  const data = await client.fetch(
+    `*[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn}`, 
+    { slug }
+  );
+  
   if (!data) return { title: 'Not Found' };
+  
   const title = isAr ? (data.seoTitleAr || data.nameAr) : (data.seoTitleEn || data.nameEn);
-  return { title: `${title} | 2026`, description: isAr ? data.seoDescAr : data.seoDescEn };
+  
+  return { 
+    title: `${title} | Platform Real Estate`, 
+    description: isAr ? data.seoDescAr : data.seoDescEn,
+    // 🛡️ حل مشكلة الـ Canonical: الصفحة تشاور على نفسها لمنع "الاختفاء من جوجل"
+    alternates: {
+      canonical: `${CONTACT_INFO.domain}/${lang}/developers/${slug}`,
+    }
+  };
 }
 
+/**
+ * ✅ دالة جلب البيانات (مع استبعاد المسودات)
+ */
 async function getDeveloperData(slug) {
   const query = `{
-    "developer": *[_type == "developer" && slug.current == $slug][0]{
+    "developer": *[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
       _id, nameAr, nameEn, descriptionAr, descriptionEn, logo, reviewTitle, faqs
     },
-    "projects": *[_type == "project" && references(*[_type == "developer" && slug.current == $slug][0]._id)] | order(isNewLaunch desc) {
+    "projects": *[_type == "project" && references(*[_type == "developer" && slug.current == $slug][0]._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc) {
       _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, mainImage, "slug": slug.current,
       "location": location->{ nameAr, nameEn }
     }
@@ -71,6 +98,7 @@ export default async function DeveloperDetailPage({ params }) {
   const { lang, slug } = await params; 
   const isAr = lang === 'ar';
   const data = await getDeveloperData(slug);
+  
   if (!data?.developer) return notFound();
 
   const { developer, projects } = data;
@@ -84,7 +112,6 @@ export default async function DeveloperDetailPage({ params }) {
       
       {/* 🏗️ 1. MODERN MINIMALIST HERO */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
-        {/* Subtle Decorative Element */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/30 skew-x-12 translate-x-20 pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -93,7 +120,6 @@ export default async function DeveloperDetailPage({ params }) {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-            {/* Logo Box - Clean & Professional */}
             <div className="w-40 h-40 md:w-52 md:h-52 bg-white rounded-3xl shadow-sm border border-slate-200 flex items-center justify-center p-6 shrink-0 hover:shadow-md transition-shadow">
                 {developer.logo ? (
                   <Image src={urlFor(developer.logo).width(400).url()} alt={developer.nameEn} width={200} height={200} className="object-contain" priority />
@@ -128,7 +154,7 @@ export default async function DeveloperDetailPage({ params }) {
             
             <div className="lg:col-span-8 space-y-24">
               
-              {/* ✅ PROJECTS SECTION - عرض نظيف للمشاريع */}
+              {/* ✅ PROJECTS SECTION */}
               <section id="portfolio">
                   <div className="mb-10">
                      <h2 className="text-3xl font-black text-slate-900 mb-2">
@@ -151,17 +177,17 @@ export default async function DeveloperDetailPage({ params }) {
                   )}
               </section>
 
-              {/* ✅ CORPORATE PROFILE - المقال بتنسيق مريح للعين */}
+              {/* ✅ CORPORATE PROFILE */}
               <section className="bg-white border border-slate-100 rounded-[2.5rem] p-8 md:p-12 shadow-sm relative">
                 <h2 className="text-3xl font-black text-slate-900 mb-8">
                   {developer.reviewTitle || (isAr ? `لماذا تختار ${developer.nameAr}؟` : `About ${developer.nameEn}`)}
                 </h2>
-                <article className="prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-600">
+                <article className="prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 leading-relaxed">
                   <PortableText value={isAr ? developer.descriptionAr : developer.descriptionEn} components={devPortableTextComponents} />
                 </article>
               </section>
 
-              {/* ✅ FAQs - تصميم بسيط واحترافي */}
+              {/* ✅ FAQs */}
               {developer.faqs && developer.faqs.length > 0 && (
                 <section className="space-y-8">
                    <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3">
@@ -181,10 +207,9 @@ export default async function DeveloperDetailPage({ params }) {
               )}
             </div>
 
-            {/* ✅ 3. PREMIUM SIDEBAR CTA - تصميم "المستشار العقاري" */}
+            {/* ✅ 3. PREMIUM SIDEBAR CTA */}
             <aside className="lg:col-span-4 lg:sticky lg:top-32">
                 <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                    {/* Abstract Glow */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#C02026]/20 blur-[60px]" />
                     
                     <div className="relative z-10 text-center md:text-start">
@@ -218,7 +243,6 @@ export default async function DeveloperDetailPage({ params }) {
                     </div>
                 </div>
 
-                {/* Secondary Trust Badge */}
                 <div className="mt-6 bg-white border border-slate-100 p-6 rounded-3xl flex items-center gap-4 shadow-sm">
                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
                       <ShieldCheck size={24} />
@@ -232,7 +256,6 @@ export default async function DeveloperDetailPage({ params }) {
 
         </div>
       </div>
-
     </main>
   );
 }

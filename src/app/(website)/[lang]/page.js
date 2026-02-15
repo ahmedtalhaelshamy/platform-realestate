@@ -87,19 +87,24 @@ export default async function HomePage({ params }) {
     <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
       
       {/* 🚀 HERO SECTION: CRYSTAL CLARITY */}
-      <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] overflow-hidden pt-16">
+     {/* 🚀 HERO SECTION: CRYSTAL CLARITY */}
+      <header className="relative h-[90vh] md:h-[100vh] flex flex-col items-center justify-between bg-[#050505] overflow-hidden pt-32 pb-24">
         <div className="absolute inset-0 z-0">
           {settings?.heroImage && (
              <Image 
-               src={urlFor(settings.heroImage).width(1920).url()} 
-               alt="Luxury Real Estate Egypt" fill priority 
-               className="object-cover scale-100 animate-slow-zoom opacity-100" 
+                src={urlFor(settings.heroImage).width(1920).url()} 
+                alt="Luxury Real Estate Egypt" fill priority 
+                className="object-cover scale-100 animate-slow-zoom opacity-100" 
              />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent via-[40%] to-black/50 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent via-[45%] to-black/60 z-10" />
         </div>
 
-        <div className="relative z-20 px-6 max-w-7xl text-center space-y-10 animate-in fade-in duration-1000">
+        {/* سبيسر علوي وهمي لضمان دفع المحتوى للأسفل قليلاً بعيداً عن الناف بار */}
+        <div className="h-4 w-full" />
+
+        {/* المحتوى النصي: أضفنا mb-20 لضمان وجود "هواء" فوق السيرش بار */}
+        <div className="relative z-20 px-6 max-w-7xl text-center space-y-10 animate-in fade-in duration-1000 mb-24 md:mb-32">
           <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/20 px-6 py-2 rounded-full text-white text-[10px] md:text-xs font-black uppercase tracking-widest shadow-2xl">
             <ShieldCheck size={14} className="text-[#C02026]" />
             {isAr ? 'منصة الاستثمار العقاري الأولى في مصر' : 'Egypt’s Premier Real Estate Gateway'}
@@ -115,7 +120,8 @@ export default async function HomePage({ params }) {
           </Link>
         </div>
 
-        <div className="absolute bottom-0 transform translate-y-1/2 flex justify-center px-6 w-full max-w-5xl z-50">
+        {/* السيرش بار: الآن هو ثابت في مكانه الطبيعي أسفل المحتوى النصي بجمال */}
+        <div className="relative z-50 w-full max-w-5xl px-6 transform translate-y-1/2">
            <SearchFilter lang={lang} isAr={isAr} />
         </div>
       </header>

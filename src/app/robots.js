@@ -1,21 +1,24 @@
-// src/app/robots.js
-
-// ✅ استدعاء ملف الثوابت (نفس المسار النسبي اللي استخدمناه في sitemap)
 import { CONTACT_INFO } from '../components/constants/contact';
 
 export default function robots() {
-  // ✅ الأولوية للبيئة، والبديل هو الدومين الموجود في ملف الثوابت الموحد
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || CONTACT_INFO.domain;
+  // تأكد أن baseUrl لا ينتهي بـ /
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || CONTACT_INFO.domain).replace(/\/$/, '');
 
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
+      allow: [
+        '/',
+        '/_next/static/',  // ملفات الـ CSS والجافا سكريبت (مهم للـ Mobile Friendly Test)
+        '/_next/image/',   // ✅ مهم جداً: السماح لجوجل بأرشفة صور المشاريع
+        '/api/og',         // لو عندك صور Share تلقائية
+      ],
       disallow: [
-        '/studio/',        // حماية لوحة تحكم Sanity
-        '/api/',           // منع أرشفة الـ API Endpoints
-        '/_next/',         // منع أرشفة ملفات البناء الداخلية
-        '/private/',       // أي مجلدات خاصة أخرى
+        '/studio/',        // لوحة تحكم Sanity
+        '/admin/',         
+        '/api/',           // حماية الـ API Routes
+        '/private/',
+        '/*?*',            // منع أرشفة روابط البحث اللي فيها بارامترات (توفير الـ Crawl Budget)
       ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
