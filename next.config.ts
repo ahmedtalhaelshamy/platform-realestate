@@ -12,19 +12,14 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // ✅ تجاهل أخطاء الـ Type Check وقت الـ Build عشان الموقع يقوم بسرعة
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // 🚀 التحويلات اللي صلحناها للـ SEO
+  // 🚀 التحويلات المحددة فقط (بدون تحويل الـ WWW لمنع الـ Loop)
   async redirects() {
     return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.platformrealestate.co' }],
-        destination: 'https://platformrealestate.co/:path*',
-        permanent: true,
-      },
       {
         source: '/ar/about',
         destination: '/ar/about-us',
