@@ -9,7 +9,7 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 1. إعداد الخطوط - استخدام خط المراعي لحل مشكلة التقطع
+// 1. إعداد الخطوط
 const almarai = Almarai({
   subsets: ['arabic'],
   variable: '--font-almarai',
@@ -24,10 +24,13 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['300', '400', '500', '600', '700', '800'],
 });
 
-// 2. دالة جلب الإعدادات
+// 2. دالة جلب الإعدادات (مع إضافة كاش)
 async function getSiteSettings() {
   try {
-    const query = `*[_type == "siteSettings"][0]{ seo, contactInfo }`;
+    const query = `*[_type == "siteSettings"][0]{ 
+      seo, 
+      contactInfo { whatsapp, phone, email, addressAr, addressEn } 
+    }`;
     return await client.fetch(query, {}, { next: { revalidate: 3600 } });
   } catch (error) {
     console.error("Layout Settings Fetch Error:", error);
@@ -35,12 +38,10 @@ async function getSiteSettings() {
   }
 }
 
-// 3. Metadata
+// 3. توليد الـ Metadata (SEO)
 export async function generateMetadata({ params }) {
-  const resolvedParams = await params;
-  const lang = resolvedParams.lang;
+  const { lang } = await params;
   const isAr = lang === 'ar';
-  
   const settings = await getSiteSettings();
 
   const title = isAr 
@@ -61,35 +62,33 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `/${lang}`,
       languages: {
-        'ar-EG': '/ar',
-        'en-US': '/en',
+        'ar': '/ar',
+        'en': '/en',
       },
     },
     icons: {
       icon: '/favicon.ico',
       apple: '/apple-icon.png',
     },
-    openGraph: {
-      title,
-      description,
-      siteName: isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
-      locale: isAr ? 'ar_EG' : 'en_US',
-      type: 'website',
-    },
   };
 }
 
-// 4. Layout Component
+// 4. الـ Layout الرئيسي للموقع
 export default async function WebsiteLayout({ children, params }) {
-  const resolvedParams = await params;
-  const lang = resolvedParams?.lang || 'ar';
+  // ✅ فك الـ params لأنها Promise في الإصدارات الحديثة
+  const { lang } = await params;
   const isAr = lang === 'ar';
   
   const settings = await getSiteSettings();
 
   return (
-    // ✅ الحل النهائي: وضع html و body هنا لضمان مطابقة السيرفر مع المتصفح
-    <html lang={lang} dir={isAr ? 'rtl' : 'ltr'} className={`${almarai.variable} ${jakarta.variable}`}>
+    <html 
+      lang={lang} 
+      dir={isAr ? 'rtl' : 'ltr'} 
+      className={`${almarai.variable} ${jakarta.variable}`}
+      // منع أخطاء الـ Hydration بسبب إضافات المتصفح (مثل Dark Reader)
+      suppressHydrationWarning
+    >
       <body 
         className={`
           ${isAr ? 'font-almarai' : 'font-jakarta'} 
@@ -97,21 +96,18 @@ export default async function WebsiteLayout({ children, params }) {
           antialiased selection:bg-[#C02026] selection:text-white
           overflow-x-hidden
         `}
-        style={{ 
-          textRendering: 'optimizeLegibility',
-          fontFeatureSettings: '"rlig" 1, "calt" 1' // لضمان اتصال الحروف العربية
-        }}
+        suppressHydrationWarning
       >
           
-        {/* Top Navigation */}
+        {/* الهيدر: نمرر له بيانات التواصل من سانتي */}
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
         
-        {/* Main Content Area */}
+        {/* محتوى الصفحة الرئيسي */}
         <main className="flex-grow relative w-full">
           {children}
         </main>
 
-        {/* --- Floating Elements Zone --- */}
+        {/* أدوات عائمة */}
         <CompareFloatingBar lang={lang} />
 
         <WhatsAppBtn 
@@ -119,9 +115,14 @@ export default async function WebsiteLayout({ children, params }) {
           phoneNumber={settings?.contactInfo?.whatsapp || CONTACT_INFO.whatsapp} 
         />
         
-        {/* Footer */}
+        {/* الفوتر */}
         <Footer lang={lang} settings={settings} />
         
+        {/* Script صغير لتحسين أداء الخطوط ومنع الـ Layout Shift */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          html { scroll-behavior: smooth; }
+          body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+        `}} />
       </body>
     </html>
   );
