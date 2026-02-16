@@ -61,7 +61,7 @@ async function getPageData() {
       "slug": slug.current, mainImage, projectType,
       "location": location->{ nameAr, nameEn },
       "developer": developer->{ nameAr, nameEn, logo },
-      isNewLaunch, isFeatured
+      isNewLaunch, isFeatured, isReady
     },
     "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(order asc) {
       _id, nameAr, nameEn, logo, "slug": slug.current, badges, 
@@ -87,7 +87,6 @@ export default async function HomePage({ params }) {
     <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
       
       {/* 🚀 HERO SECTION: CRYSTAL CLARITY */}
-     {/* 🚀 HERO SECTION: CRYSTAL CLARITY */}
       <header className="relative h-[90vh] md:h-[100vh] flex flex-col items-center justify-between bg-[#050505] overflow-hidden pt-32 pb-24">
         <div className="absolute inset-0 z-0">
           {settings?.heroImage && (
@@ -100,10 +99,8 @@ export default async function HomePage({ params }) {
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent via-[45%] to-black/60 z-10" />
         </div>
 
-        {/* سبيسر علوي وهمي لضمان دفع المحتوى للأسفل قليلاً بعيداً عن الناف بار */}
         <div className="h-4 w-full" />
 
-        {/* المحتوى النصي: أضفنا mb-20 لضمان وجود "هواء" فوق السيرش بار */}
         <div className="relative z-20 px-6 max-w-7xl text-center space-y-10 animate-in fade-in duration-1000 mb-24 md:mb-32">
           <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/20 px-6 py-2 rounded-full text-white text-[10px] md:text-xs font-black uppercase tracking-widest shadow-2xl">
             <ShieldCheck size={14} className="text-[#C02026]" />
@@ -120,7 +117,6 @@ export default async function HomePage({ params }) {
           </Link>
         </div>
 
-        {/* السيرش بار: الآن هو ثابت في مكانه الطبيعي أسفل المحتوى النصي بجمال */}
         <div className="relative z-50 w-full max-w-5xl px-6 transform translate-y-1/2">
            <SearchFilter lang={lang} isAr={isAr} />
         </div>
@@ -202,7 +198,6 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
     <div className="relative group/dev px-4 shrink-0"> 
       <div className="w-[200px] h-[120px] md:w-[280px] md:h-[160px] bg-white rounded-[3.5rem] border border-slate-100 shadow-sm relative transition-all duration-700 group-hover/dev:shadow-2xl group-hover/dev:border-[#C02026] group-hover/dev:-translate-y-4">
         
-        {/* 🏆 Badge: تم ضبط الـ Z-index ليكون فوق كل شيء */}
         {mainBadgeKey && (
           <div className={`absolute -top-5 ${isAr ? '-left-2' : '-right-2'} z-[60] flex items-center gap-2 ${badgeConfig.bg} ${badgeConfig.color} px-5 py-2 rounded-2xl shadow-xl border-2 border-white transform transition-transform group-hover/dev:scale-110`}>
              <BadgeIcon size={14} />

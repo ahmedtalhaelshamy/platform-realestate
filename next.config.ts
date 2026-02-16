@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 1️⃣ إعدادات الصور (Sanity)
   images: {
     unoptimized: true, 
     remotePatterns: [
@@ -12,21 +13,23 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // 2️⃣ تجاهل أخطاء التيبيسكربت لضمان استمرار الـ Build
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // 🚀 قسم التحويلات (هذا هو الجزء الناقص الذي سيحل مشكلة الـ 404)
+  // 3️⃣ 🚀 محرك التحويلات (Redirects) - الحل النهائي للروابط المكسورة
   async redirects() {
     return [
-      // 1. تحويل إجباري من www إلى النسخة الأصلية (للحفاظ على قوة الـ SEO)
+      // أ. تحويل إجباري من www إلى النسخة الأصلية (301 دائمة)
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.platformrealestate.co' }],
         destination: 'https://platformrealestate.co/:path*',
         permanent: true,
       },
-      // 2. حل مشكلة صفحة "من نحن"
+
+      // ب. إصلاح روابط صفحة "عن الشركة" (من عن نصر إلى من نحن)
       {
         source: '/ar/about',
         destination: '/ar/about-us',
@@ -37,7 +40,8 @@ const nextConfig: NextConfig = {
         destination: '/en/about-us',
         permanent: true,
       },
-      // 3. حل مشكلة التجمع الخامس (من منطقة إلى حي)
+
+      // ج. إصلاح روابط التجمع الخامس (تحويل من مسار المنطقة إلى مسار الحي)
       {
         source: '/ar/locations/fifth-settlement',
         destination: '/ar/districts/fifth-settlement',
@@ -51,6 +55,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // 4️⃣ الميزات التجريبية (اختياري)
   experimental: {
     // optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
