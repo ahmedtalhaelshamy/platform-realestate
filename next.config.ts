@@ -1,35 +1,56 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* ✅ تحسين أداء الصور للعقارات:
-     بما أنك تستخدم Sanity، من الأفضل ترك Next يعالج الصور 
-     للحصول على أحجام أصغر (WebP/AVIF) إلا إذا كنت تواجه مشاكل تقنية قوية.
-  */
   images: {
-    unoptimized: true, // سأتركها true بناءً على رغبتك لضمان استقرار السيرفر حالياً
+    unoptimized: true, 
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'cdn.sanity.io',
-        pathname: '/**', // تصحيح المسار ليكون متوافقاً مع المعايير الجديدة
+        pathname: '/**', 
       },
     ],
   },
 
-  /* 🛠️ إعدادات TypeScript:
-     تجاهل الأخطاء أثناء البناء لضمان استمرارية العمل على الواجهات.
-  */
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  /* ⚠️ ملاحظة هامة: 
-     تم إزالة قسم 'eslint' بالكامل من هنا لأن المحرك لديك (Turbopack) 
-     يعتبره الآن "Unrecognized key" ويفضل الاعتماد على الملف الخارجي eslint.config.mjs 
-     الذي قمنا بتشغيله بنجاح.
-  */
-  
-  // تفعيل الميزات التجريبية إذا كنت بحاجة لتحسين أداء Tailwind 4
+  // 🚀 قسم التحويلات (هذا هو الجزء الناقص الذي سيحل مشكلة الـ 404)
+  async redirects() {
+    return [
+      // 1. تحويل إجباري من www إلى النسخة الأصلية (للحفاظ على قوة الـ SEO)
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.platformrealestate.co' }],
+        destination: 'https://platformrealestate.co/:path*',
+        permanent: true,
+      },
+      // 2. حل مشكلة صفحة "من نحن"
+      {
+        source: '/ar/about',
+        destination: '/ar/about-us',
+        permanent: true,
+      },
+      {
+        source: '/en/about',
+        destination: '/en/about-us',
+        permanent: true,
+      },
+      // 3. حل مشكلة التجمع الخامس (من منطقة إلى حي)
+      {
+        source: '/ar/locations/fifth-settlement',
+        destination: '/ar/districts/fifth-settlement',
+        permanent: true,
+      },
+      {
+        source: '/en/locations/fifth-settlement',
+        destination: '/en/districts/fifth-settlement',
+        permanent: true,
+      },
+    ];
+  },
+
   experimental: {
     // optimizePackageImports: ['lucide-react', 'framer-motion'],
   },

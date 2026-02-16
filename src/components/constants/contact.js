@@ -5,7 +5,7 @@ export const CONTACT_INFO = {
   domain: "https://platformrealestate.co", 
   
   siteNameEn: "Platform Real Estate",
-  siteNameAr: "بلاتفورم للتطوير العقاري",
+  siteNameAr: "بلاتفورم للتسويق العقاري",
   
   phone: "+201004011040",
   whatsapp: "201004011040",
