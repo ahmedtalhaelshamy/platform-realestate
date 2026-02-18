@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // ✅ توحيد شكل الروابط لمنع التكرار في جوجل (SEO Fix)
+  trailingSlash: true,
+  
+  // ✅ زيادة الأمان بإخفاء تقنية الموقع
+  poweredByHeader: false,
+
   images: {
     unoptimized: true, 
     remotePatterns: [
@@ -22,22 +28,22 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/ar/about',
-        destination: '/ar/about-us',
+        destination: '/ar/about-us/',
         permanent: true,
       },
       {
         source: '/en/about',
-        destination: '/en/about-us',
+        destination: '/en/about-us/',
         permanent: true,
       },
       {
         source: '/ar/locations/fifth-settlement',
-        destination: '/ar/districts/fifth-settlement',
+        destination: '/ar/districts/fifth-settlement/',
         permanent: true,
       },
       {
         source: '/en/locations/fifth-settlement',
-        destination: '/en/districts/fifth-settlement',
+        destination: '/en/districts/fifth-settlement/',
         permanent: true,
       },
     ];

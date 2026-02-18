@@ -3,7 +3,7 @@ import { urlFor } from "@/sanity/image";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Clock, Globe, MessageCircle, PhoneCall, ArrowUpRight } from "lucide-react";
+import { Calendar, Clock, Globe, MessageCircle, PhoneCall } from "lucide-react";
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
 import ShareBtn from '@/components/ShareBtn'; 
@@ -24,7 +24,7 @@ export async function generateStaticParams() {
   }));
 }
 
-// 2. Metadata Function
+// 2. Metadata Function - النسخة المحدثة لحل مشكلة الفهرسة
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === "ar";
@@ -41,17 +41,26 @@ export async function generateMetadata({ params }) {
 
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.overview;
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   return {
     title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
     description: description,
     keywords: post.keywords?.join(', '),
+    metadataBase: new URL(baseUrl),
     alternates: {
-      canonical: `${CONTACT_INFO.domain}/${lang}/blog/${slug}`,
+      // ✅ تعديل: إضافة / في النهاية ليتوافق مع trailingSlash
+      canonical: `${baseUrl}/${lang}/blog/${slug}/`,
+      languages: {
+        'ar': `${baseUrl}/ar/blog/${slug}/`,
+        'en': `${baseUrl}/en/blog/${slug}/`,
+      },
     },
     openGraph: {
       title,
       description,
+      // ✅ تعديل: الرابط هنا أيضاً يجب أن ينتهي بـ /
+      url: `${baseUrl}/${lang}/blog/${slug}/`,
       images: [{ url: post.ogImage || '/og-image.jpg' }],
       type: 'article',
     },
@@ -80,8 +89,9 @@ export default async function PostPage({ params }) {
   const isDifferentLanguage = post.language !== lang;
   const whatsappNumber = CONTACT_INFO.whatsapp.replace(/\D/g, '');
 
+  // ✅ تعديل الروابط لتنتهي بـ / لضمان عدم حدوث Redirects
   const breadcrumbItems = [
-    { label: isAr ? "المدونة" : "Blog", href: `/${lang}/blog` },
+    { label: isAr ? "المدونة" : "Blog", href: `/${lang}/blog/` },
     { label: post.title }
   ];
 
@@ -168,7 +178,7 @@ export default async function PostPage({ params }) {
                 <span className="bg-[#C02026] w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"><Globe size={18} /></span>
                 {isAr ? "شارك هذه الرؤية مع دائرتك:" : "Share these insights:"}
             </div>
-            <div className="scale-125"><ShareBtn title={post.title} slug={`blog/${slug}`} lang={lang} isAr={isAr} /></div>
+            <div className="scale-125"><ShareBtn title={post.title} slug={`blog/${slug}/`} lang={lang} isAr={isAr} /></div>
         </div>
 
         {/* 🚀 5. Premium CTA */}
@@ -182,7 +192,7 @@ export default async function PostPage({ params }) {
               <a href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(isAr ? `مهتم بالتفاصيل حول: ${post.title}` : `Inquiry about: ${post.title}`)}`} target="_blank" className="bg-[#25D366] text-white px-12 py-6 rounded-3xl font-black text-lg hover:scale-105 transition-all flex items-center justify-center gap-3 shadow-xl">
                 <MessageCircle size={24} fill="currentColor" /> {isAr ? "تواصل فوراً" : "Connect Now"}
               </a>
-              <Link href={`/${lang}/contact`} className="bg-white/5 backdrop-blur-md text-white border-2 border-white/20 px-12 py-6 rounded-3xl font-black text-lg flex items-center justify-center gap-3 transition-all hover:bg-[#C02026] hover:border-[#C02026]">
+              <Link href={`/${lang}/contact/`} className="bg-white/5 backdrop-blur-md text-white border-2 border-white/20 px-12 py-6 rounded-3xl font-black text-lg flex items-center justify-center gap-3 transition-all hover:bg-[#C02026] hover:border-[#C02026]">
                 <PhoneCall size={24} /> {isAr ? "حجز موعد" : "Book Call"}
               </Link>
             </div>

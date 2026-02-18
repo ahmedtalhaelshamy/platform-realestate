@@ -4,11 +4,11 @@ import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة لضمان ثبات الصفحة وسرعتها
+// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة
 export const revalidate = 3600; 
 
 /**
- * 🛠️ دالة تطهير وتحويل أي مدخل إلى نص صافي (String) - هامة للـ SEO
+ * 🛠️ دالة تطهير وتحويل أي مدخل إلى نص صافي (String)
  */
 function cleanToPlainText(input) {
   if (!input) return "";
@@ -28,7 +28,7 @@ function cleanToPlainText(input) {
 }
 
 /**
- * 🖼️ حارس الصور النهائي (The Build Saver)
+ * 🖼️ حارس الصور النهائي
  */
 const getSafeImageUrl = (source) => {
   if (!source || !source.asset || !source.asset._ref) {
@@ -44,10 +44,8 @@ const getSafeImageUrl = (source) => {
 
 /**
  * 1️⃣ التوليد الثابت (Static Generation)
- * هذه الدالة هي المسؤولة عن تحويل الصفحة من ƒ إلى ●
  */
 export async function generateStaticParams() {
-  // ✅ إضافة فلتر !(_id in path("drafts.**")) لضمان عدم حدوث خطأ أثناء الـ Build
   const query = `*[_type == "project" && defined(slug.current) && !(_id in path("drafts.**"))]{ 
     "slug": slug.current 
   }`;
@@ -69,7 +67,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * 2️⃣ [SEO] الميتا داتا المحصنة والمطورة
+ * 2️⃣ [SEO] الميتا داتا المحدثة (حل مشكلة الصفحات البديلة)
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
@@ -89,12 +87,21 @@ export async function generateMetadata({ params }) {
   
   const description = (isAr ? seo?.metaDescAr : seo?.metaDescEn) || '';
   const imageUrl = seo?.ogImage ? getSafeImageUrl(seo.ogImage) : getSafeImageUrl(data.mainImage);
+  
+  // تنظيف الدومين لضمان عدم وجود تكرار في السلاش
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   return {
     title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
     description: cleanToPlainText(description).substring(0, 160),
+    metadataBase: new URL(baseUrl),
     alternates: {
-      canonical: `${CONTACT_INFO.domain}/${lang}/projects/${slug}`,
+      // ✅ إضافة السلاش النهائية لكل الروابط ليتوافق مع trailingSlash: true
+      canonical: `${baseUrl}/${lang}/projects/${slug}/`, 
+      languages: {
+        'ar': `${baseUrl}/ar/projects/${slug}/`,
+        'en': `${baseUrl}/en/projects/${slug}/`,
+      },
     },
     robots: {
       index: !seo?.noIndex,
@@ -103,7 +110,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title,
       description: cleanToPlainText(description),
-      url: `${CONTACT_INFO.domain}/${lang}/projects/${slug}`,
+      url: `${baseUrl}/${lang}/projects/${slug}/`,
       images: [{ url: imageUrl, width: 1200, height: 630 }],
       type: seo?.schemaType === 'Article' ? 'article' : 'website',
     }
@@ -116,6 +123,7 @@ export async function generateMetadata({ params }) {
 export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
@@ -136,7 +144,6 @@ export default async function ProjectDetailPage({ params }) {
   const data = await client.fetch(query, { slug });
   if (!data) return notFound();
 
-  // 🛡️ تطهير الحقول وتجهيز البيانات
   const sanitizedData = {
     ...data,
     computedH1: isAr ? (data.customH1Ar || data.titleAr) : (data.customH1En || data.titleEn),
@@ -144,20 +151,21 @@ export default async function ProjectDetailPage({ params }) {
     cityName: isAr ? data.locationData?.nameAr : data.locationData?.nameEn,
   };
 
+  // ✅ تعديل روابط الـ Breadcrumb لتنتهي بـ / لضمان تجربة مستخدم سريعة وبدون Redirects
   const breadcrumbItems = [
-    { label: isAr ? 'المشاريع' : 'Projects', href: `/${lang}/projects` },
-    { label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), href: `/${lang}/locations/${data.districtData?.slug}` },
+    { label: isAr ? 'المشاريع' : 'Projects', href: `/${lang}/projects/` },
+    { label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), href: `/${lang}/districts/${data.districtData?.slug}/` },
     { label: isAr ? data.titleAr : data.titleEn }
   ];
 
-  // 🏆 [SEO] Schema Markup
+  // 🏆 [SEO] Schema Markup مع روابط موحدة
   const mainSchema = {
     '@context': 'https://schema.org',
     '@type': data.seo?.schemaType || 'RealEstateListing',
     'name': sanitizedData.computedH1,
     'description': cleanToPlainText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
     'image': getSafeImageUrl(data.mainImage),
-    'url': `${CONTACT_INFO.domain}/${lang}/projects/${slug}`,
+    'url': `${baseUrl}/${lang}/projects/${slug}/`,
     'address': {
       '@type': 'PostalAddress',
       'addressLocality': sanitizedData.districtName,

@@ -38,7 +38,7 @@ async function getSiteSettings() {
   }
 }
 
-// 3. توليد الـ Metadata (SEO)
+// 3. توليد الـ Metadata (SEO) - النسخة المصححة لـ Search Console
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -52,18 +52,24 @@ export async function generateMetadata({ params }) {
     ? (settings?.seo?.metaDescAr || "استشارك العقاري الأول في مصر") 
     : (settings?.seo?.metaDescEn || "Your first real estate consultant in Egypt");
 
+  // تنظيف الـ domain من أي شرطة زائدة لضمان بناء الرابط بشكل صحيح
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, ''); 
+
   return {
     title: {
       default: title,
       template: `%s | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
     },
     description,
-    metadataBase: new URL(CONTACT_INFO.domain),
+    metadataBase: new URL(baseUrl),
     alternates: {
-      canonical: `/${lang}`,
+      // ✅ تعديل: إضافة / في النهاية ليتوافق مع trailingSlash: true
+      // هذا يمنع جوجل من اعتبار النسخة التي تنتهي بـ / نسخة مكررة
+      canonical: `${baseUrl}/${lang}/`, 
       languages: {
-        'ar': '/ar',
-        'en': '/en',
+        'ar': `${baseUrl}/ar/`,
+        'en': `${baseUrl}/en/`,
+        'x-default': `${baseUrl}/ar/`, // النسخة العربية هي الافتراضية
       },
     },
     icons: {
@@ -75,7 +81,6 @@ export async function generateMetadata({ params }) {
 
 // 4. الـ Layout الرئيسي للموقع
 export default async function WebsiteLayout({ children, params }) {
-  // ✅ فك الـ params لأنها Promise في الإصدارات الحديثة
   const { lang } = await params;
   const isAr = lang === 'ar';
   
@@ -86,7 +91,6 @@ export default async function WebsiteLayout({ children, params }) {
       lang={lang} 
       dir={isAr ? 'rtl' : 'ltr'} 
       className={`${almarai.variable} ${jakarta.variable}`}
-      // منع أخطاء الـ Hydration بسبب إضافات المتصفح (مثل Dark Reader)
       suppressHydrationWarning
     >
       <body 
@@ -99,15 +103,12 @@ export default async function WebsiteLayout({ children, params }) {
         suppressHydrationWarning
       >
           
-        {/* الهيدر: نمرر له بيانات التواصل من سانتي */}
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
         
-        {/* محتوى الصفحة الرئيسي */}
         <main className="flex-grow relative w-full">
           {children}
         </main>
 
-        {/* أدوات عائمة */}
         <CompareFloatingBar lang={lang} />
 
         <WhatsAppBtn 
@@ -115,10 +116,8 @@ export default async function WebsiteLayout({ children, params }) {
           phoneNumber={settings?.contactInfo?.whatsapp || CONTACT_INFO.whatsapp} 
         />
         
-        {/* الفوتر */}
         <Footer lang={lang} settings={settings} />
         
-        {/* Script صغير لتحسين أداء الخطوط ومنع الـ Layout Shift */}
         <style dangerouslySetInnerHTML={{ __html: `
           html { scroll-behavior: smooth; }
           body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }

@@ -1,7 +1,6 @@
 import { CONTACT_INFO } from '../components/constants/contact';
 
 export default function robots() {
-  // تأكد أن baseUrl لا ينتهي بـ /
   const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || CONTACT_INFO.domain).replace(/\/$/, '');
 
   return {
@@ -9,18 +8,19 @@ export default function robots() {
       userAgent: '*',
       allow: [
         '/',
-        '/_next/static/',  // ملفات الـ CSS والجافا سكريبت (مهم للـ Mobile Friendly Test)
-        '/_next/image/',   // ✅ مهم جداً: السماح لجوجل بأرشفة صور المشاريع
-        '/api/og',         // لو عندك صور Share تلقائية
+        '/_next/static/', 
+        '/_next/image/', 
+        '/api/og', // السماح لصور المشاركة
       ],
       disallow: [
-        '/studio/',        // لوحة تحكم Sanity
-        '/admin/',         
-        '/api/',           // حماية الـ API Routes
+        '/studio/', 
+        '/admin/', 
+        '/api/',   // سيمنع الـ api ما عدا الـ og المذكور في الـ allow
         '/private/',
-        '/*?*',            // منع أرشفة روابط البحث اللي فيها بارامترات (توفير الـ Crawl Budget)
+        '/*?*',    // منع روابط الفلاتر والبحث
       ],
     },
+    // التأكد من أن الرابط كامل ويبدأ بـ https
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
