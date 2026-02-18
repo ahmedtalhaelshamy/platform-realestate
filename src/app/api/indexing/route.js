@@ -6,24 +6,35 @@ export async function POST(req) {
     const body = await req.json();
     const { secret, slug } = body;
 
-    // التأكد من أن الطلب قادم من Sanity
+    // 1. التحقق من كلمة السر المرسلة من Sanity
     if (secret !== process.env.INDEXING_SECRET) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
+    // 2. معالجة المفتاح الخاص لحل مشكلة الـ DECODER unsupported
+    // نقوم باستبدال الـ \n النصية بأسطر حقيقية
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ? process.env.GOOGLE_PRIVATE_KEY.split(String.raw`\n`).join('\n')
+      : undefined;
+
+    if (!privateKey) {
+      throw new Error("GOOGLE_PRIVATE_KEY is missing in environment variables");
+    }
+
+    // 3. إعداد الصلاحيات
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        private_key: privateKey,
       },
       scopes: ['https://www.googleapis.com/auth/indexing'],
     });
 
     const indexing = google.indexing('v3');
-    // بناء الرابط الخاص بمشاريع هايد بارك وغيرها
     const urlToIndex = `https://platformrealestate.co/ar/projects/${slug}`;
 
-    await indexing.urlNotifications.publish({
+    // 4. إرسال الطلب لجوجل
+    const response = await indexing.urlNotifications.publish({
       auth,
       requestBody: {
         url: urlToIndex,
@@ -31,8 +42,17 @@ export async function POST(req) {
       },
     });
 
-    return NextResponse.json({ message: 'تم إرسال طلب الفهرسة بنجاح' });
+    return NextResponse.json({ 
+      message: 'Successfully notified Google', 
+      url: urlToIndex,
+      data: response.data 
+    });
+
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Indexing API Error:', error.message);
+    return NextResponse.json({ 
+      message: 'Indexing failed', 
+      error: error.message 
+    }, { status: 500 });
   }
 }
