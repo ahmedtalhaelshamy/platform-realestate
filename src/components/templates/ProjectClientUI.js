@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PortableText } from '@portabletext/react'; 
@@ -68,7 +68,6 @@ const getYoutubeId = (url) => {
   return (match && match[1].length === 11) ? match[1] : null;
 };
 
-// ✅ الحارس الذكي: تحويل أي PortableText لنص صافي لمنع خطأ الـ Object Child
 const toPlainText = (blocks = []) => {
   if (!blocks || !Array.isArray(blocks)) return typeof blocks === 'string' ? blocks : '';
   return blocks
@@ -116,7 +115,7 @@ const CTABox = ({ isAr, inquiries, whatsappLink, handleShare, copied }) => (
       </div>
       <div className="space-y-2.5">
           <a href={`tel:${CONTACT_INFO.phone}`} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C02026] transition-all group shadow-sm text-xs md:text-sm border border-slate-800">
-              <Phone size={16} /> {isAr ? 'اتصال مباشر' : 'Call Now'}
+              <Phone size={16} /> {isAr ? 'اتصل مباشر' : 'Call Now'}
           </a>
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="w-full bg-[#25D366] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#128c7e] transition-all shadow-sm text-xs md:text-sm">
               <MessageCircle size={18} /> {isAr ? 'واتساب' : 'WhatsApp'}
@@ -165,6 +164,41 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
   
   useEffect(() => { 
     setInquiries(15 + Math.floor(Math.random() * 10));
+
+    // ✅ نظام الحماية النووي ضد التهنيج (Mobile Global Fix)
+    const nukeScrollLock = () => {
+      const els = [document.documentElement, document.body];
+      els.forEach(el => {
+        el.style.setProperty('overflow', 'auto', 'important');
+        el.style.setProperty('position', 'static', 'important');
+        el.style.setProperty('pointer-events', 'auto', 'important');
+        el.style.setProperty('touch-action', 'auto', 'important');
+        el.style.setProperty('height', 'auto', 'important');
+      });
+      // إزالة أي طبقات متبقية من مكتبات الصور
+      document.querySelectorAll('.lg-backdrop, .yarl__backdrop').forEach(el => el.remove());
+    };
+
+    // مراقب التغيرات في الـ DOM
+    const observer = new MutationObserver(() => {
+      // لو المعرض اختفى من الـ DOM، نفتح السكرول فوراً
+      if (!document.querySelector('.yarl__container') && !document.querySelector('.lg-container')) {
+        nukeScrollLock();
+      }
+    });
+
+    observer.observe(document.documentElement, { attributes: true, childList: true, subtree: true });
+    
+    // فك التجميد عند أي تفاعل لمسي أو ضغط
+    window.addEventListener('touchstart', nukeScrollLock, { passive: true });
+    window.addEventListener('popstate', nukeScrollLock);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('touchstart', nukeScrollLock);
+      window.removeEventListener('popstate', nukeScrollLock);
+      nukeScrollLock();
+    };
   }, []);
 
   if (!data) return null;
@@ -181,7 +215,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
     }
   };
 
-  // ✅ دالة الحماية للنصوص: تضمن تحويل أي كائن PortableText لنص عادي فوراً
   const txt = (ar, en) => {
     const res = isAr ? ar : en;
     return getSafeText(res); 
@@ -208,7 +241,12 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
 
         <div className="absolute inset-0 flex flex-col justify-end pb-20 px-4 md:px-8">
           <div className="max-w-[1440px] mx-auto w-full">
-            <div className="text-white/90 mb-6 hidden md:block"><Breadcrumbs items={breadcrumbItems} lang={lang} /></div>
+           {/* Breadcrumbs للموبايل والديسك توب مع خاصية السحب الأفقي */}
+<div className="text-white/90 mb-4 md:mb-6 block relative z-30 overflow-x-auto hide-scrollbar">
+  <div className="min-w-max">
+    <Breadcrumbs items={breadcrumbItems} lang={lang} />
+  </div>
+</div>
             <div className="flex flex-wrap gap-2 mb-6">
                 {data.isNewLaunch && <span className="bg-[#C02026] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><Star size={12} fill="white"/> {isAr ? 'إطلاق حديث' : 'New Launch'}</span>}
                 {data.isReadyToMove && <span className="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><CheckCircle size={12}/> {isAr ? 'جاهز للاستلام' : 'Ready'}</span>}
@@ -224,20 +262,15 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
         </div>
       </section>
 
-      {/* 2. dynamic STATS BAR (تم حل مشكلة التشطيب والاستلام هنا عبر فحص المسميات البديلة) */}
+      {/* 2. dynamic STATS BAR */}
       <section className="relative z-20 -mt-12 max-w-[1300px] mx-auto px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 grid grid-cols-2 lg:grid-cols-6 p-8 gap-y-8 lg:divide-x rtl:divide-x-reverse divide-slate-100">
               {[
                 { l: isAr?'المساحات من':'Areas From', v: data.minArea ? `${data.minArea} m²` : '-', i: Maximize }, 
                 { l: isAr?'المقدم':'Down Payment', v: data.downPayment ? `${data.downPayment}%` : '-', i: Percent },
                 { l: isAr?'التقسيط':'Installments', v: data.installments ? `${data.installments} ${isAr?'سنوات':'Yrs'}` : '-', i: CreditCard },
-                
-                // ✅ التشطيب: محاولة جلب الحقل بأكثر من مسمى محتمل من سانتي
                 { l: isAr?'التشطيب':'Finishing', v: txt(data.finishingTypeAr || data.finishingType, data.finishingTypeEn || data.finishingType) || '-', i: PaintBucket },
-                
-                // ✅ الاستلام: محاولة جلب الحقل بأكثر من مسمى محتمل من سانتي
                 { l: isAr?'الاستلام':'Delivery', v: txt(data.deliveryDateAr || data.deliveryDate, data.deliveryDateEn || data.deliveryDate) || '-', i: Calendar },
-                
                 { l: isAr?'سعر يبدأ من':'Prices From', v: data.price ? `${formatNum(data.price)} EGP` : (isAr?'اتصل بنا':'Call'), i: Star, c: 'text-[#C02026]' }
               ].map((x, i) => (
                 <div key={i} className="text-center px-4 group">
@@ -257,14 +290,12 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
         </section>
       )}
 
-      {/* 4. MAIN CONTENT (الترتيب الصارم المطلوب) */}
+      {/* 4. MAIN CONTENT */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 pb-40 pt-10 grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-9 space-y-6">
             
-            {/* أ. المقدمة */}
             <ContentSection id="intro" title={txt(data.introTitleAr, data.introTitleEn) || (isAr ? 'نبذة عن المشروع' : 'Introduction')} content={isAr ? data.introContentAr : data.introContentEn} />
             
-            {/* ب. الموقع */}
             <ContentSection id="location" title={txt(data.locationTitleAr, data.locationTitleEn) || (isAr ? 'الموقع الاستراتيجي' : 'Location')} image={data.locationImage} content={isAr ? data.locationContentAr : data.locationContentEn} altBg>
                 {data.nearbyPlaces?.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
@@ -278,13 +309,10 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 )}
             </ContentSection>
 
-            {/* ج. تفاصيل المشروع */}
             <ContentSection id="design" title={txt(data.detailsTitleAr, data.detailsTitleEn) || (isAr ? 'تفاصيل وتصميم المشروع' : 'Design Details')} image={data.detailsImage} content={isAr ? data.detailsContentAr : data.detailsContentEn} />
 
-            {/* د. مساحة المشروع (Master Plan) */}
             <ContentSection id="area" title={txt(data.areaTitleAr, data.areaTitleEn) || (isAr ? 'مساحة ومخطط المشروع' : 'Master Plan')} image={data.areaImage} content={isAr ? data.areaContentAr : data.areaContentEn} altBg />
 
-            {/* هـ. المرافق والخدمات */}
             <ContentSection id="facilities" title={txt(data.facilitiesTitleAr, data.facilitiesTitleEn) || (isAr ? 'الخدمات والمرافق' : 'Amenities')} image={data.facilitiesImage} content={isAr ? data.facilitiesContentAr : data.facilitiesContentEn}>
                 {data.amenities?.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
@@ -302,7 +330,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 )}
             </ContentSection>
 
-            {/* و. الوحدات وقائمة الوحدات */}
             <ContentSection id="units" title={txt(data.unitsTitleAr, data.unitsTitleEn) || (isAr ? 'الوحدات المتاحة والمساحات' : 'Available Units')} image={data.unitsImage} content={isAr ? data.unitsContentAr : data.unitsContentEn}>
                 {data.inventory?.length > 0 && (
                     <div className="grid gap-4 mt-10">
@@ -321,10 +348,8 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 )}
             </ContentSection>
 
-            {/* ز. باقات الأسعار */}
             <ContentSection id="prices" title={txt(data.pricesTitleAr, data.pricesTitleEn) || (isAr ? 'باقات الأسعار' : 'Pricing')} image={data.pricesImage} content={isAr ? data.pricesContentAr : data.pricesContentEn} altBg />
 
-            {/* ح. أنظمة الدفع */}
             <ContentSection id="payment" title={txt(data.paymentTitleAr, data.paymentTitleEn) || (isAr ? 'أنظمة السداد والتقسيط' : 'Payment Plans')} image={data.paymentImage} content={isAr ? data.paymentContentAr : data.paymentContentEn}>
                 <div className="flex flex-wrap gap-6 mt-10 mb-16">
                     <div className="bg-[#C02026] text-white p-8 rounded-[2.5rem] text-center flex-1 min-w-[200px] shadow-2xl relative overflow-hidden group">
@@ -338,7 +363,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </div>
             </ContentSection>
 
-            {/* ط. فيديو المشروع */}
             {videoId && (
                 <section className="py-20 bg-slate-950 rounded-[3rem] text-center my-10 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-full h-full bg-[#C02026]/5 blur-3xl rounded-full" />
@@ -349,7 +373,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </section>
             )}
 
-            {/* ي. حاسبة الأقساط الذكية (نسخة مطورة بريميوم) */}
             <section className="mt-16 bg-slate-900 rounded-[3.5rem] p-8 md:p-14 border border-white/5 shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#C02026]/10 rounded-full blur-[120px] -z-10 animate-pulse" />
                 <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
@@ -380,10 +403,9 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </div>
             </section>
 
-            {/* ك. التقييم الفني (Pros & Cons) */}
             {(data.prosAr || data.consAr) && (
                 <section className="py-20 bg-white">
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-12 italic tracking-tighter uppercase leading-none">{isAr ? 'التقييم الفني (المميزات والعيوب)' : 'Evaluation'}</h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 mb-12 italic tracking-tighter uppercase leading-none">{isAr ? 'التقييم الفني' : 'Evaluation'}</h2>
                     <div className="grid md:grid-cols-2 gap-8">
                         {data.prosAr && (
                             <div className="bg-emerald-50/40 p-10 rounded-[3rem] border border-emerald-100 hover:bg-emerald-50 transition-colors">
@@ -405,7 +427,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </section>
             )}
 
-            {/* ل. المطور العقاري وماريعه */}
             {data.developer && (
                 <section className="bg-slate-950 p-10 md:p-16 rounded-[4rem] border border-white/5 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-[#C02026]/10 transition-all duration-1000" />
@@ -444,12 +465,11 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </section>
             )}
 
-            {/* م. رأي المحرر العقاري + الكاتب والتقييم */}
             <ContentSection id="review" title={txt(data.opinionTitleAr, data.opinionTitleEn) || (isAr ? 'رأي خبير بلاتفورم' : 'Expert Review')} content={isAr ? data.opinionContentAr : data.opinionContentEn} altBg>
                 <div className="flex flex-col md:flex-row items-center gap-8 mt-10">
                   {data.editorRating && (
                       <div className="flex items-center gap-5 bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-white/5 w-full md:w-fit">
-                          <div className="bg-[#C02026] text-white font-black text-3xl w-16 h-16 rounded-[1.2rem] flex items-center justify-center shadow-2xl shadow-red-900/40 italic">{data.editorRating}</div>
+                          <div className="bg-[#C02026] text-white font-black text-3xl w-16 h-16 rounded-[1.2rem] flex items-center justify-center shadow-2xl italic">{data.editorRating}</div>
                           <div>
                             <div className="font-black text-white uppercase tracking-[0.2em] text-[10px] mb-1">{isAr ? 'تقييم المنصة' : 'Overall Score'}</div>
                             <div className="flex text-yellow-400 gap-1">{[...Array(5)].map((_,i) => <Star key={i} size={16} fill="currentColor" />)}</div>
@@ -469,7 +489,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </div>
             </ContentSection>
 
-            {/* ن. الأسئلة الشائعة */}
             {data.faqs?.length > 0 && (
                 <section id="faqs" className="py-20 bg-white">
                     <div className="text-center mb-16"><span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[11px] block mb-4">{isAr ? 'معلومات تهمك' : 'Key Info'}</span><h2 className="text-4xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">{isAr ? 'الأسئلة الشائعة' : 'Project FAQ'}</h2></div>
@@ -484,7 +503,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
                 </section>
             )}
 
-            {/* س. مشاريع مقترحة لك */}
             {similarProjects?.length > 0 && (
                 <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
@@ -499,7 +517,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
             )}
         </div>
 
-        {/* Sidebar (البوكس الجانبي - ديناميكي بالكامل) */}
         <aside className="lg:col-span-3 space-y-8 hidden lg:block h-full">
             <div className="sticky top-32 space-y-8">
                 <CTABox isAr={isAr} inquiries={inquiries} whatsappLink={whatsappLink} handleShare={handleShare} copied={copied} />
@@ -514,7 +531,6 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
         </aside>
       </div>
 
-      {/* Floating Mobile Nav */}
       <nav className="lg:hidden fixed bottom-24 left-4 right-4 z-[110] flex gap-3 h-16 animate-in slide-in-from-bottom-12 duration-1000">
           <a href={`tel:${CONTACT_INFO.phone}`} className="w-20 bg-slate-950 text-white rounded-[1.5rem] flex flex-col items-center justify-center border border-white/5 shadow-2xl active:scale-90 transition-all group">
             <Phone size={20} className="text-[#C02026] mb-1 group-hover:animate-bounce" /> 
@@ -531,7 +547,19 @@ export default function ProjectClientUI({ data, lang, isAr, breadcrumbItems, sim
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
         .animate-slow-zoom { animation: slow-zoom 30s linear infinite alternate; }
-        html { scroll-behavior: smooth; }
+        /* Fix for mobile body freeze with smooth scroll conflict */
+        html { 
+          scroll-behavior: auto !important; 
+          height: auto !important;
+          overflow-x: hidden !important;
+        } 
+        body {
+          overflow-x: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+        @media (min-width: 1024px) { 
+          html { scroll-behavior: smooth !important; } 
+        }
       `}} />
     </main>
   );

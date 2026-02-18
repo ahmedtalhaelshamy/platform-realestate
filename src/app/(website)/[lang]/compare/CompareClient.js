@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  X, ArrowLeft, Building2, MapPin, Calendar, Wallet, 
+  X, Building2, MapPin, Calendar, Wallet, 
   GitCompare, CheckCircle2, Paintbrush, 
   Home, Ruler, Star, Sparkles, Trash2, ArrowRight, 
-  MessageCircle, ArrowUpRight // ✅ تم إضافة الأيقونة المفقودة هنا
+  MessageCircle, ArrowUpRight, Info
 } from 'lucide-react';
 import { client, urlFor } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -17,7 +17,7 @@ export default function CompareClient({ lang }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ جلب البيانات من الـ LocalStorage ومن ثم Sanity
+  // ✅ جلب البيانات وضمان مزامنة الـ LocalStorage
   useEffect(() => {
     async function fetchFullDetails() {
       const stored = JSON.parse(localStorage.getItem('compare_projects') || '[]');
@@ -101,20 +101,23 @@ export default function CompareClient({ lang }) {
             <h1 className="text-4xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
               {isAr ? 'جدول المقارنة' : 'Comparison Matrix'}
             </h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full" /> {isAr ? 'الأخضر: قيم متطابقة' : 'Green: Identical Values'}
+              <span className="w-2 h-2 bg-rose-500 rounded-full ms-4" /> {isAr ? 'الأحمر: قيم مختلفة' : 'Red: Different Values'}
+            </p>
           </div>
           <button onClick={clearAll} className="flex items-center gap-2 text-slate-400 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors group">
             <Trash2 size={16} className="group-hover:shake" /> {isAr ? 'مسح الجدول' : 'Clear Matrix'}
           </button>
         </div>
 
-        {/* ✅ Table Container with Sticky Column Logic */}
+        {/* ✅ Table Container */}
         <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto scrollbar-hide snap-x">
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {/* Sticky criteria column */}
-                  <th className="sticky start-0 z-40 bg-white/80 backdrop-blur-md p-6 md:p-10 min-w-[140px] md:min-w-[300px] text-start border-b border-e border-slate-50">
+                  <th className="sticky start-0 z-40 bg-white/90 backdrop-blur-md p-6 md:p-10 min-w-[140px] md:min-w-[300px] text-start border-b border-e border-slate-50">
                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{isAr ? 'المواصفات' : 'Criteria'}</span>
                   </th>
                   {projects.map(p => (
@@ -145,28 +148,18 @@ export default function CompareClient({ lang }) {
                 <CompareRow icon={<CheckCircle2 size={18}/>} label={isAr ? 'المقدم' : 'Down Payment'} projects={projects} field="downPayment" suffix="%" />
                 <CompareRow icon={<Calendar size={18}/>} label={isAr ? 'سنوات التقسيط' : 'Installments'} projects={projects} field="installments" suffix={isAr ? 'سنوات' : 'Years'} />
                 <CompareRow icon={<Home size={18}/>} label={isAr ? 'حالة الاستلام' : 'Delivery'} projects={projects} field="deliveryDate" />
+                <CompareRow icon={<Paintbrush size={18}/>} label={isAr ? 'التشطيب' : 'Finishing'} projects={projects} field="finishingType" />
                 
-                {/* Rating Row */}
-                <tr className="group hover:bg-slate-50/50 transition-colors">
-                   <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-6 md:p-10 font-black text-[10px] md:text-xs uppercase tracking-widest text-slate-500 border-e border-slate-50 shadow-xl shadow-slate-200/20">
-                      <div className="flex items-center gap-3">
-                        <Star size={16} className="text-yellow-500 fill-yellow-500" /> 
-                        <span>{isAr ? 'التقييم' : 'Score'}</span>
-                      </div>
-                   </td>
-                   {projects.map(p => (
-                     <td key={p._id} className="p-6 md:p-10 text-center md:text-start">
-                        <div className="flex items-baseline gap-1 justify-center md:justify-start">
-                           <span className="text-3xl font-black text-slate-950 italic">{p.editorRating || '8.5'}</span>
-                           <span className="text-[10px] font-black text-slate-400">/10</span>
-                        </div>
-                     </td>
-                   ))}
-                </tr>
+                {/* Score Row with Comparison Logic */}
+                <CompareRow icon={<Star size={18} className="text-yellow-500 fill-yellow-500" />} label={isAr ? 'التقييم' : 'Score'} projects={projects} field="editorRating" suffix="/10" isScore />
 
                 {/* Actions Footer */}
-                <tr>
-                   <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-6 md:p-10 border-e border-slate-50"></td>
+                <tr className="bg-slate-50/30">
+                   <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-6 md:p-10 border-e border-slate-50">
+                      <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                        <Info size={14} /> {isAr ? 'تواصل' : 'Action'}
+                      </div>
+                   </td>
                    {projects.map(p => (
                      <td key={p._id} className="p-6 md:p-10">
                         <a href={`https://wa.me/${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(isAr ? `أريد الاستفسار عن مشروع ${p.titleAr}` : `Inquiry about ${p.titleEn}`)}`} target="_blank" className="w-full flex items-center justify-center gap-3 bg-[#25D366] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-green-500/20 hover:scale-105 transition-transform active:scale-95">
@@ -184,19 +177,46 @@ export default function CompareClient({ lang }) {
   );
 }
 
-// ✅ مكوّن الصف الذكي
-function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "", isPrice, isBold }) {
+// ✅ المكون الذكي للصف مع منطق المقارنة اللوني
+function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "", isPrice, isBold, isScore }) {
+  
+  // دالة لجلب القيمة العميقة من الكائن
   const getValue = (obj, path) => {
     if (!obj || !path) return null;
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
   };
 
+  // ✅ منطق المقارنة: التحقق مما إذا كانت جميع القيم في الصف متطابقة
+  const areAllValuesEqual = useMemo(() => {
+    if (projects.length <= 1) return null;
+    const firstVal = getValue(projects[0], field);
+    return projects.every(p => getValue(p, field) === firstVal);
+  }, [projects, field]);
+
+  // تحديد اللون بناءً على التطابق
+  const getHighlightClass = () => {
+    if (projects.length <= 1) return "";
+    return areAllValuesEqual 
+      ? "bg-emerald-50/50 text-emerald-700" 
+      : "bg-rose-50/50 text-rose-700";
+  };
+
+  const getStatusIcon = () => {
+    if (projects.length <= 1) return null;
+    return areAllValuesEqual 
+      ? <CheckCircle2 size={12} className="text-emerald-500" /> 
+      : <Info size={12} className="text-rose-500" />;
+  };
+
   return (
-    <tr className="group hover:bg-slate-50/30 transition-colors">
-      <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-6 md:p-10 font-black text-[10px] md:text-xs uppercase tracking-widest text-slate-400 border-e border-slate-50 transition-colors">
-        <div className="flex items-center gap-3">
-          <span className="text-[#C02026]">{icon}</span> 
-          <span className="leading-tight">{label}</span>
+    <tr className={`group transition-colors ${getHighlightClass()}`}>
+      <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-6 md:p-10 font-black text-[10px] md:text-xs uppercase tracking-widest text-slate-400 border-e border-slate-50 group-hover:bg-slate-100 transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-[#C02026] group-hover:scale-110 transition-transform">{icon}</span> 
+            <span className="leading-tight">{label}</span>
+          </div>
+          {getStatusIcon()}
         </div>
       </td>
       
@@ -205,12 +225,17 @@ function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "",
         return (
           <td key={p._id} className="p-6 md:p-10 align-middle text-center md:text-start transition-all">
              {isPrice ? (
-                <span className="text-xl md:text-2xl font-black text-slate-900 italic whitespace-nowrap">
+                <span className="text-xl md:text-2xl font-black italic whitespace-nowrap">
                   {formatCurrency(val)}
                 </span>
+             ) : isScore ? (
+                <div className="flex items-baseline gap-1 justify-center md:justify-start">
+                  <span className="text-2xl md:text-3xl font-black italic">{val || '8.5'}</span>
+                  <span className="text-[10px] font-black opacity-40">{suffix}</span>
+                </div>
              ) : (
-                <span className={`text-sm md:text-base ${isBold ? 'font-black text-slate-950 uppercase italic' : 'font-bold text-slate-600'}`}>
-                   {val ? `${val} ${suffix}` : <span className="text-slate-200">N/A</span>}
+                <span className={`text-sm md:text-base ${isBold ? 'font-black uppercase italic' : 'font-bold'}`}>
+                   {val ? `${val} ${suffix}` : <span className="opacity-20 font-normal">N/A</span>}
                 </span>
              )}
           </td>

@@ -28,7 +28,7 @@ export default async function AboutSection({ lang }) {
 
   // --- تجهيز البيانات ---
   const title = isAr 
-    ? data?.storyTitleAr || 'بلاتفورم للتطوير العقاري' 
+    ? data?.storyTitleAr || 'بلاتفورم للتسويق العقاري' 
     : data?.storyTitleEn || 'Platform Real Estate';
 
   const content = isAr ? data?.storyContentAr : data?.storyContentEn;

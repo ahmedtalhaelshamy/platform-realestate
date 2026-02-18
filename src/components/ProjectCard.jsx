@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { urlFor } from '@/sanity/client'; 
@@ -13,14 +13,15 @@ import {
   Building2,
   GitCompare, 
   Check,
-  Share2 
+  Share2,
+  Star
 } from 'lucide-react';
 
 export default function ProjectCard({ data: project, lang }) {
   const [isInCompare, setIsInCompare] = useState(false);
   const isAr = lang === 'ar';
 
-  // التحقق من حالة المقارنة (محسن)
+  // ✅ 1. منطق التحقق من حالة المقارنة
   const checkCompareState = useCallback(() => {
     try {
       const current = JSON.parse(localStorage.getItem('compare_projects') || '[]');
@@ -38,162 +39,165 @@ export default function ProjectCard({ data: project, lang }) {
     };
   }, [checkCompareState]);
 
-  if (!project) return null;
-
+  // ✅ 2. وظيفة إضافة/حذف المقارنة
   const toggleCompare = (e) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     try {
-      const current = JSON.parse(localStorage.getItem('compare_projects') || '[]');
+      let current = JSON.parse(localStorage.getItem('compare_projects') || '[]');
       if (isInCompare) {
-        const updated = current.filter(p => p._id !== project._id);
-        localStorage.setItem('compare_projects', JSON.stringify(updated));
+        current = current.filter(p => p._id !== project._id);
       } else {
-        if (current.length >= 4) return alert(isAr ? '4 مشاريع كحد أقصى' : 'Max 4 projects');
-        localStorage.setItem('compare_projects', JSON.stringify([...current, project]));
+        if (current.length >= 4) {
+          alert(isAr ? 'يمكنك مقارنة 4 مشاريع كحد أقصى' : 'Max 4 projects for comparison');
+          return;
+        }
+        current.push({ _id: project._id });
       }
+      localStorage.setItem('compare_projects', JSON.stringify(current));
       window.dispatchEvent(new Event('compareUpdated'));
+      setIsInCompare(!isInCompare);
     } catch (e) { console.error(e); }
   };
 
-  const handleShare = async (e) => {
-    e.preventDefault(); e.stopPropagation();
+  // ✅ 3. وظيفة المشاركة (Share)
+  const handleShare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const url = `${window.location.origin}/${lang}/projects/${project.slug}`;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: isAr ? project.titleAr : project.titleEn,
-          url: url
-        });
-      } catch (err) { /* ignore */ }
+      navigator.share({
+        title: isAr ? project.titleAr : project.titleEn,
+        url: url
+      }).catch(() => {});
     } else {
       navigator.clipboard.writeText(url);
       alert(isAr ? 'تم نسخ الرابط' : 'Link copied');
     }
   };
 
-  // تنسيق السعر بشكل احترافي (مثلاً: 5.2M ج.م)
-  const formattedPrice = project.price 
-    ? new Intl.NumberFormat(isAr ? 'ar-EG' : 'en-US', { 
-        notation: "compact", 
-        maximumFractionDigits: 1 
-      }).format(project.price) + (isAr ? ' ج.م' : ' EGP')
-    : (isAr ? 'اتصل للسعر' : 'Call for price');
+  if (!project) return null;
 
-  const whatsappLink = `https://wa.me/${CONTACT_INFO.whatsapp?.replace(/\D/g,'')}?text=${encodeURIComponent(
-    isAr ? `استفسار عن: ${project.titleAr}` : `Inquiry about: ${project.titleEn}`
-  )}`;
+  const districtName = useMemo(() => {
+    const d = project.district || project.districtData;
+    return isAr ? d?.nameAr : d?.nameEn;
+  }, [project, isAr]);
+
+  const cityName = useMemo(() => {
+    const l = project.location || project.locationData;
+    return isAr ? l?.nameAr : l?.nameEn;
+  }, [project, isAr]);
+
+  const formattedPrice = useMemo(() => {
+    if (!project.price) return isAr ? 'اتصل للسعر' : 'Call for Price';
+    return new Intl.NumberFormat(isAr ? 'ar-EG' : 'en-US', { notation: "compact", maximumFractionDigits: 1 }).format(project.price) + (isAr ? ' ج.م' : ' EGP');
+  }, [project.price, isAr]);
+
+  const whatsappLink = useMemo(() => {
+    const projectName = isAr ? project.titleAr : project.titleEn;
+    const msg = isAr ? `أريد الاستفسار عن مشروع: ${projectName}` : `Inquiry about: ${projectName}`;
+    return `https://wa.me/${CONTACT_INFO.whatsapp?.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+  }, [project, isAr]);
 
   return (
-    <div className="group relative bg-white rounded-[2.5rem] p-3 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2 overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className="group relative bg-white rounded-[2.5rem] p-3 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.12)] hover:-translate-y-2 overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 📸 Image & Actions Section */}
-      <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-4 bg-slate-100">
-        <Image 
-          src={project.mainImage ? urlFor(project.mainImage).width(600).height(450).quality(90).url() : "/placeholder.jpg"}
-          alt={isAr ? project.titleAr : project.titleEn}
-          fill
-          priority={project.isNewLaunch}
-          className="object-cover transition-transform duration-[2s] group-hover:scale-110"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
+      <Link href={`/${lang}/projects/${project.slug}`} className="flex flex-col h-full group/main">
+        
+        {/* الصورة والبادجات */}
+        <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-5 bg-slate-50 z-0">
+          <Image 
+            src={project.mainImage ? urlFor(project.mainImage).width(600).height(450).quality(90).url() : "/placeholder.jpg"}
+            alt={isAr ? project.titleAr : project.titleEn}
+            fill priority={project.isNewLaunch}
+            className="object-cover transition-transform duration-[2s] group-hover/main:scale-110"
+          />
 
-        {/* Overlay Buttons - تظهر بوضوح عند الـ Hover */}
-        <div className={`absolute top-4 ${isAr ? 'left-4' : 'right-4'} z-20 flex flex-col gap-2 transition-all duration-500 md:opacity-0 md:translate-x-4 group-hover:opacity-100 group-hover:translate-x-0`}>
-          <button 
-            onClick={toggleCompare}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-2xl backdrop-blur-md border ${
-              isInCompare ? 'bg-[#C02026] text-white border-[#C02026]' : 'bg-white/90 text-slate-900 border-white/20 hover:bg-slate-950 hover:text-white'
-            }`}
-          >
-            {isInCompare ? <Check size={20} strokeWidth={3} /> : <GitCompare size={20} />}
-          </button>
-
-          <button 
-            onClick={handleShare}
-            className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-2xl backdrop-blur-md border border-white/20 bg-white/90 text-slate-900 hover:bg-slate-950 hover:text-white"
-          >
-            <Share2 size={20} />
-          </button>
-        </div>
-
-        {/* Badges */}
-        <div className={`absolute top-4 ${isAr ? 'right-4' : 'left-4'} z-10 flex flex-col gap-2`}>
-          {project.isNewLaunch && (
-            <span className="bg-[#C02026] text-white text-[10px] font-black px-4 py-1.5 rounded-xl uppercase shadow-xl tracking-tighter animate-pulse">
-              {isAr ? 'إطلاق جديد' : 'New Launch'}
-            </span>
-          )}
-        </div>
-
-        {/* Price Tag Overlay */}
-        <div className={`absolute bottom-4 ${isAr ? 'left-4' : 'right-4'} z-10`}>
-           <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/20 text-slate-900 font-black text-sm">
-              {formattedPrice}
-           </div>
-        </div>
-      </div>
-
-      {/* 📝 Content Section */}
-      <div className="flex flex-col flex-grow px-2 pb-2">
-        <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center gap-1 text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg">
-                <Building2 size={12} />
-                <span className="text-[10px] font-bold uppercase truncate max-w-[80px]">
-                  {isAr ? (project.developer?.nameAr || "مطور معتمد") : (project.developer?.nameEn || "Developer")}
-                </span>
+          <div className="absolute top-4 inset-x-4 z-20 flex justify-between items-start pointer-events-none">
+            <div>
+              {project.isNewLaunch && (
+                <div className="bg-[#C02026] text-white text-[10px] font-black px-4 py-1.5 rounded-xl uppercase shadow-xl">
+                  {isAr ? 'إطلاق جديد' : 'New Launch'}
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1 text-[#C02026] bg-red-50 px-2.5 py-1 rounded-lg">
-                <MapPin size={12} /> 
-                <span className="text-[10px] font-bold truncate max-w-[100px]">
-                  {isAr ? (project.districtData?.nameAr || "موقع متميز") : (project.districtData?.nameEn || "Prime Location")}
-                </span>
+            <div className="flex flex-col gap-2 pointer-events-auto">
+              <button onClick={toggleCompare} className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all shadow-lg backdrop-blur-md border ${isInCompare ? 'bg-[#C02026] text-white border-[#C02026]' : 'bg-white/90 text-slate-900 border-white/20'}`}>
+                {isInCompare ? <Check size={20} /> : <GitCompare size={20} />}
+              </button>
+              <button onClick={handleShare} className="w-11 h-11 rounded-2xl flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-900 border border-white/20 shadow-lg hover:bg-slate-900 hover:text-white transition-all">
+                <Share2 size={20} />
+              </button>
             </div>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4">
+             <div className="bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-xl border border-white/20 text-slate-950 font-black text-sm w-fit">
+                {formattedPrice}
+             </div>
+          </div>
         </div>
 
-        <h3 className="text-xl font-black text-slate-900 mb-4 leading-tight group-hover:text-[#C02026] transition-colors line-clamp-2 min-h-[3.5rem]">
-          <Link href={`/${lang}/projects/${project.slug}`}>
-            {isAr ? project.titleAr : project.titleEn}
+        {/* محتوى المعلومات */}
+        <div className="flex flex-col flex-grow px-2 pb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="flex items-center gap-1 text-slate-400 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                  <Building2 size={12} />
+                  <span className="text-[9px] font-black uppercase truncate max-w-[80px]">
+                    {isAr ? project.developer?.nameAr : project.developer?.nameEn}
+                  </span>
+              </div>
+              
+              <div className="flex items-center gap-1 text-[#C02026] bg-red-50 px-3 py-1.5 rounded-xl border border-red-50">
+                  <MapPin size={12} /> 
+                  <span className="text-[9px] font-black truncate max-w-[150px]">
+                    {cityName || (isAr ? "موقع متميز" : "Prime Location")}
+                  </span>
+              </div>
+          </div>
+
+          <h3 className="text-xl font-black text-slate-950 mb-1 leading-tight group-hover/main:text-[#C02026] transition-colors line-clamp-2 min-h-[3.5rem] tracking-tight">
+              {isAr ? project.titleAr : project.titleEn}
+          </h3>
+
+          <div className="text-sm font-bold text-slate-500 mb-5 flex items-center gap-1">
+             {districtName && (
+               <>
+                 <MapPin size={12} className="text-[#C02026]" />
+                 {districtName}
+               </>
+             )}
+          </div>
+
+          <div className="flex gap-3 mb-4">
+            <div className="flex-1 bg-slate-50/50 p-3 rounded-[1.5rem] border border-slate-100 flex flex-col items-center justify-center">
+               <span className="text-xs font-black text-slate-900">{project.installments || '0'} {isAr ? 'سنوات' : 'Years'}</span>
+               <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{isAr ? 'التقسيط' : 'Installments'}</span>
+            </div>
+            <div className="flex-1 bg-slate-50/50 p-3 rounded-[1.5rem] border border-slate-100 flex flex-col items-center justify-center">
+               <span className="text-xs font-black text-slate-900">{project.downPayment || '0'}%</span>
+               <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{isAr ? 'المقدم' : 'Down Payment'}</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      {/* شريط التواصل */}
+      <div className="px-2 pb-2 mt-auto flex items-center gap-2">
+          <a href={`tel:${CONTACT_INFO.phone}`} className="flex-1 h-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center gap-2 hover:bg-[#C02026] transition-all shadow-xl active:scale-95">
+              <Phone size={18} fill="currentColor" />
+              <span className="text-xs font-black uppercase tracking-widest">{isAr ? 'اتصل الآن' : 'Call'}</span>
+          </a>
+          <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all border border-green-100 active:scale-95 shadow-lg">
+              <MessageCircle size={22} fill="currentColor" />
+          </a>
+          {/* ✅ تم تحويل الـ div إلى Link ليدخلك على المشروع فوراً */}
+          <Link 
+            href={`/${lang}/projects/${project.slug}`}
+            className="w-14 h-14 rounded-2xl bg-red-50 text-[#C02026] flex items-center justify-center border border-red-100 group-hover:bg-[#C02026] group-hover:text-white transition-all duration-500 active:scale-95 shadow-md"
+          >
+              <ArrowUpRight size={22} />
           </Link>
-        </h3>
-
-        {/* Features Row */}
-        <div className="flex gap-3 mb-6">
-          <div className="flex-1 bg-slate-50 p-3 rounded-[1.2rem] border border-slate-100 flex flex-col items-center">
-             <span className="text-xs font-black text-slate-900">{project.installments || '0'}</span>
-             <span className="text-[9px] text-slate-400 font-bold uppercase">{isAr ? 'سنوات تقسيط' : 'Yrs Plan'}</span>
-          </div>
-          <div className="flex-1 bg-slate-50 p-3 rounded-[1.2rem] border border-slate-100 flex flex-col items-center">
-             <span className="text-xs font-black text-slate-900">{project.downPayment || '0'}%</span>
-             <span className="text-[9px] text-slate-400 font-bold uppercase">{isAr ? 'مقدم' : 'Down Pay'}</span>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="mt-auto flex items-center gap-2">
-            <a 
-              href={`tel:${CONTACT_INFO.phone}`} 
-              className="flex-1 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center gap-2 hover:bg-[#C02026] transition-all duration-300 shadow-lg active:scale-95"
-            >
-                <Phone size={18} />
-                <span className="text-xs font-bold">{isAr ? 'اتصل' : 'Call'}</span>
-            </a>
-            
-            <a 
-              href={whatsappLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all duration-300 border border-green-100 active:scale-95"
-            >
-                <MessageCircle size={20} />
-            </a>
-            
-            <Link 
-              href={`/${lang}/projects/${project.slug}`} 
-              className="w-12 h-12 rounded-2xl bg-red-50 text-[#C02026] flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-300 border border-red-100 active:scale-95"
-            >
-                <ArrowUpRight size={20} />
-            </Link>
-        </div>
       </div>
     </div>
   );

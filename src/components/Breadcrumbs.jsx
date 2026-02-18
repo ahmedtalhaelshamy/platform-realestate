@@ -5,16 +5,21 @@ import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 export default function Breadcrumbs({ items, lang = 'ar' }) {
   const isAr = lang === 'ar';
   
-  // ✅ 1. فحص أمان للمصفوفة لتجنب الخطأ (Fix Runtime Error)
+  // ✅ إصلاح المشكلة: تحديد الدومين الصحيح
+  // 1. بيحاول يجيب الرابط من متغيرات البيئة
+  // 2. لو مش موجود، بيستخدم الدومين الجديد بتاعك كبديل
+  const domain = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.platformrealestate.co';
+  
+  // التأكد من عدم وجود "سلاش" / في آخر الرابط عشان ما يبقاش مزدوج
+  const baseUrl = domain.replace(/\/$/, '');
+
   const safeItems = Array.isArray(items) ? items : [];
 
-  // إذا لم تكن هناك عناصر (أو كانت المصفوفة فارغة)، لا نعرض شيئاً أو نعرض فقط الرئيسية
   if (safeItems.length === 0) return null;
 
-  // تحديد اتجاه السهم بناءً على اللغة (RTL/LTR Support)
   const Separator = isAr ? ChevronLeft : ChevronRight;
 
-  // ✅ SEO: تكوين بيانات Schema.org
+  // ✅ SEO: تكوين بيانات Schema.org بالرابط الصحيح
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -23,13 +28,15 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
         "@type": "ListItem",
         "position": 1,
         "name": isAr ? 'الرئيسية' : 'Home',
-        "item": `https://platform-eg.com/${lang}` // يُفضل استبدال الدومين بالدومين الحقيقي للمشروع
+        // هنا تم التعديل لاستخدام baseUrl المتغير
+        "item": `${baseUrl}/${lang}` 
       },
       ...safeItems.map((item, index) => ({
         "@type": "ListItem",
         "position": index + 2,
         "name": item.label,
-        "item": item.href ? `https://platform-eg.com${item.href}` : undefined
+        // وهنا كمان تم التعديل
+        "item": item.href ? `${baseUrl}${item.href}` : undefined
       }))
     ]
   };
@@ -60,7 +67,7 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
             </Link>
           </li>
 
-          {/* 2. باقي العناصر (نستخدم safeItems) */}
+          {/* 2. باقي العناصر */}
           {safeItems.map((item, index) => {
             const isLast = index === safeItems.length - 1;
 
@@ -82,7 +89,7 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
                   <span 
                     className="text-[#C02026] font-bold max-w-[150px] md:max-w-[300px] truncate cursor-default"
                     aria-current="page"
-                    title={item.label} // Tooltip للاسم الكامل في حالة القص
+                    title={item.label}
                   >
                     {item.label}
                   </span>
@@ -92,7 +99,7 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
           })}
         </ol>
 
-        {/* CSS لإخفاء شريط التمرير (Keep UI Clean) */}
+        {/* CSS لإخفاء شريط التمرير */}
         <style jsx>{`
           .hide-scrollbar::-webkit-scrollbar { display: none; }
           .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
