@@ -29,14 +29,22 @@ export async function generateMetadata({ params }) {
   const title = isAr ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn);
   const description = isAr ? seo?.metaDescAr : seo?.metaDescEn;
 
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+
   return {
     title: `${title} | Platform Real Estate`,
     description,
-    alternates: { canonical: `${CONTACT_INFO.domain}/${lang}` },
+    alternates: { 
+      canonical: `${baseUrl}/${lang}/`,
+      languages: {
+        'ar': `${baseUrl}/ar/`,
+        'en': `${baseUrl}/en/`,
+      }
+    },
     openGraph: {
       title,
       description,
-      images: seo?.openGraphImage ? [urlFor(seo.openGraphImage).width(1200).url()] : [`${CONTACT_INFO.domain}/og-image.jpg`],
+      images: seo?.openGraphImage ? [urlFor(seo.openGraphImage).width(1200).url()] : [`${baseUrl}/og-image.jpg`],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     },
@@ -82,12 +90,8 @@ export default async function HomePage({ params }) {
 
   const { settings, projects, developers } = data;
   
-  // ✅ حل العشوائية: استخدام الترتيب الثابت القادم من Sanity لضمان تطابق الـ Hydration
-  // العشوائية في السيرفر كومبوننت (Static) بتم مرة واحدة وقت الـ Build فقط
-  const marqueeItems = [
-    ...developers, ...developers, 
-    ...developers, ...developers
-  ];
+  // لضمان امتلاء الشريط، نضاعف العناصر
+  const marqueeItems = [...developers, ...developers, ...developers, ...developers];
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -106,14 +110,13 @@ export default async function HomePage({ params }) {
 
   return (
     <>
-      {/* ✅ 1. السكريبت خارج الـ main لضمان عدم حدوث تداخل في الـ DOM */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
-        {/* 🚀 HERO SECTION */}
+        {/* HERO SECTION */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505]">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
@@ -136,7 +139,7 @@ export default async function HomePage({ params }) {
               {isAr ? settings?.titleAr : settings?.titleEn}<span className="text-[#C02026] not-italic">.</span>
             </h1>
             
-            <Link href={`/${lang}/projects`} className="group inline-flex items-center gap-5 bg-[#C02026] text-white px-10 py-5 rounded-xl font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-black shadow-2xl active:scale-95">
+            <Link href={`/${lang}/projects/`} className="group inline-flex items-center gap-5 bg-[#C02026] text-white px-10 py-5 rounded-xl font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-black shadow-2xl active:scale-95">
               {isAr ? 'عرض المشاريع الحصرية' : 'Explore Portfolio'}
               <ArrowRight size={20} className={`${isAr ? 'rotate-180 group-hover:-translate-x-2' : 'group-hover:translate-x-2'} transition-transform`} />
             </Link>
@@ -160,7 +163,7 @@ export default async function HomePage({ params }) {
                  </h2>
                  <div className="h-2 w-40 bg-[#C02026] rounded-full" />
                </div>
-               <Link href={`/${lang}/projects`} className="flex items-center gap-3 text-slate-900 font-black text-xs uppercase tracking-widest border-b-2 border-slate-900 pb-1 hover:text-[#C02026] hover:border-[#C02026] transition-all">
+               <Link href={`/${lang}/projects/`} className="flex items-center gap-3 text-slate-900 font-black text-xs uppercase tracking-widest border-b-2 border-slate-900 pb-1 hover:text-[#C02026] hover:border-[#C02026] transition-all">
                   {isAr ? 'جميع العقارات' : 'All Listings'} <ArrowRight size={16} />
                </Link>
             </div>
@@ -176,6 +179,7 @@ export default async function HomePage({ params }) {
              <CityCarousel lang={lang} />
           </section>
 
+          {/* SECTION TITANS / DEVELOPERS */}
           <section className="bg-white py-32 overflow-hidden relative border-t border-slate-50">
               <div className="text-center mb-28 px-6 space-y-4">
                 <span className="text-[#C02026] font-black text-[10px] uppercase tracking-[0.6em] block">
@@ -187,27 +191,51 @@ export default async function HomePage({ params }) {
               </div>
 
               <div className="relative flex items-center group">
+                  {/* الطبقة التي تحتوي على الأنيميشن */}
                   <div className="flex w-max animate-marquee gap-12 md:gap-28 items-center px-10 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
-                      <Link key={`${dev._id}-${idx}`} href={`/${lang}/developers/${dev.slug}`} className="hover:scale-110 transition-transform duration-700 shrink-0">
+                      <Link key={`${dev._id}-${idx}`} href={`/${lang}/developers/${dev.slug}/`} className="hover:scale-110 transition-transform duration-700 shrink-0">
                         <DeveloperLogoItem dev={dev} isAr={isAr} />
                       </Link>
                     ))}
                   </div>
+                  {/* تأثير التلاشي يميناً ويساراً */}
                   <div className="absolute inset-y-0 left-0 w-24 md:w-64 bg-gradient-to-r from-white via-white/40 to-transparent z-20 pointer-events-none" />
                   <div className="absolute inset-y-0 right-0 w-24 md:w-64 bg-gradient-to-l from-white via-white/40 to-transparent z-20 pointer-events-none" />
               </div>
           </section>
         </div>
 
-        {/* ✅ 2. CSS تم وضعه في النهاية لضمان استقرار الرندر */}
+        {/* ✅ CSS المُعدل لتبدأ الحركة فوراً من المنتصف */}
         <style dangerouslySetInnerHTML={{ __html: `
-          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .animate-marquee { display: flex; animation: marquee 50s linear infinite; }
-          html[dir="rtl"] .animate-marquee { animation: marquee 50s linear infinite reverse; }
-          @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+          /* الأنيميشن العادي يبدأ من 0 ويروح لـ -50% */
+          @keyframes marquee { 
+            0% { transform: translateX(0); } 
+            100% { transform: translateX(-50%); } 
+          }
+          
+          /* الأنيميشن للغة العربية (RTL) يبدأ من -50% ليروح لـ 0 */
+          @keyframes marqueeRTL { 
+            0% { transform: translateX(-50%); } 
+            100% { transform: translateX(0); } 
+          }
+
+          .animate-marquee { 
+            display: flex; 
+            animation: marquee 40s linear infinite; 
+          }
+
+          /* التعديل هنا لضمان البدء السريع */
+          html[dir="rtl"] .animate-marquee { 
+            animation-name: marqueeRTL; 
+          }
+
           .animate-slow-zoom { animation: slow-zoom 20s linear infinite alternate; }
-          @media (max-width: 768px) { .animate-marquee { animation-duration: 30s; } }
+          @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+          
+          @media (max-width: 768px) { 
+            .animate-marquee { animation-duration: 25s; } 
+          }
         `}} />
       </main>
     </>

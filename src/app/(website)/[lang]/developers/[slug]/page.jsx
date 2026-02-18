@@ -1,8 +1,8 @@
 import ProjectCard from '@/components/ProjectCard';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { 
-  Building2, Info, LayoutGrid, Phone, ShieldCheck, 
-  MessageCircle, HelpCircle, ArrowUpRight, Award, CheckCircle2, Sparkles, ChevronRight 
+  Building2, LayoutGrid, Phone, ShieldCheck, 
+  MessageCircle, HelpCircle, CheckCircle2 
 } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -36,7 +36,6 @@ const devPortableTextComponents = {
 
 /**
  * ✅ 1. توليد المسارات وقت الـ Build (SSG)
- * إضافة فلتر المسودات لضمان عدم حدوث خطأ أثناء البناء
  */
 export async function generateStaticParams() {
   try {
@@ -52,13 +51,12 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ 2. الـ SEO Metadata (حل مشكلة الـ Canonical)
+ * ✅ 2. الـ SEO Metadata (الربط المتبادل بين اللغات)
  */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === 'ar';
   
-  // جلب بيانات الميتا مع استبعاد المسودات
   const data = await client.fetch(
     `*[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn}`, 
     { slug }
@@ -67,19 +65,30 @@ export async function generateMetadata({ params }) {
   if (!data) return { title: 'Not Found' };
   
   const title = isAr ? (data.seoTitleAr || data.nameAr) : (data.seoTitleEn || data.nameEn);
-  
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+
   return { 
     title: `${title} | Platform Real Estate`, 
     description: isAr ? data.seoDescAr : data.seoDescEn,
-    // 🛡️ حل مشكلة الـ Canonical: الصفحة تشاور على نفسها لمنع "الاختفاء من جوجل"
+    
+    // 🛡️ الربط الاحترافي (Hreflang) لمنع مشاكل الفهرسة في جوجل
     alternates: {
-      canonical: `${CONTACT_INFO.domain}/${lang}/developers/${slug}`,
+      canonical: `${baseUrl}/${lang}/developers/${slug}/`,
+      languages: {
+        'ar': `${baseUrl}/ar/developers/${slug}/`,
+        'en': `${baseUrl}/en/developers/${slug}/`,
+        'x-default': `${baseUrl}/ar/developers/${slug}/`,
+      },
+    },
+    openGraph: {
+        locale: isAr ? 'ar_EG' : 'en_US',
+        type: 'website',
     }
   };
 }
 
 /**
- * ✅ دالة جلب البيانات (مع استبعاد المسودات)
+ * ✅ دالة جلب البيانات
  */
 async function getDeveloperData(slug) {
   const query = `{
@@ -103,14 +112,14 @@ export default async function DeveloperDetailPage({ params }) {
 
   const { developer, projects } = data;
   const breadcrumbItems = [
-    { label: isAr ? 'المطورين' : 'Developers', href: `/${lang}/developers` },
+    { label: isAr ? 'المطورين' : 'Developers', href: `/${lang}/developers/` },
     { label: isAr ? developer.nameAr : developer.nameEn }
   ];
 
   return (
     <main className="min-h-screen bg-white selection:bg-red-100" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🏗️ 1. MODERN MINIMALIST HERO */}
+      {/* 🏗️ 1. HERO SECTION */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/30 skew-x-12 translate-x-20 pointer-events-none" />
         
@@ -148,7 +157,7 @@ export default async function DeveloperDetailPage({ params }) {
         </div>
       </section>
 
-      {/* 📄 2. MAIN CONTENT LAYOUT */}
+      {/* 📄 2. MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
@@ -238,22 +247,11 @@ export default async function DeveloperDetailPage({ params }) {
                         </div>
                         
                         <p className="mt-8 text-[10px] text-slate-500 text-center uppercase tracking-[0.2em] font-bold">
-                           {isAr ? 'خدمة مجانية 100% بدون عمولات' : '100% Free - Zero Commission'}
+                           {isAr ? 'خدمة مجانية 100% ' : '100% Free - Zero Commission'}
                         </p>
                     </div>
                 </div>
-
-                <div className="mt-6 bg-white border border-slate-100 p-6 rounded-3xl flex items-center gap-4 shadow-sm">
-                   <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                      <ShieldCheck size={24} />
-                   </div>
-                   <div>
-                      <p className="text-slate-900 font-black text-xs uppercase">{isAr ? 'أسعار المطور الرسمية' : 'Official Pricing'}</p>
-                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-tighter">Guaranteed Security</p>
-                   </div>
-                </div>
             </aside>
-
         </div>
       </div>
     </main>
