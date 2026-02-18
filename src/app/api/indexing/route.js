@@ -6,12 +6,12 @@ export async function POST(req) {
     const body = await req.json();
     const { secret, slug } = body;
 
-    // التحقق من كلمة السر
+    // 1. التحقق من كلمة السر المرسلة من Sanity
     if (secret !== process.env.INDEXING_SECRET) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // معالجة المفتاح لضمان قبول الأسطر الجديدة سواء كانت حقيقية أو رموز \n
+    // 2. معالجة المفتاح الخاص لضمان قبول الأسطر الجديدة
     const privateKey = process.env.GOOGLE_PRIVATE_KEY
       ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n')
       : undefined;
@@ -20,6 +20,7 @@ export async function POST(req) {
       throw new Error("GOOGLE_PRIVATE_KEY is missing");
     }
 
+    // 3. إعداد الصلاحيات للاتصال بجوجل
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -29,8 +30,11 @@ export async function POST(req) {
     });
 
     const indexing = google.indexing('v3');
-    const urlToIndex = `https://platformrealestate.co/ar/projects/${slug}`;
 
+    // 4. بناء الرابط (تم إضافة www ليطابق إعدادات Search Console الخاصة بك)
+    const urlToIndex = `https://www.platformrealestate.co/ar/projects/${slug}`;
+
+    // 5. إرسال الطلب لجوجل
     const response = await indexing.urlNotifications.publish({
       auth,
       requestBody: {
