@@ -16,22 +16,29 @@ export default function InstallmentCalculator({
   const [downPaymentPercent, setDownPaymentPercent] = useState(initialDownPayment || 10);
   const [years, setYears] = useState(initialYears || 7);
 
+  // 📉 الحسابات التلقائية
   const calculation = useMemo(() => {
     const downValue = (price * downPaymentPercent) / 100;
     const monthly = (price - downValue) / (years * 12);
     return { downValue, monthly, remaining: price - downValue };
   }, [price, downPaymentPercent, years]);
 
+  // 💰 تنسيق العملة
   const formatCurrency = (val) => 
     new Intl.NumberFormat(isAr ? 'ar-EG' : 'en-US', {
       style: 'currency', currency: 'EGP', maximumFractionDigits: 0
     }).format(val);
 
+  // 📱 معالج الواتساب بنص احترافي
   const handleWhatsApp = useCallback(() => {
+    // تنظيف الرقم من أي رموز لضمان اشتغال الرابط
+    const cleanedPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
+    
     const msg = isAr 
       ? `*خطة سداد مخصصة من بلاتفورم*\n\n🏗️ المشروع: *${projectName}*\n💰 السعر: ${formatCurrency(price)}\n💵 المقدم: ${downPaymentPercent}% (${formatCurrency(calculation.downValue)})\n🗓️ سنوات التقسيط: ${years}\n📉 القسط الشهري: *${formatCurrency(calculation.monthly)}*`
       : `*Custom Payment Plan*\n\n🏗️ Project: *${projectName}*\n💰 Price: ${formatCurrency(price)}\n💵 Down: ${downPaymentPercent}% (${formatCurrency(calculation.downValue)})\n🗓️ Period: ${years} Years\n📉 Monthly: *${formatCurrency(calculation.monthly)}*`;
-    window.open(`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+    
+    window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   }, [isAr, projectName, price, downPaymentPercent, calculation]);
 
   return (
@@ -40,12 +47,12 @@ export default function InstallmentCalculator({
         
         {/* --- قسم المدخلات (The Laboratory) --- */}
         <div className="flex-1 p-8 md:p-12 space-y-10">
-          <header className="space-y-2">
+          <header className="space-y-2 text-start">
             <div className="flex items-center gap-3">
               <span className="p-2 bg-red-50 rounded-xl text-[#C02026]">
                 <Calculator size={20} />
               </span>
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">
+              <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
                 {isAr ? 'هندسة التمويل العقاري' : 'Financial Engineering'}
               </h3>
             </div>
@@ -58,18 +65,24 @@ export default function InstallmentCalculator({
             {/* القيمة الكلية */}
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                <label htmlFor="price-input" className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
                   <Coins size={14} className="text-[#C02026]" /> {isAr ? 'سعر الوحدة التقديري' : 'Target Price'}
                 </label>
                 <input 
+                  id="price-input"
                   type="number" 
                   value={price} 
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  className="bg-slate-50 border-none text-right font-black text-slate-900 w-32 rounded-lg py-1 px-2 focus:ring-2 focus:ring-[#C02026]/20 transition-all"
+                  aria-label={isAr ? "السعر" : "Price"}
+                  className="bg-slate-50 border-none text-start md:text-end font-black text-slate-900 w-32 rounded-lg py-1 px-2 focus:ring-2 focus:ring-[#C02026]/20 transition-all"
                 />
               </div>
-              <input type="range" min="1000000" max="50000000" step="100000" value={price} onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-[#C02026]" />
+              <input 
+                type="range" min="1000000" max="50000000" step="100000" value={price} 
+                onChange={(e) => setPrice(Number(e.target.value))}
+                aria-label={isAr ? "شريط تمرير السعر" : "Price Slider"}
+                className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-[#C02026]" 
+              />
               <div className="flex justify-between text-[10px] text-slate-300 font-bold uppercase tracking-widest">
                 <span>1M</span><span>50M</span>
               </div>
@@ -78,26 +91,36 @@ export default function InstallmentCalculator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {/* المقدم */}
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                <div className="flex justify-between items-center text-start">
+                  <label htmlFor="down-payment-range" className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
                     <Wallet size={14} className="text-[#C02026]" /> {isAr ? 'نسبة المقدم' : 'Down Payment'}
                   </label>
                   <span className="text-sm font-black text-[#C02026] bg-red-50 px-2 py-1 rounded-md">{downPaymentPercent}%</span>
                 </div>
-                <input type="range" min="0" max="50" step="5" value={downPaymentPercent} onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
-                  className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-slate-900" />
+                <input 
+                  id="down-payment-range"
+                  type="range" min="0" max="50" step="5" value={downPaymentPercent} 
+                  onChange={(e) => setDownPaymentPercent(Number(e.target.value))}
+                  aria-label={isAr ? "شريط تمرير المقدم" : "Down Payment Slider"}
+                  className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-slate-900" 
+                />
               </div>
 
               {/* مدة التقسيط */}
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                <div className="flex justify-between items-center text-start">
+                  <label htmlFor="years-range" className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
                     <Calendar size={14} className="text-[#C02026]" /> {isAr ? 'مدة التقسيط' : 'Duration'}
                   </label>
                   <span className="text-sm font-black text-slate-900 bg-slate-50 px-2 py-1 rounded-md">{years} {isAr ? 'سنة' : 'Years'}</span>
                 </div>
-                <input type="range" min="1" max="15" step="1" value={years} onChange={(e) => setYears(Number(e.target.value))}
-                  className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-slate-900" />
+                <input 
+                  id="years-range"
+                  type="range" min="1" max="15" step="1" value={years} 
+                  onChange={(e) => setYears(Number(e.target.value))}
+                  aria-label={isAr ? "شريط تمرير سنوات التقسيط" : "Years Slider"}
+                  className="w-full h-1.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-slate-900" 
+                />
               </div>
             </div>
           </div>
@@ -109,13 +132,13 @@ export default function InstallmentCalculator({
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#C02026] opacity-20 blur-[80px] rounded-full" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600 opacity-10 blur-[80px] rounded-full" />
           
-          <div className="relative z-10 space-y-12">
+          <div className="relative z-10 space-y-12 text-start">
             <div className="space-y-4">
               <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.4em] leading-none">{isAr ? 'القسط الشهري المتوقع' : 'Estimated Monthly'}</p>
               <div className="space-y-1">
-                <h4 className="text-5xl font-black text-white italic tracking-tighter leading-none transition-all duration-300">
+                <p className="text-5xl font-black text-white italic tracking-tighter leading-none transition-all duration-300">
                   {formatCurrency(calculation.monthly)}
-                </h4>
+                </p>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-1">
                     {isAr ? `لمدة ${years * 12} شهر` : `For ${years * 12} Months`}
                 </p>
@@ -137,6 +160,7 @@ export default function InstallmentCalculator({
           <div className="relative z-10 pt-10">
             <button 
               onClick={handleWhatsApp} 
+              aria-label={isAr ? "إرسال الخطة عبر واتساب" : "Send plan via WhatsApp"}
               className="w-full bg-[#C02026] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-slate-950 transition-all duration-500 flex items-center justify-center gap-3 active:scale-95 shadow-[0_15px_40px_-10px_rgba(192,32,38,0.4)] group/btn"
             >
               <MessageCircle size={20} fill="currentColor" />

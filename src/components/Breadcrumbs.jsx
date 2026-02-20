@@ -1,25 +1,21 @@
 'use client';
+
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 
 export default function Breadcrumbs({ items, lang = 'ar' }) {
   const isAr = lang === 'ar';
   
-  // ✅ إصلاح المشكلة: تحديد الدومين الصحيح
-  // 1. بيحاول يجيب الرابط من متغيرات البيئة
-  // 2. لو مش موجود، بيستخدم الدومين الجديد بتاعك كبديل
-  const domain = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.platformrealestate.co';
-  
-  // التأكد من عدم وجود "سلاش" / في آخر الرابط عشان ما يبقاش مزدوج
+  // ✅ توحيد الدومين مع إعدادات السيو السابقة (بدون www)
+  const domain = process.env.NEXT_PUBLIC_BASE_URL || 'https://platformrealestate.co';
   const baseUrl = domain.replace(/\/$/, '');
 
   const safeItems = Array.isArray(items) ? items : [];
-
   if (safeItems.length === 0) return null;
 
   const Separator = isAr ? ChevronLeft : ChevronRight;
 
-  // ✅ SEO: تكوين بيانات Schema.org بالرابط الصحيح
+  // ✅ SEO: بيانات Schema.org محسنة (JSON-LD)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -28,15 +24,15 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
         "@type": "ListItem",
         "position": 1,
         "name": isAr ? 'الرئيسية' : 'Home',
-        // هنا تم التعديل لاستخدام baseUrl المتغير
-        "item": `${baseUrl}/${lang}` 
+        // ضمان وجود السلاش النهائية / لتوحيد الأرشفة
+        "item": `${baseUrl}/${lang}/` 
       },
       ...safeItems.map((item, index) => ({
         "@type": "ListItem",
         "position": index + 2,
         "name": item.label,
-        // وهنا كمان تم التعديل
-        "item": item.href ? `${baseUrl}${item.href}` : undefined
+        // إضافة سلاش نهائية للروابط لضمان تطابقها مع الـ Canonical tags
+        "item": item.href ? `${baseUrl}${item.href}${item.href.endsWith('/') ? '' : '/'}` : undefined
       }))
     ]
   };
@@ -58,7 +54,7 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
           {/* 1. رابط الرئيسية */}
           <li className="flex items-center shrink-0">
             <Link 
-              href={`/${lang}`} 
+              href={`/${lang}/`} 
               className="flex items-center gap-1.5 hover:text-[#C02026] transition-colors focus:outline-none focus:text-[#C02026]"
               aria-label={isAr ? 'العودة للرئيسية' : 'Back to Home'}
             >
@@ -73,19 +69,16 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
 
             return (
               <li key={index} className="flex items-center shrink-0">
-                {/* الفاصل */}
                 <Separator size={16} className="mx-2 text-slate-300 rtl:rotate-0 shrink-0" aria-hidden="true" />
 
                 {item.href && !isLast ? (
-                  // عنصر قابل للنقر
                   <Link 
-                    href={item.href} 
+                    href={item.href.endsWith('/') ? item.href : `${item.href}/`} 
                     className="hover:text-[#C02026] transition-colors focus:outline-none focus:text-[#C02026]"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  // العنصر الحالي (غير قابل للنقر + مميز)
                   <span 
                     className="text-[#C02026] font-bold max-w-[150px] md:max-w-[300px] truncate cursor-default"
                     aria-current="page"
@@ -99,7 +92,6 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
           })}
         </ol>
 
-        {/* CSS لإخفاء شريط التمرير */}
         <style jsx>{`
           .hide-scrollbar::-webkit-scrollbar { display: none; }
           .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

@@ -11,50 +11,63 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 
-// ✅ 1. PERFORMANCE: إجبار الصفحة على أن تكون Static بالكامل
+// ✅ 1. PERFORMANCE: ISR كل ساعة لضمان التحديث التلقائي
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
 // 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
 
+// ✅ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+const getSafeText = (val) => {
+  if (!val) return "";
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+  }
+  if (typeof val === 'object' && val.children) {
+    return val.children.map(child => child.text).join('');
+  }
+  return String(val);
+};
+
 /**
- * ✅ نظام تنسيق النصوص الخاص بـ PortableText
+ * ✅ نظام تنسيق النصوص الخاص بـ PortableText لضمان السيو
  */
 const devPortableTextComponents = {
   block: {
-    normal: ({ children }) => <p className="mb-6 text-slate-600 leading-loose text-justify text-base md:text-lg">{children}</p>,
+    normal: ({ children }) => <p className="mb-6 text-slate-600 leading-relaxed text-justify text-base md:text-lg italic font-medium">{children}</p>,
     h2: ({ children }) => (
-      <h2 className="text-xl md:text-2xl font-black text-slate-900 mt-10 mb-5 flex items-center gap-3">
-        <span className="w-1.5 h-6 bg-[#C02026] rounded-full block"></span>
+      <h2 className="text-2xl md:text-4xl font-black text-slate-950 mt-16 mb-8 flex items-center gap-4 italic uppercase tracking-tighter">
+        <span className="w-2 h-10 bg-[#C02026] rounded-full block" aria-hidden="true"></span>
         {children}
       </h2>
     ),
-    h3: ({ children }) => <h3 className="text-lg font-bold text-slate-800 mt-8 mb-4">{children}</h3>,
+    h3: ({ children }) => <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-10 mb-5 italic uppercase">{children}</h3>,
   },
   list: {
-    bullet: ({ children }) => <ul className="list-disc list-inside space-y-3 mb-8 text-slate-600 marker:text-[#C02026]">{children}</ul>,
+    bullet: ({ children }) => <ul className="list-disc list-inside space-y-4 mb-10 text-slate-600 marker:text-[#C02026] font-medium">{children}</ul>,
   }
 };
 
 /**
- * ✅ 2. توليد المسارات وقت الـ Build (SSG)
+ * ✅ 2. توليد المسارات SSG
  */
 export async function generateStaticParams() {
   try {
     const query = `*[_type == "developer" && defined(slug.current) && !(_id in path("drafts.**"))]{ "slug": slug.current }`;
     const developers = await client.fetch(query);
+    const languages = ['ar', 'en'];
     return developers.flatMap((dev) =>
-      ['ar', 'en'].map((lang) => ({ lang, slug: dev.slug }))
+      languages.map((lang) => ({ lang, slug: dev.slug }))
     );
   } catch (error) {
-    console.error("Static Params Error:", error);
     return [];
   }
 }
 
 /**
- * ✅ 3. الـ SEO Metadata (الربط الموحد والمتبادل بين اللغات)
+ * ✅ 3. الـ SEO Metadata (Hreflang & Canonical)
  */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
@@ -65,27 +78,26 @@ export async function generateMetadata({ params }) {
     { slug }
   );
   
-  if (!data) return { title: 'Not Found' };
+  if (!data) return { title: 'Titan Not Found' };
   
-  const title = isAr ? (data.seoTitleAr || data.nameAr) : (data.seoTitleEn || data.nameEn);
+  const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
+  const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
+  const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
+
   const arPath = `${BASE_URL}/ar/developers/${slug}/`;
   const enPath = `${BASE_URL}/en/developers/${slug}/`;
   const currentPath = isAr ? arPath : enPath;
 
   return { 
-    title: `${title} | Platform Real Estate`, 
-    description: isAr ? data.seoDescAr : data.seoDescEn,
+    title: `${title} | Platform`, 
+    description: description.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: currentPath,
-      languages: {
-        'ar-EG': arPath,
-        'en-US': enPath,
-        'x-default': arPath,
-      },
+      languages: { 'ar': arPath, 'en': enPath },
     },
     openGraph: {
-        title: `${title} | Platform Real Estate`,
+        title: `${devName} | Platform Real Estate`,
         url: currentPath,
         locale: isAr ? 'ar_EG' : 'en_US',
         type: 'website',
@@ -93,9 +105,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-/**
- * ✅ دالة جلب البيانات من Sanity
- */
 async function getDeveloperData(slug) {
   const query = `{
     "developer": *[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
@@ -110,7 +119,7 @@ async function getDeveloperData(slug) {
 }
 
 /**
- * ✅ المكون الرئيسي لصفحة المطور
+ * 🏗️ المكون الرئيسي
  */
 export default async function DeveloperDetailPage({ params }) {
   const { lang, slug } = await params; 
@@ -120,105 +129,129 @@ export default async function DeveloperDetailPage({ params }) {
   if (!data?.developer) return notFound();
 
   const { developer, projects } = data;
+  const devName = getSafeText(isAr ? developer.nameAr : developer.nameEn);
   
   const breadcrumbItems = [
-    { label: isAr ? 'المطورين' : 'Developers', href: `/${lang}/developers/` },
-    { label: isAr ? developer.nameAr : developer.nameEn }
+    { label: isAr ? 'المطورين' : 'TITANS', href: `/${lang}/developers/` },
+    { label: devName }
   ];
 
+  const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
+  const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `أريد استشارة حول مشاريع شركة ${devName}` : `Inquiry about ${devName} projects`)}`;
+
+  // 🏆 [SEO] Schema Markup - RealEstateAgent & Brand
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'Brand',
+    'name': devName,
+    'description': getSafeText(isAr ? developer.descriptionAr : developer.descriptionEn).substring(0, 200),
+    'logo': developer.logo ? urlFor(developer.logo).url() : `${BASE_URL}/logo.png`,
+    'url': `${BASE_URL}/${lang}/developers/${slug}/`
+  };
+
   return (
-    <main className="min-h-screen bg-white selection:bg-red-100" dir={isAr ? 'rtl' : 'ltr'}>
+    <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
       
       {/* HERO SECTION */}
-      <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/30 skew-x-12 translate-x-20 pointer-events-none" />
+      <header className="relative pt-32 pb-20 md:pt-48 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/20 skew-x-12 translate-x-20 pointer-events-none" aria-hidden="true" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="mb-8 flex justify-center md:justify-start">
+          <div className="mb-10 flex justify-center md:justify-start overflow-x-auto hide-scrollbar">
              <Breadcrumbs items={breadcrumbItems} lang={lang} />
           </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-            <div className="w-40 h-40 md:w-52 md:h-52 bg-white rounded-3xl shadow-sm border border-slate-200 flex items-center justify-center p-6 shrink-0 hover:shadow-md transition-shadow">
+          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 text-start">
+            {/* Logo Glass Card */}
+            <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center justify-center p-8 shrink-0 relative group">
+                <div className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[3rem]" />
                 {developer.logo ? (
-                  <Image src={urlFor(developer.logo).width(400).url()} alt={developer.nameEn} width={200} height={200} className="object-contain" priority />
-                ) : <Building2 size={48} className="text-slate-200" />}
+                  <Image src={urlFor(developer.logo).width(600).quality(90).url()} alt={`${devName} corporate logo`} width={250} height={250} className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" priority />
+                ) : <Building2 size={64} className="text-slate-200 relative z-10" />}
             </div>
             
-            <div className="text-center md:text-start space-y-4">
-              <div className="inline-flex items-center gap-2 text-[#C02026] bg-red-50 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
-                <ShieldCheck size={14} /> {isAr ? 'مطور عقاري معتمد' : 'Verified Developer'}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-3 text-[#C02026] bg-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border border-red-50">
+                <ShieldCheck size={16} className="animate-pulse" /> {isAr ? 'شريك استراتيجي معتمد' : 'Strategic Legacy Partner'}
               </div>
-              <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-                {isAr ? developer.nameAr : developer.nameEn}
+              <h1 className="text-4xl md:text-7xl font-black text-slate-950 tracking-tighter leading-none italic uppercase">
+                {devName}
               </h1>
-              <div className="flex items-center justify-center md:justify-start gap-6 text-slate-500 font-bold text-sm">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 text-slate-500 font-black text-xs uppercase tracking-widest">
                  <div className="flex items-center gap-2">
-                    <LayoutGrid size={18} className="text-slate-400" />
-                    <span>{projects.length} {isAr ? 'مشروع متاح' : 'Live Projects'}</span>
+                    <LayoutGrid size={20} className="text-slate-400" />
+                    <span>{projects.length} {isAr ? 'مشروع متاح' : 'Active Units'}</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={18} className="text-green-500" />
-                    <span>2026 {isAr ? 'تحديث' : 'Update'}</span>
+                    <CheckCircle2 size={20} className="text-green-600" />
+                    <span>2026 {isAr ? 'تحديث البيانات' : 'Verified Data'}</span>
                  </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </header>
 
       {/* CONTENT AREA */}
-      <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+      <div className="max-w-[1440px] mx-auto px-6 py-20 md:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
-            <div className="lg:col-span-8 space-y-24">
+            <div className="lg:col-span-8 space-y-32">
               
-              {/* PROJECTS SECTION */}
-              <section id="portfolio">
-                  <div className="mb-10">
-                     <h2 className="text-3xl font-black text-slate-900 mb-2">
-                        {isAr ? 'سابقة الأعمال' : 'Project Portfolio'}
+              {/* PROJECTS PORTFOLIO */}
+              <section id="portfolio" aria-labelledby="portfolio-heading">
+                  <header className="mb-16 border-s-[12px] border-[#C02026] ps-8 text-start">
+                     <h2 id="portfolio-heading" className="text-3xl md:text-6xl font-black text-slate-950 italic uppercase tracking-tighter leading-none mb-4">
+                        {isAr ? 'سابقة الأعمال' : 'Asset Portfolio'}
                      </h2>
-                     <p className="text-slate-500 font-medium">{isAr ? `استكشف أحدث مشاريع شركة ${developer.nameAr}` : `Explore the latest from ${developer.nameEn}`}</p>
-                  </div>
+                     <p className="text-slate-500 font-bold text-sm md:text-lg italic">{isAr ? `استكشف أحدث مشاريع وفرص شركة ${devName}` : `Explore the latest investment opportunities from ${devName}`}</p>
+                  </header>
                   
                   {projects.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14" role="list">
                       {projects.map((project) => (
-                        <ProjectCard key={project._id} lang={lang} data={project} />
+                        <article key={project._id} role="listitem">
+                          <ProjectCard lang={lang} data={project} />
+                        </article>
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-slate-50 rounded-3xl p-12 text-center border-2 border-dashed border-slate-200">
-                        <Building2 size={40} className="mx-auto text-slate-300 mb-4" />
-                        <p className="text-slate-400 font-bold">{isAr ? 'لا توجد مشاريع مضافة حالياً' : 'Portfolio being updated'}</p>
+                    <div className="bg-slate-50 rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200">
+                        <Building2 size={64} className="mx-auto text-slate-200 mb-6 animate-pulse" aria-hidden="true" />
+                        <p className="text-slate-400 font-black text-xl italic uppercase tracking-widest">{isAr ? 'جاري تحديث قائمة المشاريع' : 'Portfolio Syncing...'}</p>
                     </div>
                   )}
               </section>
 
-              {/* CORPORATE PROFILE */}
-              <section className="bg-white border border-slate-100 rounded-[2.5rem] p-8 md:p-12 shadow-sm relative">
-                <h2 className="text-3xl font-black text-slate-900 mb-8">
-                  {developer.reviewTitle || (isAr ? `لماذا تختار ${developer.nameAr}؟` : `About ${developer.nameEn}`)}
+              {/* CORPORATE PROFILE ARTICLE */}
+              <article className="bg-white border border-slate-50 rounded-[4rem] p-10 md:p-20 shadow-2xl shadow-slate-100/50 relative overflow-hidden text-start">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#C02026]/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                <h2 className="text-3xl md:text-5xl font-black text-slate-950 mb-12 italic uppercase tracking-tighter leading-none">
+                  {getSafeText(developer.reviewTitle) || (isAr ? `حول شركة ${devName}` : `About ${devName}`)}
                 </h2>
-                <article className="prose prose-slate max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 leading-relaxed">
+                <div className="prose prose-xl prose-slate max-w-none prose-headings:italic prose-headings:tracking-tighter prose-img:rounded-[3rem]">
                   <PortableText value={isAr ? developer.descriptionAr : developer.descriptionEn} components={devPortableTextComponents} />
-                </article>
-              </section>
+                </div>
+              </article>
 
-              {/* FAQs */}
+              {/* FAQs SECTION */}
               {developer.faqs && developer.faqs.length > 0 && (
-                <section className="space-y-8">
-                   <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-                      <HelpCircle className="text-[#C02026]" /> {isAr ? 'أسئلة شائعة' : 'FAQs'}
+                <section className="space-y-12" aria-labelledby="faq-heading">
+                   <h2 id="faq-heading" className="text-3xl md:text-5xl font-black text-slate-950 flex items-center gap-5 italic uppercase tracking-tighter leading-none text-start">
+                      <div className="p-4 bg-red-50 rounded-3xl text-[#C02026]"><HelpCircle size={40} strokeWidth={1.5} /></div>
+                      {isAr ? 'الأسئلة الشائعة' : 'Titan FAQs'}
                    </h2>
-                   <div className="grid grid-cols-1 gap-4">
+                   <div className="grid grid-cols-1 gap-6" role="list">
                       {developer.faqs.map((faq, idx) => (
-                        <div key={idx} className="bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
-                           <h3 className="text-lg font-black text-slate-900 mb-3 flex gap-3">
-                              <span className="text-[#C02026]">Q.</span> {isAr ? faq.questionAr : faq.questionEn}
+                        <div key={idx} role="listitem" className="bg-slate-50 p-8 md:p-12 rounded-[3rem] border border-slate-100 text-start group hover:bg-white hover:shadow-2xl transition-all duration-500">
+                           <h3 className="text-xl md:text-2xl font-black text-slate-950 mb-6 flex gap-4 italic uppercase">
+                              <span className="text-[#C02026] not-italic">Q.</span> {getSafeText(isAr ? faq.questionAr : faq.questionEn)}
                            </h3>
-                           <p className="text-slate-600 leading-relaxed ps-8">{isAr ? faq.answerAr : faq.answerEn}</p>
+                           <p className="text-slate-600 leading-relaxed text-lg font-medium ps-10 italic border-s-2 border-slate-200">{getSafeText(isAr ? faq.answerAr : faq.answerEn)}</p>
                         </div>
                       ))}
                    </div>
@@ -226,41 +259,53 @@ export default async function DeveloperDetailPage({ params }) {
               )}
             </div>
 
-            {/* SIDEBAR CTA */}
-            <aside className="lg:col-span-4 lg:sticky lg:top-32">
-                <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#C02026]/20 blur-[60px]" />
-                    <div className="relative z-10 text-center md:text-start">
-                        <div className="w-14 h-14 bg-[#C02026] rounded-2xl flex items-center justify-center mb-6 mx-auto md:mx-0">
-                           <MessageCircle size={28} className="text-white" />
+            {/* STICKY SIDEBAR CTA */}
+            <aside className="lg:col-span-4 lg:sticky lg:top-32 h-full">
+                <section className="bg-[#080A0D] rounded-[4rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border-b-[16px] border-[#C02026] group">
+                    <div className="absolute -top-16 -right-16 opacity-10 group-hover:rotate-12 transition-transform duration-1000 pointer-events-none" aria-hidden="true">
+                        <Building2 size={300} />
+                    </div>
+                    
+                    <div className="relative z-10 text-start">
+                        <div className="w-16 h-16 bg-[#C02026] rounded-3xl flex items-center justify-center mb-10 shadow-2xl">
+                            <MessageCircle size={32} className="text-white" fill="currentColor" fillOpacity={0.2} />
                         </div>
-                        <h3 className="text-2xl font-black mb-4 leading-tight">
-                          {isAr ? 'احصل على عرض خاص الآن' : 'Get a Private Offer'}
+                        <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[0.9] italic uppercase tracking-tighter">
+                          {isAr ? 'تواصل مباشر مع المبيعات' : 'Direct VIP Access'}
                         </h3>
-                        <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                        <p className="text-slate-400 text-lg mb-12 font-medium leading-relaxed italic">
                             {isAr 
-                              ? `مستشارونا العقاريون يساعدونك في اختيار الوحدة المثالية بمشاريع ${developer.nameAr} بأفضل نظام سداد.` 
-                              : `Our experts will help you find the best payment plans in ${developer.nameEn} projects.`}
+                              ? `مستشارونا العقاريون يساعدونك في اختيار الوحدة المثالية بمشاريع ${devName} والحصول على عروض حصرية.` 
+                              : `Our elite consultants bridge the gap between your vision and ${devName}’s finest assets. 100% Free.`}
                         </p>
 
                         <div className="space-y-4">
-                           <a href={`tel:${CONTACT_INFO.phone}`} className="flex items-center justify-center gap-3 w-full bg-[#C02026] hover:bg-white hover:text-black py-4 rounded-2xl font-black transition-all group">
-                              <Phone size={18} className="group-hover:rotate-12 transition-transform" />
-                              <span className="text-sm uppercase tracking-widest">{isAr ? 'اتصل بنا' : 'Call Sales'}</span>
-                           </a>
-                           <a href={`https://wa.me/${CONTACT_INFO.whatsapp?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 w-full bg-white/5 border border-white/20 hover:bg-[#25D366] hover:border-[#25D366] py-4 rounded-2xl font-black transition-all">
-                              <MessageCircle size={18} />
-                              <span className="text-sm uppercase tracking-widest">{isAr ? 'واتساب' : 'WhatsApp'}</span>
-                           </a>
+                            <a href={whatsappUrl} 
+                               target="_blank" rel="noopener noreferrer"
+                               aria-label="Connect via WhatsApp"
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-2xl active:scale-95">
+                                <MessageCircle size={24} fill="currentColor" /> WhatsApp
+                            </a>
+                            <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+                               aria-label="Call sales team"
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-white text-slate-950 hover:bg-[#C02026] hover:text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-2xl active:scale-95">
+                                <Phone size={24} fill="currentColor" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
+                            </a>
                         </div>
-                        <p className="mt-8 text-[10px] text-slate-500 text-center uppercase tracking-[0.2em] font-bold">
-                           {isAr ? 'خدمة مجانية 100% ' : '100% Free - Zero Commission'}
+                        <p className="mt-10 text-[10px] text-slate-500 text-center uppercase tracking-[0.3em] font-black italic">
+                           {isAr ? 'خدمة استشارية مجانية 100% ' : '100% Free Advisory Service'}
                         </p>
                     </div>
-                </div>
+                </section>
             </aside>
         </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { background-color: #ffffff; }
+      `}} />
     </main>
   );
 }

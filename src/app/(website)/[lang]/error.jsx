@@ -1,53 +1,91 @@
-'use client'; // ضروري جداً لأنها تستخدم useEffect
+'use client';
 
 import { useEffect } from 'react';
 import { RefreshCw, Home, AlertOctagon } from 'lucide-react';
 
+/**
+ * 🚨 Global Error Component - Premium Standard 2026
+ * تم ضبطه ليعمل كـ "شبكة أمان" تمنع فقدان العميل عند حدوث مشاكل برمجية
+ */
 export default function Error({ error, reset }) {
   
   useEffect(() => {
-    console.error('Logged Error:', error);
+    // إرسال الخطأ لخدمات التتبع (مثلاً Sentry) لو موجودة
+    console.error('CRITICAL_SITE_ERROR:', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-[#FFF5F5] flex flex-col items-center justify-center p-6 text-center font-sans" dir="rtl">
+    <main 
+      className="min-h-screen bg-[#FFF5F5] flex flex-col items-center justify-center p-6 text-center font-sans relative overflow-hidden"
+      role="alert"
+      aria-live="assertive"
+      aria-labelledby="error-heading"
+    >
       
-      <div className="bg-white p-10 md:p-14 rounded-[2.5rem] shadow-2xl border border-red-100 max-w-lg w-full">
+      {/* Background Decor - Premium Red Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40" aria-hidden="true">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-red-100 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-slate-200 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 max-w-lg w-full bg-white/90 backdrop-blur-2xl p-10 md:p-16 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(192,32,38,0.15)] border border-white">
         
-        <div className="w-20 h-20 bg-red-50 text-[#C02026] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-           <AlertOctagon size={40} />
+        {/* Animated Icon Container */}
+        <div className="w-24 h-24 bg-red-50 text-[#C02026] rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-inner relative group">
+           <AlertOctagon size={48} className="group-hover:rotate-12 transition-transform duration-500" aria-hidden="true" />
+           <div className="absolute inset-0 rounded-[2rem] border-2 border-red-200 animate-ping opacity-20" />
         </div>
 
-        <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-3">حدث خطأ غير متوقع!</h2>
-        
-        <p className="text-slate-500 mb-8 text-sm leading-relaxed font-medium">
-          نعتذر بشدة، واجهنا مشكلة تقنية بسيطة أثناء تحميل الصفحة.
-          <br/>
-          فريقنا يعمل على إصلاحها الآن.
-        </p>
+        {/* Textual Content - Arabic & English for reliability */}
+        <div className="space-y-8 mb-12 text-start md:text-center">
+            <div className="space-y-3">
+              <h1 id="error-heading" className="text-2xl md:text-4xl font-black text-slate-900 leading-tight italic uppercase tracking-tighter">
+                حدث خطأ تقني غير متوقع
+              </h1>
+              <p className="text-slate-500 font-medium text-lg leading-relaxed italic">
+                نعتذر منك، واجهنا مشكلة أثناء معالجة طلبك. فريقنا يعمل على إصلاحها الآن.
+              </p>
+            </div>
+            
+            <div className="w-24 h-1 bg-red-100 mx-auto rounded-full" aria-hidden="true" />
 
-        <div className="flex flex-col gap-3">
-          {/* زر إعادة المحاولة - يقوم بإعادة تحميل الجزء المعطل فقط */}
+            <div className="space-y-2" dir="ltr">
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter italic uppercase">Unexpected Error</h2>
+              <p className="text-slate-500 font-medium">Something went wrong on our end. Please try again.</p>
+            </div>
+        </div>
+
+        {/* Action Buttons - UX Focused */}
+        <div className="flex flex-col gap-4">
           <button
             onClick={() => reset()}
-            className="w-full bg-[#C02026] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 active:scale-95"
+            aria-label="إعادة تحميل الصفحة"
+            className="w-full bg-[#C02026] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-red-700 transition-all shadow-2xl shadow-red-500/30 active:scale-95 group"
           >
-            <RefreshCw size={18} /> حاول مرة أخرى
+            <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" /> حاول مرة أخرى
           </button>
           
           <a 
-            href="/" 
-            className="w-full bg-slate-50 text-slate-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition-all active:scale-95"
+            href="/ar/" 
+            aria-label="العودة للرئيسية"
+            className="w-full bg-slate-950 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800 transition-all active:scale-95 shadow-xl"
           >
-             <Home size={18} /> العودة للرئيسية
+             <Home size={20} /> العودة للرئيسية
           </a>
         </div>
 
       </div>
       
-      <p className="mt-8 text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-60">
-        Error 500 • Server Issue
-      </p>
-    </div>
+      {/* Technical Metadata */}
+      <div className="mt-12 space-y-2 relative z-10 opacity-50">
+        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.4em]">
+          Internal Server Error • Code 500
+        </p>
+        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+          Platform Real Estate • System Guardian
+        </p>
+      </div>
+
+    </main>
   );
 }

@@ -6,7 +6,7 @@ import { urlFor } from '@/sanity/image';
 import { PortableText } from '@portabletext/react';
 
 /**
- * 🏢 AboutSection Component
+ * 🏢 AboutSection Component - Optimized for SEO & Accessibility
  */
 async function getAboutData() {
   const query = `*[_type == "aboutPage" && _id == "aboutPage"][0]{
@@ -17,14 +17,13 @@ async function getAboutData() {
     stats
   }`;
   
-  // إلغاء الكاش
-  return await client.fetch(query, {}, { cache: 'no-store' });
+  // استخدام revalidate بدل no-store لتحسين الأداء مع الحفاظ على التحديث
+  return await client.fetch(query, {}, { next: { revalidate: 3600 } });
 }
 
 export default async function AboutSection({ lang }) {
   const isAr = lang === 'ar';
   const data = await getAboutData();
-
 
   // --- تجهيز البيانات ---
   const title = isAr 
@@ -65,29 +64,33 @@ export default async function AboutSection({ lang }) {
       id="about" 
       className="py-16 md:py-24 bg-white overflow-hidden scroll-mt-20"
       dir={isAr ? 'rtl' : 'ltr'}
+      aria-labelledby="about-heading"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 mb-20">
           
-          <article className="flex-1 space-y-8 w-full">
+          <article className="flex-1 space-y-8 w-full text-start">
             <header className="space-y-4">
               <div className="flex items-center gap-2">
-                 <span className="w-10 h-1 bg-[#C02026] rounded-full"></span>
-                 <span className="text-xs font-bold text-[#C02026] uppercase tracking-[0.2em]">
+                 <span className="w-10 h-1 bg-[#C02026] rounded-full" aria-hidden="true"></span>
+                 <span className="text-xs font-black text-[#C02026] uppercase tracking-[0.2em]">
                    {isAr ? 'من نحن' : 'Who We Are'}
                  </span>
               </div>
               
-              <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.2]">
+              <h2 id="about-heading" className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.2] italic tracking-tighter">
                 Platform Real Estate <br />
                 <span className="text-[#C02026]">{title}</span>
               </h2>
             </header>
 
-            <div className="space-y-6 text-slate-600 text-base md:text-lg leading-relaxed font-medium text-justify">
+            {/* تم تحسين تباين الألوان هنا لـ slate-600 لضمان الوصول 100% */}
+            <div className="space-y-6 text-slate-600 text-base md:text-lg leading-relaxed font-medium">
               {content ? (
-                <PortableText value={content} />
+                <div className="prose prose-slate max-w-none">
+                   <PortableText value={content} />
+                </div>
               ) : (
                 <p>{isAr ? 'جاري تحميل البيانات...' : 'Loading content...'}</p>
               )}
@@ -95,7 +98,8 @@ export default async function AboutSection({ lang }) {
 
             <div className="pt-2">
               <Link 
-                href={`/${lang}/contact`} 
+                href={`/${lang}/contact/`} 
+                aria-label={isAr ? "تواصل مع مستشارك العقاري" : "Contact your real estate consultant"}
                 className="group inline-flex items-center gap-3 bg-[#121621] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#C02026] transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
               >
                 <span>{isAr ? 'تواصل مع مستشارك الآن' : 'Contact Your Consultant'}</span>
@@ -108,23 +112,25 @@ export default async function AboutSection({ lang }) {
             <div className="relative h-[400px] md:h-[550px] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white group">
               <Image 
                 src={data?.storyImage ? urlFor(data.storyImage).width(800).url() : "/images/placeholder.jpg"}
-                alt={title}
+                alt={isAr ? `عن شركة بلاتفورم العقارية - ${title}` : `About Platform Real Estate - ${title}`}
                 fill
+                priority // إضافة Priority لأنها صورة أساسية في قسم التعريف
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-1000"
               />
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 pointer-events-none"></div>
 
+              {/* بطاقة الإحصائيات العائمة */}
               <div className={`absolute bottom-6 md:bottom-10 ${isAr ? 'right-6 md:right-10' : 'left-6 md:left-10'} bg-white/90 backdrop-blur-xl p-4 md:p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white flex items-center gap-4`}>
                 <div className="bg-[#C02026]/10 p-3 md:p-4 rounded-full text-[#C02026]">
-                   <Star size={24} fill="currentColor" className="animate-pulse" />
+                   <Star size={24} fill="currentColor" className="animate-pulse" aria-hidden="true" />
                 </div>
-                <div>
+                <div className="text-start">
                   <span className="block text-2xl md:text-3xl font-black text-slate-900 leading-none">
                     {statValue}
                   </span>
-                  <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="text-[10px] md:text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {statLabel}
                   </span>
                 </div>
@@ -133,15 +139,16 @@ export default async function AboutSection({ lang }) {
           </div>
         </div>
 
+        {/* مميزات الشركة */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-10 border-t border-slate-100">
           {features.map((item, index) => (
             <div key={index} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors duration-300 group">
               <div className="w-14 h-14 shrink-0 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-[#C02026] group-hover:bg-[#C02026] group-hover:text-white transition-all duration-300 shadow-sm">
                 {item.icon}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 text-start">
                 <h3 className="text-lg font-black text-slate-800 group-hover:text-[#C02026] transition-colors">{item.title}</h3>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-slate-600 font-bold uppercase tracking-wide leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}

@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { Send, User, Phone, Mail, MessageSquare, MapPin, ExternalLink, Sun, Moon, Clock } from 'lucide-react';
-
-// ✅ المصدر الوحيد للحقيقة
 import { CONTACT_INFO } from '../components/constants/contact'; 
 
 const PhoneNumberDisplay = () => {
@@ -11,9 +9,9 @@ const PhoneNumberDisplay = () => {
   const formattedNumber = rawNumber.replace(/(\+20)(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
   
   return (
-    <div dir="ltr" className="font-sans font-bold text-lg text-slate-800 flex items-center gap-1 justify-center">
+    <span dir="ltr" className="font-sans font-bold text-lg text-slate-800 flex items-center gap-1 justify-center">
       {formattedNumber}
-    </div>
+    </span>
   );
 };
 
@@ -23,7 +21,7 @@ export default function ContactForm({ isAr }) {
     phone: '',
     email: '',
     message: '',
-    preferredTime: isAr ? 'أي وقت' : 'Any time' // إضافة حقل الوقت المفضل
+    preferredTime: isAr ? 'أي وقت' : 'Any time'
   });
 
   const handleChange = (e) => {
@@ -31,7 +29,6 @@ export default function ContactForm({ isAr }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // دالة لتغيير الوقت المفضل
   const setTime = (time) => {
     setFormData(prev => ({ ...prev, preferredTime: time }));
   };
@@ -39,26 +36,26 @@ export default function ContactForm({ isAr }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // 1. تجهيز نص الرسالة وتنسيقه للواتساب ليشمل الوقت المفضل
+    // تنظيف رقم الواتساب لضمان عمل الرابط عالمياً
+    const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
+
     const text = isAr 
       ? `*طلب حجز موعد جديد:*%0a-----------------------%0a👤 *الاسم:* ${formData.name}%0a📱 *الهاتف:* ${formData.phone}%0a⏰ *الوقت المفضل:* ${formData.preferredTime}%0a📧 *الإيميل:* ${formData.email || 'غير متوفر'}%0a📝 *الرسالة:* ${formData.message}`
       : `*New Booking Request:*%0a-----------------------%0a👤 *Name:* ${formData.name}%0a📱 *Phone:* ${formData.phone}%0a⏰ *Preferred Time:* ${formData.preferredTime}%0a📧 *Email:* ${formData.email || 'N/A'}%0a📝 *Message:* ${formData.message}`;
 
-    // ✅ 2. استخدام رقم الواتساب المخصص
-    const whatsappUrl = `https://wa.me/${CONTACT_INFO.whatsapp.replace(/\+/g, '')}?text=${text}`;
-    
-    window.open(whatsappUrl, '_blank');
+    const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${text}`;
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 relative overflow-hidden">
+    <div className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 relative overflow-hidden" role="region" aria-labelledby="form-title">
       
       <div className="absolute top-0 right-0 w-40 h-40 bg-[#C02026]/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <header className="text-center mb-8">
-        <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">
+        <h2 id="form-title" className="text-2xl md:text-3xl font-black text-slate-800 mb-2">
             {isAr ? 'حجز موعد' : 'Book an Appointment'}
-        </h3>
+        </h2>
         <p className="text-gray-500 font-medium text-sm md:text-base max-w-xs mx-auto leading-relaxed">
             {isAr 
             ? 'املأ بياناتك وسيتم توجيهك لتأكيد الحجز عبر الواتساب.' 
@@ -66,9 +63,13 @@ export default function ContactForm({ isAr }) {
         </p>
       </header>
 
-      {/* منطقة التواصل السريع كما هي */}
+      {/* منطقة التواصل السريع */}
       <div className="grid grid-cols-1 gap-4 mb-8">
-        <a href={`tel:${CONTACT_INFO.phone}`} className="block bg-slate-50 hover:bg-green-50 p-4 rounded-2xl border border-slate-100 hover:border-[#25D366] transition-all duration-300 group text-center no-underline">
+        <a 
+          href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+          aria-label={isAr ? "اتصال هاتفي مباشر" : "Direct phone call"}
+          className="block bg-slate-50 hover:bg-green-50 p-4 rounded-2xl border border-slate-100 hover:border-[#25D366] transition-all duration-300 group text-center no-underline"
+        >
             <p className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest group-hover:text-green-600 transition-colors">
                 {isAr ? 'اتصال مباشر' : 'Direct Call'}
             </p>
@@ -77,7 +78,14 @@ export default function ContactForm({ isAr }) {
                 <PhoneNumberDisplay /> 
             </div>
         </a>
-        <a href={CONTACT_INFO.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="block bg-slate-50 hover:bg-red-50 p-4 rounded-2xl border border-slate-100 hover:border-[#C02026] transition-all duration-300 group text-center no-underline relative overflow-hidden">
+
+        <a 
+          href={CONTACT_INFO.googleMapsUrl} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          aria-label={isAr ? "موقعنا على الخريطة" : "Our location on maps"}
+          className="block bg-slate-50 hover:bg-red-50 p-4 rounded-2xl border border-slate-100 hover:border-[#C02026] transition-all duration-300 group text-center no-underline relative overflow-hidden"
+        >
             <p className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest group-hover:text-[#C02026] transition-colors flex items-center justify-center gap-1">
                 {isAr ? 'زيارة الفرع' : 'Visit HQ'} <ExternalLink size={10} />
             </p>
@@ -88,61 +96,96 @@ export default function ContactForm({ isAr }) {
         </a>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5 text-start">
         
+        {/* حقل الاسم */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
+          <label htmlFor="full-name" className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
             <User size={14} /> {isAr ? 'الاسم بالكامل' : 'Full Name'}
           </label>
-          <input type="text" name="name" required value={formData.name} onChange={handleChange} placeholder={isAr ? 'مثال: أحمد محمد' : 'Ex: John Doe'} className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium" />
+          <input 
+            id="full-name"
+            type="text" 
+            name="name" 
+            required 
+            value={formData.name} 
+            onChange={handleChange} 
+            placeholder={isAr ? 'مثال: أحمد محمد' : 'Ex: John Doe'} 
+            className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium" 
+          />
         </div>
 
+        {/* حقل الهاتف */}
         <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
+            <label htmlFor="phone-number" className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
               <Phone size={14} /> {isAr ? 'رقم الهاتف' : 'Phone Number'}
             </label>
-            <input type="tel" name="phone" required value={formData.phone} onChange={handleChange} placeholder="+20..." dir="ltr" className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium text-left" />
+            <input 
+              id="phone-number"
+              type="tel" 
+              name="phone" 
+              required 
+              value={formData.phone} 
+              onChange={handleChange} 
+              placeholder="+20..." 
+              dir="ltr" 
+              className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium text-left" 
+            />
         </div>
 
-        {/* ✅ إضافة اختيار الوقت المفضل (صباحاً/مساءً/أي وقت) */}
+        {/* اختيار الوقت المفضل */}
         <div className="space-y-3">
             <label className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
                <Clock size={14} /> {isAr ? 'الوقت المفضل للاتصال' : 'Preferred Calling Time'}
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label="Preferred time">
                 {[
                     { id: 'صباحاً', en: 'Morning', icon: <Sun size={14} /> },
                     { id: 'مساءً', en: 'Evening', icon: <Moon size={14} /> },
                     { id: 'أي وقت', en: 'Any time', icon: <Clock size={14} /> }
-                ].map((option) => (
-                    <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setTime(isAr ? option.id : option.en)}
-                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-xl border transition-all duration-300 ${
-                            formData.preferredTime === (isAr ? option.id : option.en)
-                            ? 'bg-[#C02026] border-[#C02026] text-white shadow-md'
-                            : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300'
-                        }`}
-                    >
-                        {option.icon}
-                        <span className="text-[10px] font-bold">{isAr ? option.id : option.en}</span>
-                    </button>
-                ))}
+                ].map((option) => {
+                    const isSelected = formData.preferredTime === (isAr ? option.id : option.en);
+                    return (
+                        <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setTime(isAr ? option.id : option.en)}
+                            aria-pressed={isSelected}
+                            className={`flex flex-col items-center justify-center gap-2 py-3 rounded-xl border transition-all duration-300 active:scale-95 ${
+                                isSelected
+                                ? 'bg-[#C02026] border-[#C02026] text-white shadow-md'
+                                : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-300'
+                            }`}
+                        >
+                            {option.icon}
+                            <span className="text-[10px] font-bold">{isAr ? option.id : option.en}</span>
+                        </button>
+                    );
+                })}
             </div>
         </div>
 
+        {/* حقل الرسالة */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
+          <label htmlFor="message-input" className="text-xs font-bold text-gray-500 flex items-center gap-2 uppercase tracking-wide px-1">
             <MessageSquare size={14} /> {isAr ? 'رسالة اختيارية' : 'Optional Message'}
           </label>
-          <textarea name="message" rows="3" value={formData.message} onChange={handleChange} placeholder={isAr ? 'أنا مهتم بمشروع...' : 'I am interested in...'} className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium resize-none"></textarea>
+          <textarea 
+            id="message-input"
+            name="message" 
+            rows="3" 
+            value={formData.message} 
+            onChange={handleChange} 
+            placeholder={isAr ? 'أنا مهتم بمشروع...' : 'I am interested in...'} 
+            className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#C02026] focus:bg-white transition-all outline-none font-medium resize-none"
+          ></textarea>
         </div>
 
-        {/* زر الإرسال المعدل */}
+        {/* زر الإرسال */}
         <button
           type="submit"
-          className="w-full py-4 bg-slate-900 hover:bg-[#C02026] text-white rounded-xl font-black text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-3 mt-6 group"
+          aria-label={isAr ? "إرسال الطلب عبر واتساب" : "Send request via WhatsApp"}
+          className="w-full py-4 bg-slate-900 hover:bg-[#C02026] text-white rounded-xl font-black text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-3 mt-6 group active:scale-95"
         >
           {isAr ? 'تأكيد الحجز' : 'Confirm Booking'}
           <Send size={20} className={`${isAr ? 'rotate-180' : ''} group-hover:translate-x-1 transition-transform`} />

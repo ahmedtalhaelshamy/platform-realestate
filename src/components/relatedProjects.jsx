@@ -13,10 +13,9 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
   const [loading, setLoading] = useState(true);
   const isAr = lang === 'ar';
 
-  // 1. جلب البيانات بناءً على "الموقع المشترك" - أولوية سيو وتسويق
+  // 1. جلب البيانات (الأولوية للمشاريع في نفس المنطقة)
   const fetchRelated = useCallback(async () => {
     try {
-      // الاستعلام يبحث عن مشاريع في نفس المنطقة أولاً، ويستثني المشروع الحالي
       const query = `*[_type == "project" && _id != $currentId] | order(location._ref == $locationId desc, _createdAt desc)[0...8] {
         _id,
         titleAr,
@@ -47,7 +46,7 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
     fetchRelated();
   }, [fetchRelated]);
 
-  // 2. دالة التمرير اليدوي (UX Best Practice)
+  // 2. دالة التمرير اليدوي
   const scroll = (direction) => {
     if (scrollRef.current) {
       const { clientWidth } = scrollRef.current;
@@ -56,7 +55,7 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
     }
   };
 
-  // 3. منطق التمرير التلقائي (Auto-Pilot)
+  // 3. منطق التمرير التلقائي
   useEffect(() => {
     if (loading || projects.length === 0 || isPaused) return;
 
@@ -64,9 +63,11 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
       const slider = scrollRef.current;
       if (slider) {
         const { scrollLeft, clientWidth, scrollWidth } = slider;
+        
+        // حساب النهاية بدقة لدعم RTL و LTR
         const isEnd = isAr 
-          ? Math.abs(scrollLeft) >= (scrollWidth - clientWidth - 50)
-          : scrollLeft >= (scrollWidth - clientWidth - 50);
+          ? Math.abs(scrollLeft) >= (scrollWidth - clientWidth - 100)
+          : scrollLeft >= (scrollWidth - clientWidth - 100);
 
         if (isEnd) {
           slider.scrollTo({ left: 0, behavior: 'smooth' });
@@ -81,7 +82,7 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
   }, [isPaused, isAr, loading, projects.length]);
 
   if (loading) return (
-    <div className="py-24 text-center">
+    <div className="py-24 text-center" role="status" aria-live="polite">
       <div className="w-12 h-12 border-4 border-slate-100 border-t-[#C02026] rounded-full animate-spin mx-auto mb-4"></div>
       <p className="text-slate-400 font-medium italic">{isAr ? 'نختار لك أفضل البدائل...' : 'Selecting best alternatives...'}</p>
     </div>
@@ -90,33 +91,37 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
   if (projects.length === 0) return null;
 
   return (
-    <section className="py-20 bg-[#FDFDFD] border-t border-slate-50 relative overflow-hidden">
-      
-      {/* Header مع لمسة فخامة */}
+    <section 
+      className="py-20 bg-[#FDFDFD] border-t border-slate-50 relative overflow-hidden"
+      aria-labelledby="related-title"
+    >
+      {/* Header */}
       <div className="max-w-7xl mx-auto px-6 mb-12 flex items-end justify-between">
-        <div className="space-y-3">
+        <div className="space-y-3 text-start">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-[#C02026]" />
             <span className="text-[#C02026] text-[10px] font-black uppercase tracking-[0.4em]">
               {isAr ? 'اقتراحات حصرية' : 'Exclusive Matches'}
             </span>
           </div>
-          <h3 className="text-3xl md:text-4xl font-black text-slate-900 italic uppercase tracking-tighter">
+          <h2 id="related-title" className="text-3xl md:text-4xl font-black text-slate-900 italic uppercase tracking-tighter">
             {isAr ? 'خيارات استثمارية مشابهة' : 'Related Opportunities'}
-          </h3>
+          </h2>
         </div>
 
-        {/* أزرار التحكم - ضرورية جداً للموبايل والـ Desktop */}
+        {/* أزرار التحكم - مع إضافة Aria Labels للـ Accessibility */}
         <div className="hidden md:flex gap-3">
           <button 
             onClick={() => scroll('left')}
-            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500"
+            aria-label={isAr ? "السابق" : "Previous"}
+            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500 active:scale-90"
           >
             <ChevronLeft size={20} />
           </button>
           <button 
             onClick={() => scroll('right')}
-            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500"
+            aria-label={isAr ? "التالي" : "Next"}
+            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500 active:scale-90"
           >
             <ChevronRight size={20} />
           </button>
@@ -128,10 +133,14 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
         className="relative group/container"
         onMouseEnter={() => setIsPaused(true)}  
         onMouseLeave={() => setIsPaused(false)} 
+        onFocus={() => setIsPaused(true)} // للوصول عبر الكيبورد
+        onBlur={() => setIsPaused(false)}
       >
         <div 
           ref={scrollRef}
           className="flex gap-8 overflow-x-auto pb-16 hide-scrollbar snap-x snap-mandatory px-6 md:px-[calc((100vw-1280px)/2)]"
+          role="region"
+          aria-label={isAr ? "مشاريع مشابهة" : "Related projects slider"}
         >
           {projects.map((project) => (
             <div 
@@ -142,10 +151,11 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
             </div>
           ))}
 
-          {/* كارت "شاهد الكل" بتصميم عصري */}
+          {/* كارت "شاهد الكل" */}
           <div className="min-w-[300px] flex items-center justify-center">
             <Link 
-              href={`/${lang}/projects`}
+              href={`/${lang}/projects/`} // تأكد من وجود / في النهاية للسيو
+              aria-label={isAr ? "اكتشف كافة المشاريع" : "View All Assets"}
               className="group flex flex-col items-center gap-6"
             >
               <div className="w-24 h-24 rounded-3xl rotate-12 border-2 border-dashed border-slate-200 flex items-center justify-center group-hover:rotate-0 group-hover:border-[#C02026] group-hover:bg-[#C02026] transition-all duration-700">

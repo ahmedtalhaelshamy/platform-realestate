@@ -4,16 +4,17 @@ import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة
+// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة لضمان سرعة الاستجابة
 export const revalidate = 3600; 
 
 // 🏁 الدومين الموحد المعتمد (بدون www)
 const BASE_URL = 'https://platformrealestate.co';
 
 /**
- * 🛠️ دالة تطهير النصوص للميتا ديسكربشن
+ * 🛠️ دالة تطهير النصوص الشاملة (حارس البيانات)
+ * تحول أي محتوى (String أو Sanity Object) لنص صافي وآمن لـ React
  */
-function cleanToPlainText(input) {
+function getSafeText(input) {
   if (!input) return "";
   if (typeof input === 'string') return input;
   
@@ -27,26 +28,30 @@ function cleanToPlainText(input) {
       .replace(/\s+/g, ' ')
       .trim();
   }
-  return "";
+
+  if (typeof input === 'object' && input.children) {
+    return input.children.map(child => child.text).join('');
+  }
+  
+  return String(input);
 }
 
 /**
- * 🖼️ حارس الصور
+ * 🖼️ حارس الصور - يضمن عدم كسر الصفحة إذا فقدت الصورة
  */
 const getSafeImageUrl = (source) => {
   if (!source || !source.asset || !source.asset._ref) {
     return `${BASE_URL}/og-image.jpg`; 
   }
   try {
-    return urlFor(source).width(1200).quality(90).auto('format').url();
+    return urlFor(source).width(1200).height(630).quality(90).auto('format').url();
   } catch (error) {
-    console.error("Critical Image Resolution Error:", error);
     return `${BASE_URL}/og-image.jpg`;
   }
 };
 
 /**
- * 1️⃣ التوليد الثابت (Static Generation) لجميع اللغات والمشاريع
+ * 1️⃣ التوليد الثابت (Static Generation)
  */
 export async function generateStaticParams() {
   const query = `*[_type == "project" && defined(slug.current) && !(_id in path("drafts.**"))]{ 
@@ -64,13 +69,12 @@ export async function generateStaticParams() {
       }))
     );
   } catch (error) {
-    console.error("Static Params Fetch Error:", error);
     return [];
   }
 }
 
 /**
- * 2️⃣ [SEO] الميتا داتا المحدثة (منع التكرار وربط اللغات بـ hreflang)
+ * 2️⃣ [SEO] الميتا داتا المحدثة (توحيد الروابط والأرشفة الدولية)
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
@@ -84,29 +88,25 @@ export async function generateMetadata({ params }) {
   if (!data) return { title: 'Project Not Found' };
 
   const seo = data.seo;
-  const title = isAr 
-    ? (seo?.metaTitleAr || data.titleAr || CONTACT_INFO.siteNameAr) 
-    : (seo?.metaTitleEn || data.titleEn || CONTACT_INFO.siteNameEn);
+  // تأمين النصوص من الـ Objects
+  const cleanTitle = getSafeText(isAr ? (seo?.metaTitleAr || data.titleAr) : (seo?.metaTitleEn || data.titleEn));
+  const cleanDesc = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   
-  const description = (isAr ? seo?.metaDescAr : seo?.metaDescEn) || '';
-  const imageUrl = seo?.ogImage ? getSafeImageUrl(seo.ogImage) : getSafeImageUrl(data.mainImage);
-  
-  // 🔗 بناء الروابط المتقاطعة (Cross-linking)
   const arUrl = `${BASE_URL}/ar/projects/${slug}/`;
   const enUrl = `${BASE_URL}/en/projects/${slug}/`;
   const currentUrl = isAr ? arUrl : enUrl;
 
   return {
-    title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
-    description: cleanToPlainText(description).substring(0, 160),
+    title: `${cleanTitle} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+    description: cleanDesc.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     
     alternates: {
-      canonical: currentUrl, // الرابط الأصلي للغة الحالية
+      canonical: currentUrl,
       languages: {
-        'ar': arUrl,       // رابط النسخة العربية
-        'en': enUrl,       // رابط النسخة الإنجليزية
-        'x-default': arUrl // اللغة الافتراضية إذا لم تتطابق لغة المستخدم
+        'ar': arUrl,
+        'en': enUrl,
+        'x-default': arUrl
       },
     },
     
@@ -116,18 +116,18 @@ export async function generateMetadata({ params }) {
     },
     
     openGraph: {
-      title,
-      description: cleanToPlainText(description),
+      title: cleanTitle,
+      description: cleanDesc,
       url: currentUrl,
-      images: [{ url: imageUrl, width: 1200, height: 630 }],
+      images: [{ url: getSafeImageUrl(seo?.ogImage || data.mainImage) }],
       locale: isAr ? 'ar_EG' : 'en_US',
-      type: seo?.schemaType === 'Article' ? 'article' : 'website',
+      type: 'website',
     }
   };
 }
 
 /**
- * 3️⃣ المكون الرئيسي
+ * 3️⃣ المكون الرئيسي لمعالجة البيانات وتمريرها للـ UI
  */
 export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
@@ -152,17 +152,24 @@ export default async function ProjectDetailPage({ params }) {
   const data = await client.fetch(query, { slug });
   if (!data) return notFound();
 
+  // 🛡️ معالجة البيانات قبل إرسالها للـ Client Component لمنع خطأ الـ Objects
   const sanitizedData = {
     ...data,
-    computedH1: isAr ? (data.customH1Ar || data.titleAr) : (data.customH1En || data.titleEn),
-    districtName: isAr ? data.districtData?.nameAr : data.districtData?.nameEn,
-    cityName: isAr ? data.locationData?.nameAr : data.locationData?.nameEn,
+    titleAr: getSafeText(data.titleAr),
+    titleEn: getSafeText(data.titleEn),
+    computedH1: getSafeText(isAr ? (data.customH1Ar || data.titleAr) : (data.customH1En || data.titleEn)),
+    districtName: getSafeText(isAr ? data.districtData?.nameAr : data.districtData?.nameEn),
+    cityName: getSafeText(isAr ? data.locationData?.nameAr : data.locationData?.nameEn),
+    developerName: getSafeText(isAr ? data.developer?.nameAr : data.developer?.nameEn),
   };
 
   const breadcrumbItems = [
     { label: isAr ? 'المشاريع' : 'Projects', href: `/${lang}/projects/` },
-    { label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), href: `/${lang}/districts/${data.districtData?.slug}/` },
-    { label: isAr ? data.titleAr : data.titleEn }
+    { 
+      label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), 
+      href: `/${lang}/locations/${data.locationData?.slug}/` // تعديل المسار ليكون منطقياً
+    },
+    { label: sanitizedData.computedH1 }
   ];
 
   // 🏆 [SEO] Schema Markup مع الروابط الموحدة
@@ -170,7 +177,7 @@ export default async function ProjectDetailPage({ params }) {
     '@context': 'https://schema.org',
     '@type': data.seo?.schemaType || 'RealEstateListing',
     'name': sanitizedData.computedH1,
-    'description': cleanToPlainText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
+    'description': getSafeText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
     'image': getSafeImageUrl(data.mainImage),
     'url': `${BASE_URL}/${lang}/projects/${slug}/`,
     'address': {

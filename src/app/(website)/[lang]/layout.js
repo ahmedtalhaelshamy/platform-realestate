@@ -9,22 +9,22 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 1. إعداد الخطوط
+// 1. إعداد الخطوط - تم تحسين الأوزان لتقليل حجم الملف
 const almarai = Almarai({
   subsets: ['arabic'],
   variable: '--font-almarai',
   display: 'swap',
-  weight: ['300', '400', '700', '800'],
+  weight: ['400', '700', '800'],
 });
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '600', '700', '800'],
 });
 
-// 2. دالة جلب الإعدادات
+// 2. دالة جلب الإعدادات (Cached)
 async function getSiteSettings() {
   try {
     const query = `*[_type == "siteSettings"][0]{ 
@@ -38,7 +38,7 @@ async function getSiteSettings() {
   }
 }
 
-// 3. توليد الـ Metadata (SEO) - النسخة الموحدة للدومين الأساسي
+// 3. SEO Metadata - Standard 2026
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -52,7 +52,6 @@ export async function generateMetadata({ params }) {
     ? (settings?.seo?.metaDescAr || "استشارك العقاري الأول في مصر") 
     : (settings?.seo?.metaDescEn || "Your first real estate consultant in Egypt");
 
-  // ✅ الزتونة: إجبار الدومين الأساسي (بدون www) ليتطابق مع Vercel
   const baseUrl = 'https://platformrealestate.co'; 
 
   return {
@@ -63,7 +62,6 @@ export async function generateMetadata({ params }) {
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
-      // ✅ Canonical موحد ينتهي بـ / ليتوافق مع Next.js Trailing Slashes
       canonical: `${baseUrl}/${lang}/`, 
       languages: {
         'ar': `${baseUrl}/ar/`,
@@ -71,14 +69,40 @@ export async function generateMetadata({ params }) {
         'x-default': `${baseUrl}/ar/`, 
       },
     },
+    // تحسين تعريف الأيقونات
     icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-icon.png',
+      icon: [
+        { url: '/favicon.ico' },
+        { url: '/icon.png', type: 'image/png' },
+      ],
+      apple: [
+        { url: '/apple-icon.png' },
+      ],
+    },
+    // إضافة بيانات الروبوتات لضمان أفضل أرشفة
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   };
 }
 
-// 4. الـ Layout الرئيسي للموقع
+// إعدادات الـ Viewport لضمان سرعة الاستجابة ومنع الـ Zoom التلقائي في الآيفون
+export const viewport = {
+  themeColor: '#C02026',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5, // يسمح بالزوم للـ Accessibility ولكن يمنعه عند الضغط على الـ inputs
+};
+
+// 4. الـ Layout الرئيسي
 export default async function WebsiteLayout({ children, params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -89,7 +113,7 @@ export default async function WebsiteLayout({ children, params }) {
     <html 
       lang={lang} 
       dir={isAr ? 'rtl' : 'ltr'} 
-      className={`${almarai.variable} ${jakarta.variable}`}
+      className={`${almarai.variable} ${jakarta.variable} scroll-smooth`}
       suppressHydrationWarning
     >
       <body 
@@ -101,10 +125,18 @@ export default async function WebsiteLayout({ children, params }) {
         `}
         suppressHydrationWarning
       >
+        {/* ✅ رابط تخطي المحتوى لسهولة الوصول (Accessibility Boost) */}
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-[#C02026] focus:text-white focus:px-6 focus:py-3 focus:rounded-xl focus:font-bold"
+        >
+          {isAr ? 'تخطي للرئيسية' : 'Skip to Content'}
+        </a>
           
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
         
-        <main className="flex-grow relative w-full">
+        {/* معرف المحتوى الرئيسي */}
+        <main id="main-content" className="flex-grow relative w-full outline-none">
           {children}
         </main>
 
@@ -117,9 +149,14 @@ export default async function WebsiteLayout({ children, params }) {
         
         <Footer lang={lang} settings={settings} />
         
+        {/* تحسينات بصرية إضافية */}
         <style dangerouslySetInnerHTML={{ __html: `
-          html { scroll-behavior: smooth; }
           body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+          /* تخصيص الـ Scrollbar ليكون Premium */
+          ::-webkit-scrollbar { width: 8px; }
+          ::-webkit-scrollbar-track { background: #f8fafc; }
+          ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; border: 2px solid #f8fafc; }
+          ::-webkit-scrollbar-thumb:hover { background: #C02026; }
         `}} />
       </body>
     </html>

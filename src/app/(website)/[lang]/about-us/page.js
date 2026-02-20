@@ -6,42 +6,76 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { Target, Lightbulb, Users, CheckCircle, Award, ArrowUpRight, MessageCircle } from 'lucide-react';
 
-// ✅ الأداء: ISR لتحديث البيانات كل ساعة
+// ✅ PERFORMANCE: ISR كل ساعة لضمان التحديث التلقائي
 export const revalidate = 3600; 
+
+// 🏁 الدومين الموحد المعتمد للسيو
+const BASE_URL = 'https://platformrealestate.co';
+
+// ✅ دالة الأمان المحسنة لمنع خطأ الـ Objects كأبناء لـ React
+const getSafeText = (val) => {
+  if (!val) return "";
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+  }
+  if (typeof val === 'object' && val.children) {
+    return val.children.map(child => child.text).join('');
+  }
+  return String(val);
+};
 
 export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
 async function getAboutData() {
-  const query = `*[_type == "aboutPage" && _id == "aboutPage"][0]{
+  const query = `*[_type == "aboutPage"][0]{
     ...,
     "seo": seo {
       metaTitleAr, metaTitleEn, metaDescAr, metaDescEn,
-      keywordsAr, keywordsEn, "ogImage": openGraphImage.asset->url
+      "ogImage": openGraphImage.asset->url
     }
   }`;
   try {
     return await client.fetch(query);
   } catch (err) {
-    console.error("Sanity Error:", err);
+    console.error("Sanity About Page Error:", err);
     return null;
   }
 }
 
+/**
+ * ✅ SEO Metadata (International Routing)
+ */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
   const data = await getAboutData();
-  if (!data) return { title: isAr ? 'من نحن' : 'About Us' };
+  const baseUrl = BASE_URL;
 
-  const seo = data.seo;
-  const title = isAr ? (seo?.metaTitleAr || data.heroTitleAr) : (seo?.metaTitleEn || data.heroTitleEn);
+  const title = getSafeText(isAr ? (data?.seo?.metaTitleAr || data?.heroTitleAr) : (data?.seo?.metaTitleEn || data?.heroTitleEn));
+  const desc = getSafeText(isAr ? data?.seo?.metaDescAr : data?.seo?.metaDescEn);
+  
+  const arPath = `${baseUrl}/ar/about/`;
+  const enPath = `${baseUrl}/en/about/`;
+  const currentPath = isAr ? arPath : enPath;
+
   return {
-    title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
-    description: isAr ? seo?.metaDescAr : seo?.metaDescEn,
-    alternates: { canonical: `${CONTACT_INFO.domain}/${lang}/about` },
-    openGraph: { images: seo?.ogImage ? [{ url: seo.ogImage }] : [] }
+    title: `${title} | Platform`,
+    description: desc,
+    alternates: { 
+      canonical: currentPath,
+      languages: { 'ar': arPath, 'en': enPath }
+    },
+    openGraph: {
+      title,
+      description: desc,
+      url: currentPath,
+      images: data?.seo?.ogImage ? [{ url: data.seo.ogImage }] : [`${baseUrl}/og-about.jpg`],
+      locale: isAr ? 'ar_EG' : 'en_US',
+      type: 'website',
+    }
   };
 }
 
@@ -53,184 +87,213 @@ export default async function AboutPage({ params }) {
   if (!data) return null;
 
   const t = {
-    heroTitle: isAr ? data.heroTitleAr : data.heroTitleEn,
-    storyTitle: isAr ? data.storyTitleAr : data.storyTitleEn,
-    storyContent: isAr ? data.storyContentAr : data.storyContentEn,
+    heroTitle: getSafeText(isAr ? data.heroTitleAr : data.heroTitleEn),
+    storyTitle: getSafeText(isAr ? data.storyTitleAr : data.storyTitleEn),
     visionTitle: isAr ? 'رؤيتنا' : 'Our Vision',
-    visionText: isAr ? data.visionAr : data.visionEn,
     missionTitle: isAr ? 'مهمتنا' : 'Our Mission',
-    missionText: isAr ? data.missionAr : data.missionEn,
-    ctaTitle: isAr ? 'هل لديك أي استفسار عقاري؟' : 'Have a Real Estate Inquiry?',
-    ctaDesc: isAr ? 'نحن هنا لمساعدتك في اتخاذ القرار الاستثماري الصحيح. تواصل معنا مباشرة عبر الواتساب.' : 'We are here to help you make the right investment decision. Contact us directly via WhatsApp.',
-    ctaBtn: isAr ? 'تواصل معنا عبر واتساب' : 'Contact us via WhatsApp'
+    ctaTitle: isAr ? 'هل تبحث عن استثمار آمن؟' : 'Seeking a Secure Investment?',
+    ctaDesc: isAr ? 'خبراؤنا متاحون الآن لمساعدتك في اتخاذ القرار الاستثماري الأذكى في السوق المصري.' : 'Our experts are ready to guide you toward the smartest investment in the Egyptian market.',
   };
 
-  const breadcrumbItems = [{ label: isAr ? 'من نحن' : 'About Us' }];
+  const breadcrumbItems = [
+    { label: isAr ? 'من نحن' : 'About Us', href: `/${lang}/about/` }
+  ];
+
+  // 🏆 [SEO] Schema Markup - Organization
+  const orgSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    'name': isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
+    'url': `${BASE_URL}/${lang}/about/`,
+    'logo': `${BASE_URL}/logo.png`,
+    'description': getSafeText(isAr ? data?.seo?.metaDescAr : data?.seo?.metaDescEn),
+    'address': {
+      '@type': 'PostalAddress',
+      'addressLocality': 'New Cairo',
+      'addressCountry': 'EG'
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 overflow-x-hidden" dir={isAr ? 'rtl' : 'ltr'}>
+    <main className="min-h-screen bg-white text-slate-900" dir={isAr ? 'rtl' : 'ltr'}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+      />
       
-      {/* 1. HERO SECTION */}
-      <section className="relative min-h-[70vh] md:h-[80vh] w-full flex items-center justify-center text-center overflow-hidden bg-slate-950">
+      {/* 🚀 1. PREMIUM HERO SECTION */}
+      <header className="relative min-h-[70vh] md:min-h-[85vh] w-full flex items-center justify-center text-center overflow-hidden bg-[#080A0D]">
         {data.heroImage && (
           <div className="absolute inset-0">
             <Image
               src={urlFor(data.heroImage).width(1920).quality(90).url()}
-              alt={t.heroTitle || 'About Us'}
+              alt={t.heroTitle}
               fill
-              className="object-cover brightness-[0.4] scale-105 animate-slow-zoom"
+              className="object-cover brightness-[0.5] scale-105 animate-slow-zoom"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60 md:opacity-40" />
+            {/* Ambient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#080A0D]/50 via-transparent to-white" aria-hidden="true" />
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#C02026] via-transparent to-transparent" aria-hidden="true" />
           </div>
         )}
         
-        <div className="relative z-10 px-6 max-w-5xl w-full pt-32 md:pt-40">
-          <div className="inline-flex items-center gap-2 mb-8 px-5 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/90 text-xs md:text-sm font-black uppercase tracking-[0.2em]">
+        <div className="relative z-10 px-6 max-w-6xl w-full pt-40 md:pt-48">
+          <nav className="inline-flex justify-center mb-10 overflow-x-auto hide-scrollbar" aria-label="Breadcrumb">
              <Breadcrumbs items={breadcrumbItems} lang={lang} />
-          </div>
+          </nav>
           
-          <h1 className="text-4xl md:text-8xl font-black text-white mb-8 drop-shadow-2xl italic uppercase tracking-tighter leading-[1.1]">
+          <h1 className="text-4xl md:text-[9rem] font-black text-white mb-10 italic uppercase tracking-tighter leading-[0.85] drop-shadow-2xl">
             {t.heroTitle}
           </h1>
-          <div className="w-24 h-2 bg-[#C02026] mx-auto rounded-full shadow-[0_0_20px_rgba(192,32,38,0.5)]"></div>
+          <div className="w-28 h-2 bg-[#C02026] mx-auto rounded-full shadow-[0_0_30px_rgba(192,32,38,0.6)] animate-pulse" aria-hidden="true" />
         </div>
-      </section>
+      </header>
 
-      {/* 2. STATS SECTION */}
+      {/* 📊 2. STATS SECTION - Floating UI */}
       {data.stats && data.stats.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 relative z-20 -mt-12 md:-mt-16">
-            <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 p-6 md:p-10 grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+        <section className="max-w-6xl mx-auto px-6 relative z-20 -mt-16 md:-mt-24" aria-label="Company Statistics">
+            <div className="bg-white/90 backdrop-blur-3xl rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-slate-100 p-8 md:p-14 grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 text-center">
                 {data.stats.map((stat, idx) => (
                 <div key={idx} className="relative group flex flex-col items-center">
                     {idx !== 0 && (
-                      <div className="hidden lg:block absolute ltr:left-0 rtl:right-0 top-1/2 -translate-y-1/2 w-px h-10 bg-slate-100"></div>
+                      <div className="hidden lg:block absolute ltr:left-0 rtl:right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-slate-100" aria-hidden="true" />
                     )}
-                    <span className="text-2xl md:text-3xl font-black text-[#C02026] block mb-1 transition-transform duration-500 group-hover:scale-110">
-                    {stat.number}
+                    <span className="text-3xl md:text-5xl font-black text-[#C02026] block mb-2 transition-transform duration-700 group-hover:scale-110 italic tracking-tighter">
+                      {stat.number}
                     </span>
-                    <span className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] leading-tight max-w-[120px]">
-                    {isAr ? stat.labelAr : stat.labelEn}
+                    <span className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-[0.2em] leading-tight max-w-[140px] italic">
+                      {isAr ? stat.labelAr : stat.labelEn}
                     </span>
                 </div>
                 ))}
             </div>
-        </div>
+        </section>
       )}
 
-      {/* 3. OUR STORY */}
-      <section className="max-w-7xl mx-auto px-6 py-20 md:py-40">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-32 items-center">
-          <div className="space-y-10 order-2 lg:order-1">
-            <div className="border-s-8 border-[#C02026] ps-6 md:ps-8">
-                <span className="text-[#C02026] font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">{isAr ? 'رحلتنا' : 'Our Journey'}</span>
-                <h2 className="text-3xl md:text-6xl font-black text-slate-950 leading-[1.1] italic uppercase tracking-tighter">{t.storyTitle}</h2>
-            </div>
-            <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-[1.8] md:leading-[2] text-justify font-medium opacity-90">
-              <PortableText value={t.storyContent} />
+      {/* 📜 3. OUR STORY SECTION */}
+      <section className="max-w-[1440px] mx-auto px-6 py-24 md:py-48" aria-labelledby="story-heading">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 xl:gap-40 items-center">
+          <div className="space-y-12 order-2 lg:order-1 text-start">
+            <header className="border-s-[12px] border-[#C02026] ps-8">
+                <span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[11px] mb-4 block">{isAr ? 'قصة نجاحنا' : 'The Legacy'}</span>
+                <h2 id="story-heading" className="text-4xl md:text-7xl font-black text-slate-950 leading-[0.9] italic uppercase tracking-tighter">{t.storyTitle}</h2>
+            </header>
+            
+            <div className="prose prose-xl prose-slate max-w-none text-slate-600 leading-relaxed text-justify font-medium italic opacity-95">
+              <PortableText value={isAr ? data.storyContentAr : data.storyContentEn} />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-               <div className="flex items-center gap-5 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-                  <div className="bg-white p-4 rounded-2xl shadow-sm group-hover:bg-[#C02026] transition-colors duration-500">
-                    <CheckCircle className="text-[#C02026] group-hover:text-white w-7 h-7" />
+            {/* Value Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-16">
+                {[
+                  { icon: CheckCircle, label: isAr ? 'شفافية استثمارية' : 'Financial Integrity' },
+                  { icon: Users, label: isAr ? 'استشارات حصرية' : 'Elite Support' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-6 p-8 bg-slate-50 rounded-[3rem] border border-slate-100 hover:bg-white hover:shadow-2xl transition-all duration-700 group hover:-translate-y-2">
+                    <div className="bg-white p-5 rounded-2xl shadow-xl group-hover:bg-[#C02026] transition-all duration-700">
+                      <item.icon size={32} className="text-[#C02026] group-hover:text-white" strokeWidth={1.5} />
+                    </div>
+                    <span className="font-black text-slate-950 text-sm md:text-base uppercase tracking-tighter italic">{item.label}</span>
                   </div>
-                  <span className="font-black text-slate-900 text-sm uppercase tracking-wider">{isAr ? 'شفافية كاملة' : 'Full Transparency'}</span>
-               </div>
-               <div className="flex items-center gap-5 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-                  <div className="bg-white p-4 rounded-2xl shadow-sm group-hover:bg-[#C02026] transition-colors duration-500">
-                    <Users className="text-[#C02026] group-hover:text-white w-7 h-7" />
-                  </div>
-                  <span className="font-black text-slate-900 text-sm uppercase tracking-wider">{isAr ? 'دعم احترافي' : 'Pro Support'}</span>
-               </div>
+                ))}
             </div>
           </div>
 
+          {/* Visual Side */}
           <div className="relative group order-1 lg:order-2">
-            <div className="absolute -inset-4 bg-red-100/30 rounded-[4rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-            <div className="relative h-[400px] md:h-[750px] w-full rounded-[4rem] overflow-hidden shadow-2xl border-[12px] md:border-[20px] border-white transition-transform duration-1000 group-hover:scale-[1.01]">
+            <div className="absolute -inset-6 bg-red-100/40 rounded-[5rem] blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" aria-hidden="true" />
+            <div className="relative h-[450px] md:h-[800px] w-full rounded-[4.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-[15px] md:border-[25px] border-white transition-all duration-[1.5s] group-hover:rotate-1">
               {data.storyImage && (
                 <Image
                   src={urlFor(data.storyImage).width(1200).quality(100).url()}
-                  alt="Platform Real Estate"
+                  alt="Platform Real Estate Executive Board"
                   fill
-                  className="object-cover transition-transform duration-[5s] group-hover:scale-110"
+                  className="object-cover transition-transform duration-[8s] group-hover:scale-110"
                 />
               )}
             </div>
-            <div className="absolute -bottom-6 ltr:-right-4 rtl:-left-4 md:ltr:right-10 md:rtl:left-10 bg-white p-6 md:p-10 rounded-[2.5rem] shadow-2xl flex items-center gap-4 md:gap-6 border border-slate-50">
-               <div className="w-12 h-12 md:w-16 md:h-16 bg-[#C02026] rounded-2xl flex items-center justify-center text-white shadow-xl shadow-red-900/20"><Award size={32} /></div>
-               <div className="font-black text-slate-950 uppercase text-[10px] md:text-xs tracking-tighter leading-tight">
-                  {isAr ? 'الأكثر موثوقية' : 'Most Trusted'} <br/> <span className="text-[#C02026] font-black text-base md:text-lg tracking-normal">2026</span>
-               </div>
+            
+            {/* Trusted Badge */}
+            <div className="absolute -bottom-8 ltr:-right-6 rtl:-left-6 md:ltr:right-12 md:rtl:left-12 bg-[#080A0D] text-white p-8 md:p-12 rounded-[3.5rem] shadow-2xl flex items-center gap-6 border-b-[10px] border-[#C02026] animate-bounce-slow">
+                <div className="w-16 h-16 bg-[#C02026] rounded-2xl flex items-center justify-center text-white shadow-2xl"><Award size={40} strokeWidth={1.5} /></div>
+                <div className="text-start">
+                  <p className="font-black uppercase text-[10px] md:text-xs tracking-[0.3em] text-slate-400 mb-1">{isAr ? 'الوسيط الأكثر ثقة' : 'Industry Authority'}</p>
+                  <p className="font-black text-2xl md:text-3xl italic tracking-tighter uppercase leading-none">Est. 2026</p>
+                </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. VISION & MISSION */}
-      <section className="bg-slate-50 py-24 md:py-48 border-y border-slate-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-50/50 rounded-full blur-[150px] -mr-64 -mt-64"></div>
+      {/* 🎯 4. VISION & MISSION - Strategic Cards */}
+      <section className="bg-slate-50 py-32 md:py-56 border-y border-slate-100 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-50 rounded-full blur-[180px] -mr-64 -mt-64" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-20 md:mb-32 max-w-4xl mx-auto">
-              <h2 className="text-4xl md:text-7xl font-black text-slate-950 mb-6 md:mb-10 italic uppercase tracking-tighter leading-none">{isAr ? 'بوصلة أهدافنا' : 'Strategic Focus'}</h2>
-              <p className="text-slate-500 text-lg md:text-2xl font-medium leading-relaxed max-w-2xl mx-auto">{isAr ? 'لا نكتفي ببيع العقار، بل نؤمن لك مستقبل استثمارك.' : 'We don’t just sell real estate, we secure your investment future.'}</p>
-              <div className="h-2 w-24 bg-[#C02026] mx-auto rounded-full mt-10"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20">
-            <div className="bg-white p-10 md:p-24 rounded-[4rem] shadow-sm hover:shadow-2xl transition-all duration-700 border border-white group hover:-translate-y-4">
-              <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-12 group-hover:bg-[#C02026] transition-all duration-700 group-hover:rotate-12">
-                <Lightbulb size={45} className="text-[#C02026] group-hover:text-white transition-colors duration-500" />
-              </div>
-              <h3 className="text-3xl md:text-5xl font-black text-slate-950 mb-8 italic uppercase flex items-center gap-5">
-                {t.visionTitle}
-                <ArrowUpRight className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#C02026]" />
-              </h3>
-              <p className="text-slate-600 leading-[2] text-lg md:text-xl font-medium opacity-90">{t.visionText}</p>
-            </div>
-            <div className="bg-white p-10 md:p-24 rounded-[4rem] shadow-sm hover:shadow-2xl transition-all duration-700 border border-white group hover:-translate-y-4">
-              <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-12 group-hover:bg-[#C02026] transition-all duration-700 group-hover:rotate-12">
-                <Target size={45} className="text-[#C02026] group-hover:text-white transition-colors duration-500" />
-              </div>
-              <h3 className="text-3xl md:text-5xl font-black text-slate-950 mb-8 italic uppercase flex items-center gap-5">
-                {t.missionTitle}
-                <ArrowUpRight className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-[#C02026]" />
-              </h3>
-              <p className="text-slate-600 leading-[2] text-lg md:text-xl font-medium opacity-90">{t.missionText}</p>
-            </div>
+          <header className="text-center mb-24 md:mb-40 max-w-4xl mx-auto space-y-8">
+              <h2 className="text-4xl md:text-8xl font-black text-slate-950 italic uppercase tracking-tighter leading-none">{isAr ? 'بوصلة أهدافنا' : 'The DNA'}</h2>
+              <p className="text-slate-500 text-lg md:text-3xl font-medium leading-relaxed italic">{isAr ? 'مهمتنا ليست مجرد بيع العقارات، بل هندسة مستقبلك الاستثماري.' : 'We don’t navigate the market; we lead the way to your legacy.'}</p>
+              <div className="h-2 w-32 bg-[#C02026] mx-auto rounded-full" aria-hidden="true" />
+          </header>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24">
+            {[
+              { icon: Lightbulb, title: t.visionTitle, text: data.visionAr, textEn: data.visionEn },
+              { icon: Target, title: t.missionTitle, text: data.missionAr, textEn: data.missionEn }
+            ].map((card, i) => (
+              <article key={i} className="bg-white p-12 md:p-28 rounded-[4.5rem] shadow-sm hover:shadow-[0_60px_100px_-30px_rgba(0,0,0,0.1)] transition-all duration-1000 border border-white group hover:-translate-y-4">
+                <div className="w-28 h-28 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-16 group-hover:bg-[#C02026] transition-all duration-700 group-hover:rotate-12 shadow-inner">
+                  <card.icon size={56} className="text-[#C02026] group-hover:text-white transition-all duration-500" strokeWidth={1.2} />
+                </div>
+                <h3 className="text-4xl md:text-6xl font-black text-slate-950 mb-10 italic uppercase tracking-tighter flex items-center gap-6">
+                  {card.title}
+                  <ArrowUpRight className="opacity-0 -translate-x-6 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-700 text-[#C02026]" size={48} />
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-lg md:text-2xl font-medium opacity-95 italic text-start">{isAr ? card.text : card.textEn}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 5. ✅ NEW CTA SECTION - WhatsApp Integration */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="relative bg-slate-950 rounded-[3rem] md:rounded-[4rem] p-8 md:p-20 overflow-hidden text-center shadow-2xl shadow-red-950/20">
-          {/* Background Elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#C02026]/20 blur-[100px] rounded-full -mr-40 -mt-40"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -ml-20 -mb-20"></div>
-
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-6xl font-black text-white mb-6 italic uppercase tracking-tighter leading-tight">
+      {/* 📞 5. HIGH-CONVERSION CTA */}
+      <section className="max-w-[1440px] mx-auto px-6 py-24 md:py-40">
+        <div className="relative bg-[#080A0D] rounded-[4.5rem] p-12 md:p-32 overflow-hidden text-center shadow-2xl border-b-[20px] border-[#C02026] group">
+          {/* Decorative Glows */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/15 blur-[120px] rounded-full -mr-48 -mt-48 group-hover:scale-125 transition-transform duration-1000" aria-hidden="true" />
+          
+          <div className="relative z-10 max-w-4xl mx-auto space-y-12">
+            <h2 className="text-4xl md:text-8xl font-black text-white italic uppercase tracking-tighter leading-[0.9]">
               {t.ctaTitle}
             </h2>
-            <p className="text-slate-400 text-lg md:text-xl mb-12 font-medium leading-relaxed">
+            <p className="text-slate-400 text-lg md:text-2xl font-medium leading-relaxed italic">
               {t.ctaDesc}
             </p>
             
             <a 
-              href={`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\+/g, '')}`}
+              href={`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(isAr ? 'أريد استشارة عقارية متخصصة' : 'I need a bespoke property consultation')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-4 px-10 py-5 bg-[#C02026] hover:bg-white hover:text-[#C02026] text-white rounded-2xl font-black uppercase italic tracking-wider transition-all duration-500 group shadow-xl shadow-red-900/40 hover:-translate-y-2"
+              aria-label="Contact on WhatsApp"
+              className="inline-flex items-center gap-5 px-14 py-8 bg-[#25D366] hover:bg-white hover:text-[#080A0D] text-white rounded-[2.5rem] font-black uppercase italic tracking-widest transition-all duration-700 group shadow-[0_30px_60px_rgba(37,211,102,0.2)] active:scale-95"
             >
-              <MessageCircle className="w-6 h-6 animate-pulse" />
-              {t.ctaBtn}
-              <ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <MessageCircle size={32} fill="currentColor" fillOpacity={0.2} className="animate-pulse" />
+              <span className="text-lg md:text-xl">{isAr ? 'استشارة فورية مجانية' : 'Instant VIP Access'}</span>
+              <ArrowUpRight size={24} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </a>
           </div>
         </div>
       </section>
 
+      <style dangerouslySetInnerHTML={{ __html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+        .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; }
+        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .animate-bounce-slow { animation: bounce-slow 4s ease-in-out infinite; }
+        body { background-color: #ffffff; }
+      `}} />
     </main>
   );
 }

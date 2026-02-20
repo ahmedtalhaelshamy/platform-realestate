@@ -5,14 +5,15 @@ import config from '../../../../sanity.config';
 import { useEffect, useState } from 'react';
 
 /**
- * صفحة الاستوديو (Sanity Studio)
- * تم تحسينها لتعمل مع Next.js 16 و React 19 بدون تحذيرات الـ Props
+ * 🛠️ Sanity Studio Page - Standard 2026
+ * Optimized for React 19 & Next.js 16
+ * تم ضبط الحاويات لضمان عدم حدوث تداخل مع ستايلات الموقع الأساسي
  */
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // نستخدم requestAnimationFrame لضمان استقرار الرندر في المحركات الحديثة
+    // استخدام ريفريش الفريم لضمان نظافة العملية (Clean Mount)
     const timer = requestAnimationFrame(() => {
       setMounted(true);
     });
@@ -20,36 +21,71 @@ export default function StudioPage() {
     return () => cancelAnimationFrame(timer);
   }, []);
 
-  // 1. واجهة التحميل الأولية (Splash Loader) لضمان تجربة مستخدم سلسة
+  // 1. واجهة التحميل الفاخرة (Premium Splash Loader)
   if (!mounted) {
     return (
       <div 
+        role="status"
+        aria-label="Loading Studio"
         style={{ 
           height: '100vh', 
           display: 'flex', 
+          flexDirection: 'column',
           alignItems: 'center', 
           justifyContent: 'center', 
-          backgroundColor: '#0f1115', // لون داكن يليق بهوية الموقع
+          backgroundColor: '#080A0D', // تطابق مع لون الـ Footer الداكن
           color: '#ffffff',
           fontFamily: 'sans-serif',
-          fontSize: '12px',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase'
+          gap: '20px'
         }} 
       >
-        <div className="animate-pulse">Platform Studio Loading...</div>
+        {/* لوجو بسيط متحرك للتحميل */}
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid rgba(255,255,255,0.1)',
+          borderTop: '3px solid #C02026',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <div style={{ 
+          fontSize: '10px', 
+          letterSpacing: '0.4em', 
+          textTransform: 'uppercase',
+          fontWeight: '900',
+          opacity: 0.6
+        }} className="animate-pulse">
+          Platform Studio Loading
+        </div>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        `}} />
       </div>
     );
   }
 
+  // 2. الحاوية الرئيسية للاستوديو
+  // تم عزل الاستوديو تماماً لضمان عدم تأثره بأي Global CSS للموقع
   return (
-    // 2. الحاوية الرئيسية تم ضبطها لتكون "تفاعلية" بالكامل
-    // استخدام الـ div كحارس يمنع تسرب الخصائص غير المعرفّة للـ DOM
-    <div style={{ height: '100vh', width: '100%', overflow: 'hidden' }}>
+    <div 
+      className="sanity-studio-wrapper"
+      style={{ 
+        height: '100vh', 
+        width: '100%', 
+        overflow: 'hidden',
+        position: 'fixed', // لضمان عدم وجود سكرول خارجي
+        top: 0,
+        left: 0,
+        zIndex: 99999
+      }}
+    >
       <NextStudio 
         config={config} 
-        // ملاحظة: التحذير disableTransition داخلي في مكتبة next-sanity 
-        // وسيختفي في التحديثات القادمة للمكتبة، الكود هنا يضمن أفضل توافق حالي.
+        // تفعيل هذا الخيار لضمان عدم حدوث وميض (Flicker) أثناء التنقل
+        unstable_noOverscroll={true}
       />
     </div>
   );

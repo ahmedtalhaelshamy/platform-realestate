@@ -6,7 +6,7 @@ import {
 import { client } from '@/sanity/client'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// أيقونة تيك توك مخصصة لضمان الجودة العالية
+// أيقونة تيك توك مخصصة
 const TikTokIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
@@ -58,17 +58,18 @@ export default async function Footer({ lang }) {
       ? (settings?.descriptionAr || 'منصتكم العقارية الأولى في مصر. خبرة 15 عاماً في اختيار أفضل المشاريع الاستثمارية.') 
       : (settings?.descriptionEn || 'Egypt’s premier real estate platform. 15 years of expertise in high-end investments.'),
     phone: settings?.phone || CONTACT_INFO.phone,
-    whatsapp: settings?.whatsapp || CONTACT_INFO.whatsapp,
+    // تنظيف رقم الواتساب لضمان عمل الرابط
+    whatsapp: (settings?.whatsapp || CONTACT_INFO.whatsapp)?.replace(/\D/g, ''),
     address: isAr ? (settings?.addressAr || CONTACT_INFO.addressAr) : (settings?.addressEn || CONTACT_INFO.addressEn),
     mapLink: settings?.mapLocation || CONTACT_INFO.googleMapsUrl
   };
 
   const socialLinks = [
-    { Icon: Facebook, url: settings?.facebook || CONTACT_INFO.social.facebook },
-    { Icon: Instagram, url: settings?.instagram || CONTACT_INFO.social.instagram },
-    { Icon: TikTokIcon, url: settings?.tiktok || CONTACT_INFO.social.tiktok }, // تم إضافة التيك توك
-    { Icon: Youtube, url: settings?.youtube || CONTACT_INFO.social.youtube },
-    { Icon: Linkedin, url: settings?.linkedin || CONTACT_INFO.social.linkedin }
+    { Icon: Facebook, url: settings?.facebook || CONTACT_INFO.social.facebook, label: 'Facebook' },
+    { Icon: Instagram, url: settings?.instagram || CONTACT_INFO.social.instagram, label: 'Instagram' },
+    { Icon: TikTokIcon, url: settings?.tiktok || CONTACT_INFO.social.tiktok, label: 'TikTok' },
+    { Icon: Youtube, url: settings?.youtube || CONTACT_INFO.social.youtube, label: 'YouTube' },
+    { Icon: Linkedin, url: settings?.linkedin || CONTACT_INFO.social.linkedin, label: 'LinkedIn' }
   ].filter(link => link.url);
 
   return (
@@ -84,7 +85,7 @@ export default async function Footer({ lang }) {
           
           {/* 1. Brand Section */}
           <div className="lg:col-span-4 space-y-8 text-start">
-            <Link href={`${CONTACT_INFO.domain}/${lang}`} className="group inline-block">
+            <Link href={`/${lang}/`} className="group inline-block" aria-label={data.title}>
                <div className="flex items-center gap-4">
                   <div className="bg-[#C02026] p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 shadow-xl shadow-red-900/20">
                     <ShieldCheck className="text-white" size={28} />
@@ -98,6 +99,7 @@ export default async function Footer({ lang }) {
             <div className="flex gap-3">
               {socialLinks.map((item, idx) => (
                 <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" 
+                   aria-label={`${isAr ? 'تابعنا على' : 'Follow us on'} ${item.label}`}
                    className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-slate-400 hover:bg-[#C02026] hover:text-white hover:-translate-y-1.5 transition-all duration-500 shadow-2xl">
                   <item.Icon size={18} />
                 </a>
@@ -107,16 +109,16 @@ export default async function Footer({ lang }) {
 
           {/* 2. Navigation Section */}
           <div className="lg:col-span-2 text-start">
-            <h4 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
               {isAr ? 'خريطة الموقع' : 'Navigation'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
-            </h4>
+            </h2>
             <ul className="space-y-4">
               {[
-                { name: isAr ? 'من نحن' : 'About Platform', href: `/${lang}/about-us` },
-                { name: isAr ? 'المطورون' : 'Developers', href: `/${lang}/developers` },
-                { name: isAr ? 'المدونة' : 'Insights', href: `/${lang}/blog` },
-                { name: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact` },
+                { name: isAr ? 'من نحن' : 'About Platform', href: `/${lang}/about-us/` },
+                { name: isAr ? 'المطورون' : 'Developers', href: `/${lang}/developers/` },
+                { name: isAr ? 'المدونة' : 'Insights', href: `/${lang}/blog/` },
+                { name: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact/` },
               ].map((link, i) => (
                 <li key={i}>
                   <Link href={link.href} className="group flex items-center gap-2 text-[13px] text-slate-400 hover:text-white transition-all font-bold uppercase tracking-tight">
@@ -130,13 +132,13 @@ export default async function Footer({ lang }) {
 
           {/* 3. Areas Section */}
           <div className="lg:col-span-3 text-start">
-            <h4 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
               {isAr ? 'أهم المناطق' : 'Hotspots'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
-            </h4>
+            </h2>
             <div className="grid grid-cols-1 gap-3">
               {locations?.map((loc) => (
-                <Link key={loc.slug} href={`/${lang}/locations/${loc.slug}`} 
+                <Link key={loc.slug} href={`/${lang}/locations/${loc.slug}/`} 
                       className="group flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all">
                   <span className="text-[12px] font-bold text-slate-400 group-hover:text-white">{isAr ? loc.nameAr : loc.nameEn}</span>
                   <ArrowUpRight size={14} className="text-[#C02026] opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0" />
@@ -145,15 +147,17 @@ export default async function Footer({ lang }) {
             </div>
           </div>
 
-          {/* 4. Real-time Contact Section */}
+          {/* 4. Contact Section */}
           <div className="lg:col-span-3 text-start space-y-10">
-            <h4 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
               {isAr ? 'بيانات التواصل' : 'Contact Hub'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
-            </h4>
+            </h2>
             
             <div className="space-y-6">
-              <a href={data.mapLink} target="_blank" rel="noreferrer" className="flex items-start gap-4 group">
+              <a href={data.mapLink} target="_blank" rel="noopener noreferrer" 
+                 aria-label={isAr ? "موقعنا على الخريطة" : "Our location on Google Maps"}
+                 className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0 text-[#C02026] group-hover:bg-[#C02026] group-hover:text-white transition-all shadow-xl">
                   <MapPin size={22} />
                 </div>
@@ -163,7 +167,9 @@ export default async function Footer({ lang }) {
                 </div>
               </a>
 
-              <a href={`https://wa.me/${data.whatsapp}`} target="_blank" rel="noreferrer" className="flex items-center gap-4 group">
+              <a href={`https://wa.me/${data.whatsapp}`} target="_blank" rel="noopener noreferrer" 
+                 aria-label={isAr ? "تواصل معنا عبر واتساب" : "Contact us via WhatsApp"}
+                 className="flex items-center gap-4 group">
                 <div className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0 text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all shadow-xl">
                   <MessageCircle size={22} />
                 </div>
@@ -177,7 +183,7 @@ export default async function Footer({ lang }) {
 
         </div>
 
-        {/* Bottom Bar: Copyright & Compliance */}
+        {/* Bottom Bar */}
         <div className="py-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-white/[0.02]">
           <p className="text-slate-500 text-[10px] uppercase tracking-[0.4em] font-black text-center md:text-start leading-relaxed">
             © {new Date().getFullYear()} {data.title} <span className="mx-2 text-white/5">|</span> 
@@ -185,10 +191,13 @@ export default async function Footer({ lang }) {
           </p>
           
           <div className="flex gap-8 items-center">
-            {/* تم إضافة Sitemap هنا كما طلبت */}
-            {['Privacy', 'Terms', 'Sitemap'].map((item) => (
-              <Link key={item} href={`/${lang}/${item.toLowerCase()}`} className="text-slate-500 hover:text-[#C02026] text-[10px] uppercase tracking-[0.2em] font-black transition-colors">
-                {isAr && item === 'Privacy' ? 'الخصوصية' : isAr && item === 'Terms' ? 'الشروط' : isAr && item === 'Sitemap' ? 'خريطة الموقع' : item}
+            {[
+              { id: 'Privacy', ar: 'الخصوصية', en: 'Privacy', path: 'privacy' },
+              { id: 'Terms', ar: 'الشروط', en: 'Terms', path: 'terms' },
+              { id: 'Sitemap', ar: 'خريطة الموقع', en: 'Sitemap', path: 'sitemap' }
+            ].map((item) => (
+              <Link key={item.id} href={`/${lang}/${item.path}/`} className="text-slate-500 hover:text-[#C02026] text-[10px] uppercase tracking-[0.2em] font-black transition-colors">
+                {isAr ? item.ar : item.en}
               </Link>
             ))}
           </div>

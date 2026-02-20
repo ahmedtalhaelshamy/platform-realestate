@@ -1,29 +1,62 @@
 import { client } from '@/sanity/client';
 import ProjectCard from '@/components/ProjectCard';
-import SearchBar from '@/components/SearchFilter';
+import SearchFilter from '@/components/SearchFilter';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
-import { LayoutGrid, Search, Loader2, Sparkles } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 import { Suspense } from 'react';
 
-// ✅ 1. إجبار الصفحة على أن تكون Static بالكامل لضمان سرعة الأرشفة
+// ✅ 1. PERFORMANCE & CACHING
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
-// ✅ 2. توليد اللغات مسبقاً (ar / en) لتحويل الـ ƒ إلى ●
+// ✅ 2. توليد اللغات مسبقاً (مسموح فقط في Server Components)
 export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-const safeString = (val) => {
-  if (typeof val === 'string') return val;
+// ✅ دالة الأمان المحسنة
+const getSafeText = (val) => {
   if (!val) return "";
-  if (Array.isArray(val)) return val.map(b => b.children?.map(c => c.text).join('')).join(' ');
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map((child) => child.text).join('')).join(' ');
+  }
+  if (typeof val === 'object' && val.children) {
+    return val.children.map((child) => child.text).join('');
+  }
   return String(val);
 };
 
 /**
- * 🔍 جلب المشاريع - مضاف إليها فلتر المسودات (Drafts) لضمان استقرار الـ Build
+ * 🔍 SEO Metadata المحسنة (مسموح فقط في Server Components)
+ */
+export async function generateMetadata({ params, searchParams }) {
+  const { lang } = await params;
+  const sParams = await searchParams;
+  const isAr = lang === 'ar';
+  
+  const seo = await client.fetch(`*[_type == "siteSettings"][0].projectsSeo`);
+
+  let title = isAr 
+    ? getSafeText(seo?.metaTitleAr || 'عقارات للبيع في مصر') 
+    : getSafeText(seo?.metaTitleEn || 'Properties for Sale in Egypt');
+
+  if (sParams.search) {
+    title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
+  }
+
+  return {
+    title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+    description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
+    alternates: { 
+      canonical: `${CONTACT_INFO.domain}/${lang}/projects/` 
+    },
+  };
+}
+
+/**
+ * 🛰️ دالة جلب البيانات
  */
 async function getProjects(filters) {
   const { search, location, developer, type } = filters; 
@@ -52,50 +85,22 @@ async function getProjects(filters) {
         type: type || null
     });
   } catch (error) {
-    console.error("Fetch Error:", error);
     return [];
   }
 }
 
-/**
- * 🛡️ هيكل التحميل (Skeleton Loader)
- */
 function ProjectsLoading() {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 opacity-50">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-[450px] bg-slate-100 rounded-[2.5rem] animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16 opacity-60">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-[500px] bg-slate-100 rounded-[3rem] animate-pulse" />
             ))}
         </div>
     );
 }
 
 /**
- * 🔍 SEO Metadata
- */
-export async function generateMetadata({ params, searchParams }) {
-  const { lang } = await params;
-  const sParams = await searchParams;
-  const isAr = lang === 'ar';
-  const seo = await client.fetch(`*[_type == "siteSettings"][0].projectsSeo`);
-
-  let title = isAr 
-    ? safeString(seo?.metaTitleAr || 'عقارات للبيع في مصر') 
-    : safeString(seo?.metaTitleEn || 'Properties for Sale in Egypt');
-
-  if (sParams.search) {
-    title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
-  }
-
-  return {
-    title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
-    description: safeString(isAr ? seo?.metaDescAr : seo?.metaDescEn),
-    alternates: { canonical: `${CONTACT_INFO.domain}/${lang}/projects` },
-  };
-}
-
-/**
- * 🏗️ المكون الأساسي للصفحة
+ * 🏗️ المكون الأساسي لصفحة الكتالوج
  */
 export default async function ProjectsPage({ params, searchParams }) {
   const { lang } = await params;
@@ -103,29 +108,29 @@ export default async function ProjectsPage({ params, searchParams }) {
   const isAr = lang === 'ar';
   
   return (
-    <main className="min-h-screen bg-[#FDFDFD]" dir={isAr ? 'rtl' : 'ltr'}>
+    <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🚀 1. HERO SECTION (Static Content) */}
-      <section className="relative bg-[#050505] pt-36 md:pt-52 pb-32 md:pb-48 px-6 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C02026]/10 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#C02026_0.5px,transparent_0.5px)] [background-size:24px_24px]" />
+      {/* 🚀 1. PREMIUM HERO SECTION */}
+      <header className="relative bg-[#080A0D] pt-32 md:pt-52 pb-32 md:pb-48 px-6 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C02026]/10 rounded-full blur-[150px] animate-pulse pointer-events-none" />
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#C02026_1px,transparent_1px)] [background-size:32px_32px] pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex justify-center mb-12 opacity-50 hover:opacity-100 transition-opacity">
-             <Breadcrumbs items={[{ label: isAr ? 'كتالوج المشاريع' : 'The Catalog' }]} lang={lang} />
-          </div>
+        <div className="max-w-7xl mx-auto relative z-10 text-center">
+          <nav className="flex justify-center mb-12 overflow-x-auto hide-scrollbar">
+             <Breadcrumbs items={[{ label: isAr ? 'كتالوج المشاريع' : 'The Catalog', href: `/${lang}/projects/` }]} lang={lang} />
+          </nav>
 
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-2 rounded-full text-white/80 text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-4 backdrop-blur-md">
-                <Sparkles size={14} className="text-[#C02026]" />
-                {isAr ? 'استكشف أرقى العقارات' : 'The Most Exclusive Directory'}
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-2.5 rounded-full text-white/80 text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-4 backdrop-blur-md shadow-2xl">
+                <Sparkles size={14} className="text-[#C02026] animate-pulse" />
+                {isAr ? 'استكشف أرقى العقارات في مصر' : 'The Most Exclusive Directory'}
             </div>
 
-            <h1 className="text-5xl md:text-[9rem] font-black text-white italic uppercase leading-[0.8] tracking-tighter drop-shadow-2xl">
+            <h1 className="text-6xl md:text-[9.5rem] font-black text-white italic uppercase leading-[0.8] tracking-tighter drop-shadow-2xl">
                 {filters.search ? (
                     <>
                         <span className="text-[#C02026]">{isAr ? 'نتائج' : 'Results'}</span><br/>
-                        <span className="text-4xl md:text-7xl not-italic opacity-80">{safeString(filters.search)}</span>
+                        <span className="text-4xl md:text-8xl not-italic opacity-80">{filters.search}</span>
                     </>
                 ) : (
                     <>{isAr ? 'كتالوج' : 'THE'}<br/><span className="text-[#C02026] not-italic">{isAr ? 'المشاريع' : 'CATALOG'}</span></>
@@ -133,28 +138,33 @@ export default async function ProjectsPage({ params, searchParams }) {
             </h1>
           </div>
 
-          {/* SearchBar Overlay */}
-          <div className="max-w-5xl mx-auto mt-20 relative">
-             <div className="relative bg-white/5 backdrop-blur-2xl p-2 md:p-4 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/10 shadow-2xl">
-                 <SearchBar lang={lang} />
+          {/* SearchBar Interface */}
+          <div className="max-w-5xl mx-auto mt-24">
+             <div className="bg-white/5 backdrop-blur-3xl p-3 md:p-5 rounded-[3rem] md:rounded-[4rem] border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]">
+                 <SearchFilter lang={lang} isAr={isAr} />
              </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* 🚀 2. PROJECTS GRID (Streaming Suspense) */}
-      <section className="max-w-7xl mx-auto px-6 py-24 md:py-32">
+      {/* 🏙️ 2. PROJECTS GRID */}
+      <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-24 md:py-32">
         <Suspense key={JSON.stringify(filters)} fallback={<ProjectsLoading />}>
             <ProjectsGrid filters={filters} lang={lang} />
         </Suspense>
       </section>
 
+      <style dangerouslySetInnerHTML={{ __html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { background-color: #ffffff; }
+      `}} />
     </main>
   );
 }
 
 /**
- * 🛰️ مكون جلب وعرض البيانات
+ * 🛰️ المكون الداخلي لمعالجة البيانات
  */
 async function ProjectsGrid({ filters, lang }) {
     const isAr = lang === 'ar';
@@ -162,29 +172,34 @@ async function ProjectsGrid({ filters, lang }) {
 
     if (projects.length === 0) {
         return (
-            <div className="text-center py-40 bg-slate-50 rounded-[4rem] border-2 border-dashed border-slate-100 animate-in fade-in zoom-in-95">
-                <Search size={80} className="mx-auto text-slate-200 mb-8" />
-                <h2 className="text-3xl font-black text-slate-900 mb-4 italic uppercase tracking-tighter">
-                    {isAr ? 'لا يوجد نتائج تطابق بحثك' : 'No results found'}
-                </h2>
-                <p className="text-slate-500 font-medium max-w-md mx-auto mb-10 leading-relaxed">
-                    {isAr 
-                      ? 'جرب تعديل الفلاتر أو ابحث بكلمة أخرى، مستشارونا متاحون دائماً لمساعدتك في العثور على طلبك.' 
-                      : 'Try adjusting filters or different keywords. Our experts are ready to assist you for free.'}
-                </p>
-                <div className="flex justify-center">
-                    <a href={`tel:${CONTACT_INFO.phone}`} className="bg-slate-950 text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-[#C02026] transition-all shadow-xl active:scale-95">
-                        {isAr ? 'استشارة عقارية مجانية' : 'Free Advice'}
-                    </a>
+            <div className="text-center py-48 bg-slate-50 rounded-[4rem] border-2 border-dashed border-slate-200">
+                <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl border border-slate-100">
+                   <Search size={48} className="text-slate-200" />
                 </div>
+                <h2 className="text-3xl md:text-5xl font-black text-slate-950 mb-6 italic uppercase tracking-tighter">
+                    {isAr ? 'لا توجد نتائج تطابق بحثك' : 'No matches found'}
+                </h2>
+                <p className="text-slate-500 font-medium text-lg max-w-lg mx-auto mb-12 leading-relaxed italic">
+                    {isAr 
+                      ? 'جرب تعديل الفلاتر أو ابحث بكلمة أخرى، مستشارونا متاحون دائماً لمساعدتك في العثور على طلبك مجاناً.' 
+                      : 'Try adjusting your search criteria. Our experts are ready to assist you in finding your perfect asset.'}
+                </p>
+                <a 
+                  href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+                  className="inline-block bg-slate-950 text-white px-12 py-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] hover:bg-[#C02026] transition-all shadow-2xl active:scale-95"
+                >
+                    {isAr ? 'استشارة عقارية فورية' : 'Instant Advisory'}
+                </a>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16 animate-in fade-in duration-1000">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16">
             {projects.map((project) => (
-                <ProjectCard key={project._id} lang={lang} data={project} />
+                <article key={project._id}>
+                  <ProjectCard lang={lang} data={project} />
+                </article>
             ))}
         </div>
     );

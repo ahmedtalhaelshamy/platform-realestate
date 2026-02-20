@@ -4,10 +4,11 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 1. أرشفة الصفحة (SEO) من Sanity
+// 1. أرشفة الصفحة (SEO) - تحسين الروابط والـ Metadata
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   const query = `*[_type == "termsPage"][0].seo`;
   const seo = await client.fetch(query);
@@ -23,11 +24,16 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
-    alternates: { canonical: `${CONTACT_INFO.domain}/${lang}/terms` },
+    alternates: { 
+      // ✅ توحيد السلاش النهائية للسيو
+      canonical: `${baseUrl}/${lang}/terms/` 
+    },
     openGraph: {
       title,
       description,
-      images: seo?.openGraphImage ? [{ url: urlFor(seo.openGraphImage).width(1200).url() }] : []
+      images: seo?.openGraphImage ? [{ url: urlFor(seo.openGraphImage).width(1200).url() }] : [`${baseUrl}/og-image.jpg`],
+      locale: isAr ? 'ar_EG' : 'en_US',
+      type: 'website',
     }
   };
 }
@@ -36,7 +42,7 @@ export default async function TermsPage({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
 
-  // جلب الـ H1 من السانتي لو موجود
+  // جلب البيانات من Sanity
   const seoData = await client.fetch(`*[_type == "termsPage"][0].seo`);
   const h1Text = isAr ? seoData?.h1Ar : seoData?.h1En;
 
@@ -65,73 +71,83 @@ export default async function TermsPage({ params }) {
   ];
 
   return (
-    <main className="min-h-screen pt-32 pb-20 bg-white" dir={isAr ? 'rtl' : 'ltr'}>
+    <main 
+      className="min-h-screen pt-32 pb-20 bg-white selection:bg-[#C02026] selection:text-white" 
+      dir={isAr ? 'rtl' : 'ltr'}
+      aria-labelledby="main-heading"
+    >
       
-      {/* 🔴 Hero Section */}
-      <section className="relative py-24 overflow-hidden bg-slate-50 border-b border-red-100">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* 🔴 Hero Section - Visual Identity */}
+      <section className="relative py-24 overflow-hidden bg-slate-50 border-b border-slate-100" aria-labelledby="terms-hero-title">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[120px] pointer-events-none" aria-hidden="true" />
         
         <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-          <div className="inline-flex p-4 bg-red-50 text-[#C02026] rounded-3xl mb-8 animate-pulse shadow-lg shadow-red-200">
-            <ShieldCheck size={48} />
+          <div className="inline-flex p-5 bg-white text-[#C02026] rounded-[2rem] mb-10 shadow-[0_20px_50px_rgba(192,32,38,0.15)] border border-red-50 animate-bounce">
+            <ShieldCheck size={48} strokeWidth={1.5} />
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-black text-slate-900 italic uppercase tracking-tighter mb-6 leading-none">
+          <h1 id="main-heading" className="text-4xl md:text-7xl font-black text-slate-950 italic uppercase tracking-tighter mb-8 leading-none">
             {h1Text ? h1Text : (
               <>{isAr ? 'الشروط' : 'Terms'} <span className="text-[#C02026]">{isAr ? 'والأحكام' : '& Conditions'}</span></>
             )}
           </h1>
 
-          <div className="w-24 h-2 bg-[#C02026] mx-auto mb-8 rounded-full" />
-          <p className="text-slate-500 max-w-2xl mx-auto font-bold text-lg leading-relaxed">
+          <div className="w-24 h-1.5 bg-[#C02026] mx-auto mb-10 rounded-full" aria-hidden="true" />
+          
+          <p className="text-slate-600 max-w-2xl mx-auto font-medium text-lg md:text-xl leading-relaxed italic">
             {isAr 
-              ? 'اتفاقية استخدام منصة بلاتفورم العقارية والقواعد المنظمة للتعاملات.' 
-              : 'The usage agreement for Platform Real Estate and the rules governing transactions.'}
+              ? 'اتفاقية استخدام منصة بلاتفورم العقارية والقواعد المنظمة للتعاملات الاستثمارية.' 
+              : 'The usage agreement for Platform Real Estate and the rules governing investment transactions.'}
           </p>
         </div>
       </section>
 
-      {/* 🔴 Terms Content */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* 🔴 Terms Content Grid */}
+      <section className="max-w-7xl mx-auto px-6 py-24" aria-label="Detailed Terms">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {terms.map((item, index) => {
              const Icon = item.icon;
              return (
-              <div key={index} className="p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-100/50 hover:border-[#C02026]/30 transition-all duration-500 group">
-                <div className="w-16 h-16 bg-red-50 text-[#C02026] rounded-2xl flex items-center justify-center mb-8 group-hover:bg-[#C02026] group-hover:text-white transition-all duration-500 shadow-inner">
-                  <Icon size={32} />
+              <article 
+                key={index} 
+                className="p-10 rounded-[3rem] bg-white border border-slate-50 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] hover:border-[#C02026]/20 transition-all duration-500 group hover:-translate-y-2"
+              >
+                <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-[#C02026] group-hover:text-white transition-all duration-500 shadow-inner">
+                  <Icon size={32} strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl font-black text-[#C02026] italic uppercase tracking-tight mb-4">
+                <h3 className="text-2xl font-black text-slate-900 italic uppercase tracking-tight mb-6 group-hover:text-[#C02026] transition-colors text-start">
                   {item.title}
                 </h3>
-                <p className="text-slate-600 leading-relaxed font-medium">
+                <p className="text-slate-500 leading-relaxed font-medium text-lg text-justify">
                   {item.content}
                 </p>
-              </div>
+              </article>
              );
           })}
         </div>
 
-        {/* 🔴 CTA Section */}
-        <div className="mt-24 p-10 md:p-16 bg-slate-950 rounded-[3.5rem] text-white relative overflow-hidden group shadow-2xl shadow-red-950/20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#C02026]/20 rounded-full blur-[100px] -mr-48 -mt-48 group-hover:scale-125 transition-transform duration-700" />
+        {/* 🔴 CTA Section - Premium Footer Card */}
+        <div className="mt-32 p-10 md:p-20 bg-slate-950 rounded-[4rem] text-white relative overflow-hidden group shadow-2xl shadow-slate-900/20">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#C02026]/10 rounded-full blur-[100px] -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-1000" aria-hidden="true" />
           
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
-            <div className="max-w-xl text-center md:text-start">
-              <h4 className="text-3xl md:text-5xl font-black italic uppercase mb-4 tracking-tight">
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 text-start">
+            <div className="max-w-2xl text-center lg:text-start space-y-6">
+              <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">
                 {isAr ? 'هل لديك تساؤل قانوني؟' : 'Need Legal Support?'}
-              </h4>
-              <p className="text-slate-400 text-lg font-medium leading-relaxed">
+              </h2>
+              <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed italic">
                 {isAr 
-                  ? 'مستشارونا العقاريون جاهزون لتوضيح كافة البنود التعاقدية لضمان استثمار آمن.' 
-                  : 'Our consultants are ready to clarify all contractual terms to ensure a safe investment.'}
+                  ? 'مستشارونا العقاريون متاحون لتوضيح كافة البنود التعاقدية لضمان استثمار آمن وموثوق 100%.' 
+                  : 'Our consultants are available to clarify all contractual terms to ensure a 100% safe investment.'}
               </p>
             </div>
+            
             <Link 
-              href={`/${lang}/#contact`}
-              className="bg-[#C02026] text-white px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500 flex items-center gap-3 shadow-xl active:scale-95 text-center"
+              href={`/${lang}/contact/`}
+              aria-label={isAr ? "تحدث مع مستشارك القانوني" : "Speak with a legal consultant"}
+              className="bg-white text-slate-950 px-12 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-[#C02026] hover:text-white transition-all duration-500 flex items-center gap-4 shadow-2xl active:scale-95 text-center shrink-0"
             >
-              <MessageCircle size={20} />
+              <MessageCircle size={24} fill="currentColor" className="opacity-20" />
               {isAr ? 'تحدث معنا الآن' : 'Speak with Us'}
             </Link>
           </div>
@@ -139,8 +155,8 @@ export default async function TermsPage({ params }) {
       </section>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        html { scroll-behavior: smooth; }
-        ::selection { background-color: #C02026; color: white; }
+        html { scroll-behavior: smooth !important; }
+        body { background-color: #ffffff; }
       `}} />
     </main>
   );
