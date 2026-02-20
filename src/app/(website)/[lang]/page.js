@@ -11,7 +11,7 @@ import CityCarousel from '@/components/CityCarousel';
 import { ShieldCheck, ArrowRight, Award, CheckCircle, Gem } from 'lucide-react';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ 1. PERFORMANCE & CACHING
+// ✅ PERFORMANCE & CACHING
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
@@ -19,7 +19,7 @@ export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-// --- 2. SEO METADATA ---
+// --- SEO METADATA ---
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -28,7 +28,6 @@ export async function generateMetadata({ params }) {
 
   const title = isAr ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn);
   const description = isAr ? seo?.metaDescAr : seo?.metaDescEn;
-
   const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   return {
@@ -36,10 +35,7 @@ export async function generateMetadata({ params }) {
     description,
     alternates: { 
       canonical: `${baseUrl}/${lang}/`,
-      languages: {
-        'ar': `${baseUrl}/ar/`,
-        'en': `${baseUrl}/en/`,
-      }
+      languages: { 'ar': `${baseUrl}/ar/`, 'en': `${baseUrl}/en/` }
     },
     openGraph: {
       title,
@@ -58,7 +54,6 @@ const BADGE_MAP = {
   default: { icon: CheckCircle, color: 'text-slate-600', bg: 'bg-slate-50', ar: 'مطور موثوق', en: 'Trusted' }
 };
 
-// --- 3. DATA FETCHING ---
 async function getPageData() {
   const query = `{
     "settings": *[_type == "siteSettings"][0]{ 
@@ -81,7 +76,6 @@ async function getPageData() {
   return await client.fetch(query);
 }
 
-// --- 4. MAIN COMPONENT ---
 export default async function HomePage({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -90,8 +84,8 @@ export default async function HomePage({ params }) {
 
   const { settings, projects, developers } = data;
   
-  // لضمان امتلاء الشريط، نضاعف العناصر
-  const marqueeItems = [...developers, ...developers, ...developers, ...developers];
+  // ✅ حل مشكلة الفراغ: مضاعفة المصفوفة 6 مرات لضمان وجود محتوى يغطي عرض أي شاشة فوراً
+  const marqueeItems = [...developers, ...developers, ...developers, ...developers, ...developers, ...developers];
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -179,7 +173,7 @@ export default async function HomePage({ params }) {
              <CityCarousel lang={lang} />
           </section>
 
-          {/* SECTION TITANS / DEVELOPERS */}
+          {/* SECTION TITANS / DEVELOPERS - FIXED MARQUEE */}
           <section className="bg-white py-32 overflow-hidden relative border-t border-slate-50">
               <div className="text-center mb-28 px-6 space-y-4">
                 <span className="text-[#C02026] font-black text-[10px] uppercase tracking-[0.6em] block">
@@ -190,42 +184,38 @@ export default async function HomePage({ params }) {
                 </h2>
               </div>
 
-              <div className="relative flex items-center group">
-                  {/* الطبقة التي تحتوي على الأنيميشن */}
-                  <div className="flex w-max animate-marquee gap-12 md:gap-28 items-center px-10 group-hover:[animation-play-state:paused]">
+              <div className="relative flex items-center group overflow-hidden">
+                  <div className="flex w-max animate-marquee gap-12 md:gap-28 items-center px-10 group-hover:[animation-play-state:paused] will-change-transform">
                     {marqueeItems.map((dev, idx) => (
                       <Link key={`${dev._id}-${idx}`} href={`/${lang}/developers/${dev.slug}/`} className="hover:scale-110 transition-transform duration-700 shrink-0">
                         <DeveloperLogoItem dev={dev} isAr={isAr} />
                       </Link>
                     ))}
                   </div>
-                  {/* تأثير التلاشي يميناً ويساراً */}
-                  <div className="absolute inset-y-0 left-0 w-24 md:w-64 bg-gradient-to-r from-white via-white/40 to-transparent z-20 pointer-events-none" />
-                  <div className="absolute inset-y-0 right-0 w-24 md:w-64 bg-gradient-to-l from-white via-white/40 to-transparent z-20 pointer-events-none" />
+                  {/* تأثير التلاشي - تم استخدام التدرج اللوني لضمان العمق */}
+                  <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" />
               </div>
           </section>
         </div>
 
-        {/* ✅ CSS المُعدل لتبدأ الحركة فوراً من المنتصف */}
         <style dangerouslySetInnerHTML={{ __html: `
-          /* الأنيميشن العادي يبدأ من 0 ويروح لـ -50% */
           @keyframes marquee { 
             0% { transform: translateX(0); } 
-            100% { transform: translateX(-50%); } 
+            100% { transform: translateX(-33.33%); } 
           }
           
-          /* الأنيميشن للغة العربية (RTL) يبدأ من -50% ليروح لـ 0 */
           @keyframes marqueeRTL { 
-            0% { transform: translateX(-50%); } 
-            100% { transform: translateX(0); } 
+            0% { transform: translateX(0); } 
+            100% { transform: translateX(33.33%); } 
           }
 
           .animate-marquee { 
             display: flex; 
-            animation: marquee 40s linear infinite; 
+            animation: marquee 60s linear infinite; 
           }
 
-          /* التعديل هنا لضمان البدء السريع */
+          /* تحسين الحركة للغة العربية لتبدأ من الصفر أيضاً */
           html[dir="rtl"] .animate-marquee { 
             animation-name: marqueeRTL; 
           }
@@ -234,7 +224,7 @@ export default async function HomePage({ params }) {
           @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
           
           @media (max-width: 768px) { 
-            .animate-marquee { animation-duration: 25s; } 
+            .animate-marquee { animation-duration: 30s; } 
           }
         `}} />
       </main>
@@ -266,7 +256,7 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
               <Image 
                 src={urlFor(dev.logo).width(600).url()} 
                 alt={`${dev.nameEn} logo`} fill className="object-contain" 
-                loading="lazy"
+                priority={true}
               />
             ) : (
               <span className="text-slate-300 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</span>

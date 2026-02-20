@@ -24,7 +24,7 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['300', '400', '500', '600', '700', '800'],
 });
 
-// 2. دالة جلب الإعدادات (مع إضافة كاش)
+// 2. دالة جلب الإعدادات
 async function getSiteSettings() {
   try {
     const query = `*[_type == "siteSettings"][0]{ 
@@ -38,7 +38,7 @@ async function getSiteSettings() {
   }
 }
 
-// 3. توليد الـ Metadata (SEO) - النسخة المصححة لـ Search Console
+// 3. توليد الـ Metadata (SEO) - النسخة الموحدة للدومين الأساسي
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -52,8 +52,8 @@ export async function generateMetadata({ params }) {
     ? (settings?.seo?.metaDescAr || "استشارك العقاري الأول في مصر") 
     : (settings?.seo?.metaDescEn || "Your first real estate consultant in Egypt");
 
-  // تنظيف الـ domain من أي شرطة زائدة لضمان بناء الرابط بشكل صحيح
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, ''); 
+  // ✅ الزتونة: إجبار الدومين الأساسي (بدون www) ليتطابق مع Vercel
+  const baseUrl = 'https://platformrealestate.co'; 
 
   return {
     title: {
@@ -63,13 +63,12 @@ export async function generateMetadata({ params }) {
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
-      // ✅ تعديل: إضافة / في النهاية ليتوافق مع trailingSlash: true
-      // هذا يمنع جوجل من اعتبار النسخة التي تنتهي بـ / نسخة مكررة
+      // ✅ Canonical موحد ينتهي بـ / ليتوافق مع Next.js Trailing Slashes
       canonical: `${baseUrl}/${lang}/`, 
       languages: {
         'ar': `${baseUrl}/ar/`,
         'en': `${baseUrl}/en/`,
-        'x-default': `${baseUrl}/ar/`, // النسخة العربية هي الافتراضية
+        'x-default': `${baseUrl}/ar/`, 
       },
     },
     icons: {

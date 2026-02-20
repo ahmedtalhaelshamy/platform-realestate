@@ -4,8 +4,8 @@ import { client } from '../sanity/client';
 import { CONTACT_INFO } from '../components/constants/contact'; 
 
 export default async function sitemap() {
-  // تنظيف الـ Base URL والتأكد من عدم وجود شرطة في آخره
-  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || CONTACT_INFO.domain).replace(/\/$/, '');
+  // 🏁 الدومين الموحد المعتمد - نثبته هنا لضمان عدم حدوث تشتت
+  const baseUrl = 'https://platformrealestate.co';
 
   let data = { projects: [], locations: [], districts: [], developers: [], posts: [] };
   
@@ -20,7 +20,6 @@ export default async function sitemap() {
     data = await client.fetch(query);
   } catch (error) {
     console.error("Sitemap fetch error:", error);
-    // في حالة الخطأ، نرجع مصفوفة فارغة لتجنب انهيار الـ Sitemap
     return [];
   }
 
@@ -28,22 +27,23 @@ export default async function sitemap() {
   const languages = ['ar', 'en'];
   const now = new Date().toISOString();
 
-  // 1️⃣ الروابط الاستاتيكية
+  // 1️⃣ الروابط الاستاتيكية (مع إضافة السلاش النهائية)
   const staticRoutes = [
-    '', 
-    '/about-us', 
-    '/contact', 
-    '/projects', 
-    '/locations', 
-    '/developers', 
-    '/blog', 
-    '/privacy', 
-    '/terms'
+    '', // الرئيسية
+    'about-us', 
+    'contact', 
+    'projects', 
+    'locations', 
+    'developers', 
+    'blog', 
+    'privacy', 
+    'terms'
   ];
   
   const staticUrls = staticRoutes.flatMap((route) => 
     languages.map((lang) => ({
-      url: `${baseUrl}/${lang}${route}`,
+      // ✅ تعديل: بناء الرابط لينتهي دائماً بـ /
+      url: `${baseUrl}/${lang}${route ? `/${route}/` : '/'}`,
       lastModified: now,
       changeFrequency: 'daily',
       priority: route === '' ? 1.0 : 0.8,
@@ -53,7 +53,7 @@ export default async function sitemap() {
   // 2️⃣ روابط المناطق (Locations)
   const locationUrls = locations.flatMap((loc) => 
     languages.map((lang) => ({
-      url: `${baseUrl}/${lang}/locations/${loc.slug}`,
+      url: `${baseUrl}/${lang}/locations/${loc.slug}/`,
       lastModified: new Date(loc._updatedAt).toISOString(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -63,7 +63,7 @@ export default async function sitemap() {
   // 3️⃣ روابط الأحياء (Districts)
   const districtUrls = districts.flatMap((dist) => 
     languages.map((lang) => ({
-      url: `${baseUrl}/${lang}/districts/${dist.slug}`,
+      url: `${baseUrl}/${lang}/districts/${dist.slug}/`,
       lastModified: new Date(dist._updatedAt).toISOString(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -73,7 +73,7 @@ export default async function sitemap() {
   // 4️⃣ روابط المشاريع
   const projectUrls = projects.flatMap((proj) => 
     languages.map((lang) => ({
-      url: `${baseUrl}/${lang}/projects/${proj.slug}`,
+      url: `${baseUrl}/${lang}/projects/${proj.slug}/`,
       lastModified: new Date(proj._updatedAt).toISOString(),
       changeFrequency: 'weekly',
       priority: 0.9,
@@ -83,16 +83,16 @@ export default async function sitemap() {
   // 5️⃣ روابط المطورين
   const developerUrls = developers.flatMap((dev) => 
     languages.map((lang) => ({
-      url: `${baseUrl}/${lang}/developers/${dev.slug}`,
+      url: `${baseUrl}/${lang}/developers/${dev.slug}/`,
       lastModified: new Date(dev._updatedAt).toISOString(),
       changeFrequency: 'monthly',
       priority: 0.7,
     }))
   );
 
-  // 6️⃣ روابط المدونة (تعتمد على لغة المقال المحددة في Sanity)
+  // 6️⃣ روابط المدونة (تعتمد على لغة المقال)
   const blogPostUrls = posts.map((post) => ({
-    url: `${baseUrl}/${post.language || 'ar'}/blog/${post.slug}`,
+    url: `${baseUrl}/${post.language || 'ar'}/blog/${post.slug}/`,
     lastModified: new Date(post._updatedAt).toISOString(),
     changeFrequency: 'weekly',
     priority: 0.7,

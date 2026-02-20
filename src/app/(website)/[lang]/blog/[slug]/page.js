@@ -8,9 +8,15 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import ShareBtn from '@/components/ShareBtn'; 
 
+// ✅ PERFORMANCE & CACHING
 export const revalidate = 3600; 
 
-// ✅ 1. إضافة دالة توليد الصفحات الثابتة (SSG)
+// 🏁 الدومين الموحد المعتمد لضمان قوة السيو
+const BASE_URL = 'https://platformrealestate.co';
+
+/**
+ * ✅ 1. توليد الصفحات الثابتة (SSG) لكل المقالات واللغات
+ */
 export async function generateStaticParams() {
   const query = `*[_type == "post" && defined(slug.current)]{
     "slug": slug.current,
@@ -24,7 +30,9 @@ export async function generateStaticParams() {
   }));
 }
 
-// 2. Metadata Function - النسخة المحدثة لحل مشكلة الفهرسة
+/**
+ * ✅ 2. Metadata Function - حل مشكلة التكرار وربط اللغات (Hreflang)
+ */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === "ar";
@@ -41,33 +49,39 @@ export async function generateMetadata({ params }) {
 
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.overview;
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+
+  // 🔗 بناء الروابط المتقاطعة للغتين (Hreflang)
+  const arPath = `${BASE_URL}/ar/blog/${slug}/`;
+  const enPath = `${BASE_URL}/en/blog/${slug}/`;
+  const currentPath = isAr ? arPath : enPath;
 
   return {
     title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
     description: description,
     keywords: post.keywords?.join(', '),
-    metadataBase: new URL(baseUrl),
+    metadataBase: new URL(BASE_URL),
     alternates: {
-      // ✅ تعديل: إضافة / في النهاية ليتوافق مع trailingSlash
-      canonical: `${baseUrl}/${lang}/blog/${slug}/`,
+      canonical: currentPath,
       languages: {
-        'ar': `${baseUrl}/ar/blog/${slug}/`,
-        'en': `${baseUrl}/en/blog/${slug}/`,
+        'ar-EG': arPath,
+        'en-US': enPath,
+        'x-default': arPath,
       },
     },
     openGraph: {
       title,
       description,
-      // ✅ تعديل: الرابط هنا أيضاً يجب أن ينتهي بـ /
-      url: `${baseUrl}/${lang}/blog/${slug}/`,
+      url: currentPath,
       images: [{ url: post.ogImage || '/og-image.jpg' }],
+      locale: isAr ? 'ar_EG' : 'en_US',
       type: 'article',
     },
   };
 }
 
-// 3. Main Page Component
+/**
+ * ✅ 3. Main Page Component
+ */
 export default async function PostPage({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === "ar";
@@ -89,7 +103,7 @@ export default async function PostPage({ params }) {
   const isDifferentLanguage = post.language !== lang;
   const whatsappNumber = CONTACT_INFO.whatsapp.replace(/\D/g, '');
 
-  // ✅ تعديل الروابط لتنتهي بـ / لضمان عدم حدوث Redirects
+  // ✅ توحيد الروابط في الـ Breadcrumbs لتنتهي بـ /
   const breadcrumbItems = [
     { label: isAr ? "المدونة" : "Blog", href: `/${lang}/blog/` },
     { label: post.title }
@@ -128,7 +142,7 @@ export default async function PostPage({ params }) {
   return (
     <article className="min-h-screen bg-white dark:bg-slate-950 pb-20 selection:bg-[#C02026] selection:text-white" dir={isAr ? "rtl" : "ltr"}>
       
-      {/* 🏗️ 1. Hero Header */}
+      {/* 🏗️ Hero Header */}
       <header className="bg-slate-50 dark:bg-slate-900/50 pt-32 pb-16 border-b border-slate-100 dark:border-slate-800">
         <div className="container mx-auto max-w-4xl px-4 text-center md:text-start">
           <nav className="mb-10 flex justify-center md:justify-start">
@@ -159,20 +173,20 @@ export default async function PostPage({ params }) {
         </div>
       </header>
 
-      {/* 🖼️ 2. Main Image */}
+      {/* 🖼️ Main Image */}
       <div className="container mx-auto max-w-5xl px-4 -mt-12 relative z-10">
         <div className="relative h-[400px] md:h-[650px] w-full overflow-hidden rounded-[4rem] shadow-2xl border-[15px] border-white dark:border-slate-900">
           <Image src={urlFor(post.mainImage).width(1600).url()} alt={post.title} fill className="object-cover" priority />
         </div>
       </div>
 
-      {/* 📝 3. Body Content */}
+      {/* 📝 Body Content */}
       <div className="container mx-auto max-w-3xl px-6 pt-20">
         <div className="prose prose-lg md:prose-xl dark:prose-invert max-w-none">
           <PortableText value={post.body} components={components} />
         </div>
 
-        {/* 🔗 4. Social Sharing */}
+        {/* 🔗 Social Sharing - تم توحيد الرابط بـ / */}
         <div className="mt-20 py-10 border-y border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-4 text-slate-900 dark:text-white font-black italic uppercase tracking-widest text-sm">
                 <span className="bg-[#C02026] w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"><Globe size={18} /></span>
@@ -181,7 +195,7 @@ export default async function PostPage({ params }) {
             <div className="scale-125"><ShareBtn title={post.title} slug={`blog/${slug}/`} lang={lang} isAr={isAr} /></div>
         </div>
 
-        {/* 🚀 5. Premium CTA */}
+        {/* 🚀 Premium CTA */}
         <div className="mt-24 overflow-hidden rounded-[3.5rem] bg-slate-950 text-white relative shadow-2xl">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#C02026]/10 rounded-full blur-[120px]" />
           <div className="relative p-12 md:p-24 text-center">

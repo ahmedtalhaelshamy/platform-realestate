@@ -11,12 +11,15 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 
-// ✅ إجبار الصفحة على أن تكون Static بالكامل لضمان سرعة الأرشفة
+// ✅ 1. PERFORMANCE: إجبار الصفحة على أن تكون Static بالكامل
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
+// 🏁 الدومين الموحد المعتمد
+const BASE_URL = 'https://platformrealestate.co';
+
 /**
- * ✅ نظام تنسيق النصوص - تحسين القراءة
+ * ✅ نظام تنسيق النصوص الخاص بـ PortableText
  */
 const devPortableTextComponents = {
   block: {
@@ -35,7 +38,7 @@ const devPortableTextComponents = {
 };
 
 /**
- * ✅ 1. توليد المسارات وقت الـ Build (SSG)
+ * ✅ 2. توليد المسارات وقت الـ Build (SSG)
  */
 export async function generateStaticParams() {
   try {
@@ -51,7 +54,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ 2. الـ SEO Metadata (الربط المتبادل بين اللغات)
+ * ✅ 3. الـ SEO Metadata (الربط الموحد والمتبادل بين اللغات)
  */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
@@ -65,22 +68,25 @@ export async function generateMetadata({ params }) {
   if (!data) return { title: 'Not Found' };
   
   const title = isAr ? (data.seoTitleAr || data.nameAr) : (data.seoTitleEn || data.nameEn);
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const arPath = `${BASE_URL}/ar/developers/${slug}/`;
+  const enPath = `${BASE_URL}/en/developers/${slug}/`;
+  const currentPath = isAr ? arPath : enPath;
 
   return { 
     title: `${title} | Platform Real Estate`, 
     description: isAr ? data.seoDescAr : data.seoDescEn,
-    
-    // 🛡️ الربط الاحترافي (Hreflang) لمنع مشاكل الفهرسة في جوجل
+    metadataBase: new URL(BASE_URL),
     alternates: {
-      canonical: `${baseUrl}/${lang}/developers/${slug}/`,
+      canonical: currentPath,
       languages: {
-        'ar': `${baseUrl}/ar/developers/${slug}/`,
-        'en': `${baseUrl}/en/developers/${slug}/`,
-        'x-default': `${baseUrl}/ar/developers/${slug}/`,
+        'ar-EG': arPath,
+        'en-US': enPath,
+        'x-default': arPath,
       },
     },
     openGraph: {
+        title: `${title} | Platform Real Estate`,
+        url: currentPath,
         locale: isAr ? 'ar_EG' : 'en_US',
         type: 'website',
     }
@@ -88,7 +94,7 @@ export async function generateMetadata({ params }) {
 }
 
 /**
- * ✅ دالة جلب البيانات
+ * ✅ دالة جلب البيانات من Sanity
  */
 async function getDeveloperData(slug) {
   const query = `{
@@ -103,6 +109,9 @@ async function getDeveloperData(slug) {
   return await client.fetch(query, { slug });
 }
 
+/**
+ * ✅ المكون الرئيسي لصفحة المطور
+ */
 export default async function DeveloperDetailPage({ params }) {
   const { lang, slug } = await params; 
   const isAr = lang === 'ar';
@@ -111,6 +120,7 @@ export default async function DeveloperDetailPage({ params }) {
   if (!data?.developer) return notFound();
 
   const { developer, projects } = data;
+  
   const breadcrumbItems = [
     { label: isAr ? 'المطورين' : 'Developers', href: `/${lang}/developers/` },
     { label: isAr ? developer.nameAr : developer.nameEn }
@@ -119,7 +129,7 @@ export default async function DeveloperDetailPage({ params }) {
   return (
     <main className="min-h-screen bg-white selection:bg-red-100" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🏗️ 1. HERO SECTION */}
+      {/* HERO SECTION */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/30 skew-x-12 translate-x-20 pointer-events-none" />
         
@@ -157,13 +167,13 @@ export default async function DeveloperDetailPage({ params }) {
         </div>
       </section>
 
-      {/* 📄 2. MAIN CONTENT */}
+      {/* CONTENT AREA */}
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
             <div className="lg:col-span-8 space-y-24">
               
-              {/* ✅ PROJECTS SECTION */}
+              {/* PROJECTS SECTION */}
               <section id="portfolio">
                   <div className="mb-10">
                      <h2 className="text-3xl font-black text-slate-900 mb-2">
@@ -186,7 +196,7 @@ export default async function DeveloperDetailPage({ params }) {
                   )}
               </section>
 
-              {/* ✅ CORPORATE PROFILE */}
+              {/* CORPORATE PROFILE */}
               <section className="bg-white border border-slate-100 rounded-[2.5rem] p-8 md:p-12 shadow-sm relative">
                 <h2 className="text-3xl font-black text-slate-900 mb-8">
                   {developer.reviewTitle || (isAr ? `لماذا تختار ${developer.nameAr}؟` : `About ${developer.nameEn}`)}
@@ -196,7 +206,7 @@ export default async function DeveloperDetailPage({ params }) {
                 </article>
               </section>
 
-              {/* ✅ FAQs */}
+              {/* FAQs */}
               {developer.faqs && developer.faqs.length > 0 && (
                 <section className="space-y-8">
                    <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3">
@@ -216,11 +226,10 @@ export default async function DeveloperDetailPage({ params }) {
               )}
             </div>
 
-            {/* ✅ 3. PREMIUM SIDEBAR CTA */}
+            {/* SIDEBAR CTA */}
             <aside className="lg:col-span-4 lg:sticky lg:top-32">
                 <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#C02026]/20 blur-[60px]" />
-                    
                     <div className="relative z-10 text-center md:text-start">
                         <div className="w-14 h-14 bg-[#C02026] rounded-2xl flex items-center justify-center mb-6 mx-auto md:mx-0">
                            <MessageCircle size={28} className="text-white" />
@@ -239,13 +248,11 @@ export default async function DeveloperDetailPage({ params }) {
                               <Phone size={18} className="group-hover:rotate-12 transition-transform" />
                               <span className="text-sm uppercase tracking-widest">{isAr ? 'اتصل بنا' : 'Call Sales'}</span>
                            </a>
-                           
                            <a href={`https://wa.me/${CONTACT_INFO.whatsapp?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 w-full bg-white/5 border border-white/20 hover:bg-[#25D366] hover:border-[#25D366] py-4 rounded-2xl font-black transition-all">
                               <MessageCircle size={18} />
                               <span className="text-sm uppercase tracking-widest">{isAr ? 'واتساب' : 'WhatsApp'}</span>
                            </a>
                         </div>
-                        
                         <p className="mt-8 text-[10px] text-slate-500 text-center uppercase tracking-[0.2em] font-bold">
                            {isAr ? 'خدمة مجانية 100% ' : '100% Free - Zero Commission'}
                         </p>

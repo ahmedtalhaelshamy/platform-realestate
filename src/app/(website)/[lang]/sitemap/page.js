@@ -1,6 +1,10 @@
 import { client } from '@/sanity/client';
 import Link from 'next/link';
 import { MapPin, Building2, LayoutGrid, ChevronLeft } from 'lucide-react';
+import { CONTACT_INFO } from '@/components/constants/contact';
+
+// 🏁 الدومين الموحد المعتمد
+const BASE_URL = 'https://platformrealestate.co';
 
 async function getData() {
   const query = `{
@@ -11,6 +15,36 @@ async function getData() {
   return await client.fetch(query);
 }
 
+/**
+ * ✅ 1. Metadata: عشان جوجل يفهم إن الصفحة دي هي الفهرس الرسمي
+ */
+export async function generateMetadata({ params }) {
+  const { lang } = await params;
+  const isAr = lang === 'ar';
+  
+  const title = isAr ? 'خريطة الموقع' : 'Sitemap';
+  const arPath = `${BASE_URL}/ar/sitemap/`;
+  const enPath = `${BASE_URL}/en/sitemap/`;
+  const currentPath = isAr ? arPath : enPath;
+
+  return {
+    title: `${title} | Platform Real Estate`,
+    description: isAr ? 'دليل شامل لجميع المشاريع والمناطق والمطورين' : 'Full directory of projects, locations, and developers',
+    metadataBase: new URL(BASE_URL),
+    alternates: {
+      canonical: currentPath,
+      languages: {
+        'ar-EG': arPath,
+        'en-US': enPath,
+        'x-default': arPath,
+      },
+    },
+  };
+}
+
+/**
+ * ✅ 2. Component الأساسي
+ */
 export default async function HTMLSitemap({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -42,8 +76,9 @@ export default async function HTMLSitemap({ params }) {
               <ul className="space-y-4">
                 {section.items.map((item, i) => (
                   <li key={i}>
+                    {/* ✅ تحديث: إضافة / في نهاية الرابط لضمان السرعة ومنع الـ Redirects */}
                     <Link 
-                      href={`/${lang}/${section.path}/${item.slug}`}
+                      href={`/${lang}/${section.path}/${item.slug}/`}
                       className="group flex items-center justify-between text-slate-500 hover:text-[#C02026] transition-all font-bold text-sm"
                     >
                       <span>{isAr ? (item.titleAr || item.nameAr) : (item.titleEn || item.nameEn)}</span>
@@ -58,7 +93,6 @@ export default async function HTMLSitemap({ params }) {
       </div>
     </main>
   );
-  
 }
 
 export async function generateStaticParams() {

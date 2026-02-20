@@ -1,7 +1,8 @@
 import { CONTACT_INFO } from '../components/constants/contact';
 
 export default function robots() {
-  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || CONTACT_INFO.domain).replace(/\/$/, '');
+  // 🏁 الدومين الموحد المعتمد - نستخدم الثابت لضمان عدم حدوث تشتت لعناكب البحث
+  const baseUrl = 'https://platformrealestate.co';
 
   return {
     rules: {
@@ -10,17 +11,17 @@ export default function robots() {
         '/',
         '/_next/static/', 
         '/_next/image/', 
-        '/api/og', // السماح لصور المشاركة
+        '/api/og', // السماح لصور المشاركة (Open Graph) للظهور في السوشيال ميديا
       ],
       disallow: [
-        '/studio/', 
-        '/admin/', 
-        '/api/',   // سيمنع الـ api ما عدا الـ og المذكور في الـ allow
-        '/private/',
-        '/*?*',    // منع روابط الفلاتر والبحث
+        '/studio/',   // منع أرشفة لوحة تحكم Sanity
+        '/admin/',    // منع أرشفة لوحة التحكم
+        '/api/',      // منع الـ API العام
+        '/private/',  // أي ملفات خاصة
+        '/*?*',       // 🛡️ منع أرشفة روابط البحث والفلاتر (مهم جداً لمنع تكرار المحتوى)
       ],
     },
-    // التأكد من أن الرابط كامل ويبدأ بـ https
+    // ✅ الإشارة للخريطة البرمجية الموحدة اللي عملناها
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
