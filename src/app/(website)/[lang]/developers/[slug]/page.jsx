@@ -74,7 +74,7 @@ export async function generateMetadata({ params }) {
   const isAr = lang === 'ar';
   
   const data = await client.fetch(
-    `*[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn}`, 
+    `*[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn, logo}`, 
     { slug }
   );
   
@@ -83,6 +83,11 @@ export async function generateMetadata({ params }) {
   const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
   const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
   const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
+
+  // تحسين صورة الـ OG لتكون نسخة WebP من شعار المطور
+  const ogImage = data.logo 
+    ? urlFor(data.logo).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   const arPath = `${BASE_URL}/ar/developers/${slug}/`;
   const enPath = `${BASE_URL}/en/developers/${slug}/`;
@@ -99,6 +104,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
         title: `${devName} | Platform Real Estate`,
         url: currentPath,
+        images: [{ url: ogImage }],
         locale: isAr ? 'ar_EG' : 'en_US',
         type: 'website',
     }
@@ -139,13 +145,13 @@ export default async function DeveloperDetailPage({ params }) {
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `أريد استشارة حول مشاريع شركة ${devName}` : `Inquiry about ${devName} projects`)}`;
 
-  // 🏆 [SEO] Schema Markup - RealEstateAgent & Brand
+  // 🏆 [SEO] Schema Markup - تحسين مسار اللوجو ليكون WebP
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'Brand',
     'name': devName,
     'description': getSafeText(isAr ? developer.descriptionAr : developer.descriptionEn).substring(0, 200),
-    'logo': developer.logo ? urlFor(developer.logo).url() : `${BASE_URL}/logo.png`,
+    'logo': developer.logo ? urlFor(developer.logo).auto('format').url() : `${BASE_URL}/logo.png`,
     'url': `${BASE_URL}/${lang}/developers/${slug}/`
   };
 
@@ -166,11 +172,21 @@ export default async function DeveloperDetailPage({ params }) {
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 text-start">
-            {/* Logo Glass Card */}
+            {/* Logo Glass Card - تم تحسين اللوجو هنا */}
             <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center justify-center p-8 shrink-0 relative group">
                 <div className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[3rem]" />
                 {developer.logo ? (
-                  <Image src={urlFor(developer.logo).width(600).quality(90).url()} alt={`${devName} corporate logo`} width={250} height={250} className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" priority />
+                  <Image 
+                    // تحسين: WebP تلقائي مع تحديد الأحجام المتجاوبة
+                    src={urlFor(developer.logo).width(600).auto('format').quality(90).url()} 
+                    alt={`${devName} corporate logo`} 
+                    width={250} 
+                    height={250} 
+                    className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" 
+                    priority 
+                    // إخبار المتصفح بحجم اللوجو الحقيقي على الشاشة
+                    sizes="(max-width: 768px) 192px, 256px"
+                  />
                 ) : <Building2 size={64} className="text-slate-200 relative z-10" />}
             </div>
             
@@ -215,6 +231,7 @@ export default async function DeveloperDetailPage({ params }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14" role="list">
                       {projects.map((project) => (
                         <article key={project._id} role="listitem">
+                          {/* الـ ProjectCard داخلياً يعالج صوره بـ WebP كما فعلنا سابقاً */}
                           <ProjectCard lang={lang} data={project} />
                         </article>
                       ))}

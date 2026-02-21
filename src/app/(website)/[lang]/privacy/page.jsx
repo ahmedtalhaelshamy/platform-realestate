@@ -23,6 +23,10 @@ export async function generateStaticParams() {
 
 export const revalidate = 3600;
 
+/**
+ * ✅ Metadata Function
+ * تم إضافة .auto('format') لضمان تحويل صورة المشاركة لـ WebP تلقائياً
+ */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -39,18 +43,26 @@ export async function generateMetadata({ params }) {
     ? getSafeText(seo?.metaDescAr || 'نحن نلتزم بأعلى معايير حماية البيانات والخصوصية لعملائنا في منصة بلاتفورم.') 
     : getSafeText(seo?.metaDescEn || 'At Platform, we adhere to the highest standards of data protection and privacy for our clients.');
 
+  // تحسين صورة الـ OG لتكون WebP وبمقاس مثالي للمشاركة الاجتماعية
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url() 
+    : `${baseUrl}/og-image.jpg`;
+
   return {
     title: title,
     description: description,
     alternates: { 
-      // ✅ توحيد السلاش النهائية للسيو
       canonical: `${baseUrl}/${lang}/privacy/` 
     },
     openGraph: {
       title,
       description,
       url: `${baseUrl}/${lang}/privacy/`,
-      images: seo?.openGraphImage ? [{ url: urlFor(seo.openGraphImage).width(1200).url() }] : [`${baseUrl}/og-image.jpg`],
+      images: [{ 
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+      }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
@@ -168,7 +180,7 @@ export default async function PrivacyPage({ params }) {
                 </a>
                 <a 
                   href={`tel:${phone?.replace(/\s/g, '')}`} 
-                  aria-label={isAr ? `اتصال هاتفي على ${phone}` : `Call us at ${phone}`}
+                  aria-label={isAr ? `اتصل بنا على ${phone}` : `Call us at ${phone}`}
                   className="bg-slate-950 text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-white hover:text-slate-950 transition-all shadow-2xl flex items-center gap-4 border border-white/10 active:scale-95"
                 >
                   <Phone size={22} className="text-[#C02026]" fill="currentColor" fillOpacity={0.1} /> {phone}

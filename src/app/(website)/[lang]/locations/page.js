@@ -27,13 +27,20 @@ export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-// 2. Metadata: تحسين الأرشفة والروابط الدولية
+// 2. Metadata: تم تحسين صورة الـ OG لدعم WebP التلقائي
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
   
-  const query = `*[_type == "siteSettings"][0].locationsSeo`;
-  const seo = await client.fetch(query);
+  const query = `*[_type == "siteSettings"][0]{
+    locationsSeo {
+      metaTitleAr, metaTitleEn,
+      metaDescAr, metaDescEn,
+      openGraphImage
+    }
+  }`;
+  const settings = await client.fetch(query);
+  const seo = settings?.locationsSeo;
 
   const title = getSafeText(isAr 
     ? (seo?.metaTitleAr || 'تصفح كل المناطق الاستثمارية في مصر') 
@@ -42,6 +49,11 @@ export async function generateMetadata({ params }) {
   const description = getSafeText(isAr 
     ? (seo?.metaDescAr || 'دليلك الشامل لأفضل المناطق الاستثمارية والسكنية في القاهرة الجديدة، العاصمة الإدارية، والساحل الشمالي.') 
     : (seo?.metaDescEn || 'Your comprehensive guide to top investment locations including New Cairo, NAC, and North Coast.'));
+
+  // تحسين صورة المشاركة لتكون WebP
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   return {
     title: `${title} | Platform`,
@@ -58,6 +70,7 @@ export async function generateMetadata({ params }) {
       description,
       url: `${BASE_URL}/${lang}/locations/`,
       siteName: 'Platform Real Estate',
+      images: [{ url: ogImageUrl }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     },
@@ -86,16 +99,13 @@ export default async function LocationsIndexPage({ params }) {
       
       {/* ================= HERO SECTION (Premium Dark) ================= */}
       <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center bg-[#080A0D] overflow-hidden pt-20" aria-labelledby="hero-heading">
-        {/* Decorative Background */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#080A0D] via-[#080A0D]/60 to-transparent z-10" aria-hidden="true" />
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#C02026] via-transparent to-transparent animate-pulse pointer-events-none" aria-hidden="true" />
         
         <div className="relative z-20 text-center px-6 max-w-5xl animate-in fade-in slide-in-from-bottom-6 duration-1000">
-            
             <div className="flex justify-center mb-10 overflow-x-auto hide-scrollbar">
                <Breadcrumbs items={breadcrumbItems} lang={lang} />
             </div>
-
             <h1 id="hero-heading" className="text-5xl md:text-9xl font-black text-white mb-8 uppercase italic tracking-tighter drop-shadow-2xl leading-none">
                 {isAr ? 'خريطة الاستثمار' : 'Prime Hotspots'}
             </h1>
@@ -123,7 +133,8 @@ export default async function LocationsIndexPage({ params }) {
                 >
                   {loc.image ? (
                       <Image 
-                          src={urlFor(loc.image).width(800).height(1000).quality(90).url()} 
+                          // تحسين: إضافة auto('format') لتحويلها لـ WebP وتحديد المقاسات
+                          src={urlFor(loc.image).width(800).height(1000).auto('format').quality(90).url()} 
                           alt={isAr ? `خريطة مشاريع ${locName}` : `${locName} Investment Map`} 
                           fill 
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -136,10 +147,8 @@ export default async function LocationsIndexPage({ params }) {
                       </div>
                   )}
                   
-                  {/* Overlay Gradient */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#080A0D] via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-700" aria-hidden="true" />
 
-                  {/* Card Content */}
                   <div className="absolute bottom-0 start-0 w-full p-10 md:p-14 flex flex-col items-start gap-6 z-20 text-start">
                       <div className="inline-flex items-center gap-3 bg-[#C02026] text-white px-5 py-2 rounded-2xl shadow-2xl group-hover:bg-white group-hover:text-[#C02026] transition-all duration-500">
                           <Building2 size={14} className="animate-pulse" />
@@ -147,11 +156,9 @@ export default async function LocationsIndexPage({ params }) {
                               {loc.projectsCount} {isAr ? 'مشروع متاح' : 'Active Assets'}
                           </span>
                       </div>
-
                       <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter leading-none transition-colors group-hover:text-white">
                           {locName}
                       </h2>
-
                       <div className="flex items-center gap-3 text-white/70 text-[11px] font-black uppercase tracking-[0.3em] opacity-0 group-hover:opacity-100 translate-y-6 group-hover:translate-y-0 transition-all duration-700">
                           {isAr ? 'اكتشف المنطقة' : 'Explore Territory'} 
                           {isAr ? <ArrowLeft size={18} className="animate-bounce-x" /> : <ArrowRight size={18} className="animate-bounce-x" />}

@@ -11,8 +11,7 @@ export const revalidate = 3600;
 const BASE_URL = 'https://platformrealestate.co';
 
 /**
- * 🛠️ دالة تطهير النصوص الشاملة (حارس البيانات)
- * تحول أي محتوى (String أو Sanity Object) لنص صافي وآمن لـ React
+ * 🛠️ دالة تطهير النصوص الشاملة
  */
 function getSafeText(input) {
   if (!input) return "";
@@ -37,14 +36,22 @@ function getSafeText(input) {
 }
 
 /**
- * 🖼️ حارس الصور - يضمن عدم كسر الصفحة إذا فقدت الصورة
+ * 🖼️ حارس الصور المطور - Optimized for Social Media Sharing (OG Images)
+ * أضفنا .auto('format') لضمان وصول الصورة بأفضل صيغة للمتصفح (WebP/AVIF)
  */
 const getSafeImageUrl = (source) => {
   if (!source || !source.asset || !source.asset._ref) {
     return `${BASE_URL}/og-image.jpg`; 
   }
   try {
-    return urlFor(source).width(1200).height(630).quality(90).auto('format').url();
+    // تم توحيد مقاسات الـ OG Image لتناسب معايير فيسبوك وجوجل مع ضغط عالي WebP
+    return urlFor(source)
+      .width(1200)
+      .height(630)
+      .quality(80) 
+      .auto('format') 
+      .fit('crop')
+      .url();
   } catch (error) {
     return `${BASE_URL}/og-image.jpg`;
   }
@@ -74,7 +81,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * 2️⃣ [SEO] الميتا داتا المحدثة (توحيد الروابط والأرشفة الدولية)
+ * 2️⃣ [SEO] الميتا داتا المحدثة
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
@@ -88,13 +95,12 @@ export async function generateMetadata({ params }) {
   if (!data) return { title: 'Project Not Found' };
 
   const seo = data.seo;
-  // تأمين النصوص من الـ Objects
   const cleanTitle = getSafeText(isAr ? (seo?.metaTitleAr || data.titleAr) : (seo?.metaTitleEn || data.titleEn));
   const cleanDesc = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   
   const arUrl = `${BASE_URL}/ar/projects/${slug}/`;
   const enUrl = `${BASE_URL}/en/projects/${slug}/`;
-  const currentUrl = isAr ? arUrl : enUrl;
+  const currentPath = isAr ? arUrl : enUrl;
 
   return {
     title: `${cleanTitle} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
@@ -102,7 +108,7 @@ export async function generateMetadata({ params }) {
     metadataBase: new URL(BASE_URL),
     
     alternates: {
-      canonical: currentUrl,
+      canonical: currentPath,
       languages: {
         'ar': arUrl,
         'en': enUrl,
@@ -118,8 +124,13 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: cleanTitle,
       description: cleanDesc,
-      url: currentUrl,
-      images: [{ url: getSafeImageUrl(seo?.ogImage || data.mainImage) }],
+      url: currentPath,
+      images: [{ 
+        url: getSafeImageUrl(seo?.ogImage || data.mainImage),
+        width: 1200,
+        height: 630,
+        type: 'image/webp' 
+      }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
@@ -167,12 +178,11 @@ export default async function ProjectDetailPage({ params }) {
     { label: isAr ? 'المشاريع' : 'Projects', href: `/${lang}/projects/` },
     { 
       label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), 
-      href: `/${lang}/locations/${data.locationData?.slug}/` // تعديل المسار ليكون منطقياً
+      href: `/${lang}/locations/${data.locationData?.slug}/` 
     },
     { label: sanitizedData.computedH1 }
   ];
 
-  // 🏆 [SEO] Schema Markup مع الروابط الموحدة
   const mainSchema = {
     '@context': 'https://schema.org',
     '@type': data.seo?.schemaType || 'RealEstateListing',
@@ -195,6 +205,7 @@ export default async function ProjectDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
       />
       
+      {/* البيانات بتتبعت للـ Client Component اللي هو "المنفذ الفعلي" لعرض الصور */}
       <ProjectClientUI 
           data={sanitizedData} 
           lang={lang} 

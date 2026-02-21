@@ -4,6 +4,19 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
+// ✅ دالة الأمان لمنع خطأ الـ Objects
+const getSafeText = (val) => {
+  if (!val) return "";
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+  }
+  if (typeof val === 'object' && val.children) {
+    return val.children.map(child => child.text).join('');
+  }
+  return String(val);
+};
+
 // 1. أرشفة الصفحة (SEO) - تحسين الروابط والـ Metadata
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -14,16 +27,21 @@ export async function generateMetadata({ params }) {
   const seo = await client.fetch(query);
 
   const title = isAr 
-    ? (seo?.metaTitleAr || `الشروط والأحكام | ${CONTACT_INFO.siteNameAr}`)
-    : (seo?.metaTitleEn || `Terms & Conditions | ${CONTACT_INFO.siteNameEn}`);
+    ? getSafeText(seo?.metaTitleAr || `الشروط والأحكام | ${CONTACT_INFO.siteNameAr}`)
+    : getSafeText(seo?.metaTitleEn || `Terms & Conditions | ${CONTACT_INFO.siteNameEn}`);
 
   const description = isAr 
-    ? (seo?.metaDescAr || 'تعرف على شروط استخدام منصة بلاتفورم العقارية لضمان تجربة استثمارية آمنة.') 
-    : (seo?.metaDescEn || 'Learn about the terms of use for Platform Real Estate to ensure a secure investment experience.');
+    ? getSafeText(seo?.metaDescAr || 'تعرف على شروط استخدام منصة بلاتفورم العقارية لضمان تجربة استثمارية آمنة.') 
+    : getSafeText(seo?.metaDescEn || 'Learn about the terms of use for Platform Real Estate to ensure a secure investment experience.');
+
+  // تحسين: استخدام auto('format') لضمان تحويل صورة المشاركة لـ WebP تلقائياً
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url() 
+    : `${baseUrl}/og-image.jpg`;
 
   return {
-    title,
-    description,
+    title: title,
+    description: description,
     alternates: { 
       // ✅ توحيد السلاش النهائية للسيو
       canonical: `${baseUrl}/${lang}/terms/` 
@@ -31,7 +49,12 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title,
       description,
-      images: seo?.openGraphImage ? [{ url: urlFor(seo.openGraphImage).width(1200).url() }] : [`${baseUrl}/og-image.jpg`],
+      url: `${baseUrl}/${lang}/terms/`,
+      images: [{ 
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+      }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }

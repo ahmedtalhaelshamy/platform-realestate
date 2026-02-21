@@ -47,7 +47,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ 2. Metadata Function (الأرشفة الدولية الموحدة)
+ * ✅ 2. Metadata Function (تم إضافة تحسين صور الـ OG)
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }) {
   const post = await client.fetch(
     `*[_type == "post" && slug.current == $slug][0]{
       title, overview, seoTitle, seoDescription, keywords,
-      "ogImage": mainImage.asset->url
+      mainImage
     }`,
     { slug }
   );
@@ -65,6 +65,11 @@ export async function generateMetadata({ params }) {
 
   const cleanTitle = getSafeText(post.seoTitle || post.title);
   const cleanDesc = getSafeText(post.seoDescription || post.overview);
+
+  // تحسين صورة المشاركة لتكون WebP وبمقاس مثالي
+  const ogImageUrl = post.mainImage 
+    ? urlFor(post.mainImage).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   const arPath = `${BASE_URL}/ar/blog/${slug}/`;
   const enPath = `${BASE_URL}/en/blog/${slug}/`;
@@ -86,7 +91,7 @@ export async function generateMetadata({ params }) {
       title: cleanTitle,
       description: cleanDesc,
       url: currentPath,
-      images: [{ url: post.ogImage || `${BASE_URL}/og-image.jpg` }],
+      images: [{ url: ogImageUrl }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'article',
     },
@@ -121,7 +126,7 @@ export default async function PostPage({ params }) {
     { label: cleanTitle }
   ];
 
-  // ✅ PortableText Custom Components - Optimized for Luxury Design
+  // ✅ PortableText Custom Components - تم تحسين صور المقال لـ WebP والتجاوب
   const components = {
     block: {
       h2: ({ children }) => <h2 className="text-3xl md:text-5xl font-black mt-20 mb-10 border-s-[12px] border-[#C02026] ps-8 italic uppercase tracking-tighter leading-none text-slate-950">{children}</h2>,
@@ -139,9 +144,11 @@ export default async function PostPage({ params }) {
         <figure className="my-16">
           <div className="relative w-full h-[350px] md:h-[700px] overflow-hidden rounded-[3.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
             <Image
-              src={urlFor(value).width(1200).quality(90).url()}
+              // تحسين: WebP تلقائي وتجاوب ذكي للصور داخل المحتوى
+              src={urlFor(value).width(1200).auto('format').fit('max').quality(90).url()}
               alt={getSafeText(value.alt || post.title)}
               fill
+              sizes="(max-width: 768px) 100vw, 1200px"
               className="object-cover"
             />
           </div>
@@ -157,7 +164,7 @@ export default async function PostPage({ params }) {
     '@type': 'NewsArticle',
     'headline': cleanTitle,
     'description': getSafeText(post.overview).substring(0, 160),
-    'image': [urlFor(post.mainImage).url()],
+    'image': [urlFor(post.mainImage).auto('format').url()],
     'datePublished': post._createdAt,
     'author': [{
         '@type': 'Organization',
@@ -201,13 +208,15 @@ export default async function PostPage({ params }) {
         </div>
       </header>
 
-      {/* 🖼️ Feature Image Section */}
+      {/* 🖼️ Feature Image Section - تم تحسين صورة المقال الرئيسية */}
       <div className="container mx-auto max-w-[1200px] px-6 -mt-16 relative z-20">
         <div className="relative h-[450px] md:h-[750px] w-full overflow-hidden rounded-[4.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-[12px] md:border-[20px] border-white">
           <Image 
-            src={urlFor(post.mainImage).width(1600).quality(95).url()} 
+            // تحسين: استخدام WebP والتجاوب مع الشاشات
+            src={urlFor(post.mainImage).width(1600).auto('format').quality(95).url()} 
             alt={cleanTitle} 
             fill 
+            sizes="100vw"
             className="object-cover animate-slow-zoom" 
             priority 
           />

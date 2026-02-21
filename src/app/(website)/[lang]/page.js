@@ -19,7 +19,7 @@ export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-// ✅ دالة الأمان لتنظيف النصوص
+// ✅ دالة الأمان لمنع خطأ الـ Objects
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -29,7 +29,9 @@ const getSafeText = (val) => {
   return String(val);
 };
 
-// --- SEO METADATA ---
+/**
+ * ✅ Metadata: تم تحسين صورة الـ OG لتكون WebP بوزن خفيف
+ */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -39,6 +41,11 @@ export async function generateMetadata({ params }) {
   const title = getSafeText(isAr ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn));
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+
+  // تحسين: استخدام auto('format') لضمان سرعة ظهور الرابط عند المشاركة
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    : `${baseUrl}/og-image.jpg`;
 
   return {
     title: `${title} | Platform Real Estate`,
@@ -51,7 +58,7 @@ export async function generateMetadata({ params }) {
       title,
       description,
       url: `${baseUrl}/${lang}/`,
-      images: seo?.openGraphImage ? [urlFor(seo.openGraphImage).width(1200).url()] : [`${baseUrl}/og-image.jpg`],
+      images: [{ url: ogImageUrl }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     },
@@ -111,20 +118,22 @@ export default async function HomePage({ params }) {
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
         
-        {/* HERO SECTION */}
-        {/* ✅ تم إزالة overflow-hidden وإضافة z-30 لضمان ظهور نتايج البحث فوق باقي الصفحة */}
+        {/* 🚀 HERO SECTION - Optimized for LCP */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
-          {/* ✅ تم إضافة overflow-hidden هنا فقط للحفاظ على حواف الصورة أثناء الـ Zoom */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
                <Image 
-                  src={urlFor(settings.heroImage).width(1400).quality(90).url()} 
-                  alt="Real Estate Egypt" 
+                  // تحسين: استخدام auto('format') وتقديم أحجام متجاوبة ذكية
+                  src={urlFor(settings.heroImage).width(1920).auto('format').quality(85).url()} 
+                  alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
                   priority={true} 
                   fetchPriority="high" 
-                  loading="eager"
                   fill
-                  className="object-cover animate-slow-zoom opacity-60" 
+                  // تحسين: sizes تخبر المتصفح أن الصورة تأخذ عرض الشاشة بالكامل، مما يحسن الـ LCP
+                  sizes="100vw"
+                  className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
+                  placeholder="blur"
+                  blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
                />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
@@ -142,7 +151,6 @@ export default async function HomePage({ params }) {
             
             <Link 
               href={`/${lang}/projects/`} 
-              aria-label={isAr ? "استكشف قائمة المشاريع" : "Explore projects portfolio"}
               className="group inline-flex items-center gap-5 bg-[#C02026] text-white px-12 py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-black shadow-2xl active:scale-95"
             >
               {isAr ? 'عرض المشاريع الحصرية' : 'Explore Portfolio'}
@@ -150,7 +158,6 @@ export default async function HomePage({ params }) {
             </Link>
           </div>
 
-          {/* Search Filter Container */}
           <div className="absolute bottom-0 left-0 w-full translate-y-1/2 z-[100] px-6 pointer-events-none">
              <div className="max-w-5xl mx-auto pointer-events-auto">
                 <SearchFilter lang={lang} isAr={isAr} />
@@ -163,7 +170,6 @@ export default async function HomePage({ params }) {
           
           <AboutSection lang={lang} isAr={isAr} />
           
-          {/* FEATURED PROJECTS */}
           <section id="featured" className="bg-slate-50 py-32 border-y border-slate-100" aria-labelledby="featured-title">
             <div className="max-w-7xl mx-auto px-6 mb-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
                <div className="space-y-6">
@@ -174,16 +180,15 @@ export default async function HomePage({ params }) {
                </div>
                <Link 
                  href={`/${lang}/projects/`} 
-                 aria-label={isAr ? "مشاهدة كافة العقارات المتاحة" : "View all available listings"}
                  className="flex items-center gap-4 text-slate-900 font-black text-sm uppercase tracking-[0.2em] border-b-4 border-[#C02026] pb-2 hover:bg-[#C02026] hover:text-white px-4 transition-all duration-500 rounded-t-xl"
                >
                   {isAr ? 'جميع العقارات' : 'All Listings'} <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
                </Link>
             </div>
+            {/* تم تمرير البيانات لـ FeaturedProjects، وتعديل الصور هناك يتم داخل المكون نفسه */}
             <FeaturedProjects projects={projects} isAr={isAr} lang={lang} />
           </section>
 
-          {/* HOTSPOTS */}
           <section id="hotspots" className="max-w-7xl mx-auto px-6" aria-labelledby="hotspots-title">
              <div className="mb-24 text-start">
                 <h2 id="hotspots-title" className="text-5xl md:text-8xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
@@ -193,7 +198,6 @@ export default async function HomePage({ params }) {
              <CityCarousel lang={lang} />
           </section>
 
-          {/* DEVELOPERS TITANS */}
           <section id="developers" className="bg-white py-32 overflow-hidden relative" aria-labelledby="dev-title">
               <div className="text-center mb-32 px-6 space-y-6">
                 <span className="text-[#C02026] font-black text-[11px] uppercase tracking-[0.6em] block">
@@ -204,21 +208,18 @@ export default async function HomePage({ params }) {
                 </h2>
               </div>
 
-              {/* ✅ تم استخدام py-40 لضمان وجود مساحة كافية فوق وتحت الكروت */}
               <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
                   <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
                       <Link 
                         key={`${dev._id}-${idx}`} 
                         href={`/${lang}/developers/${dev.slug}/`} 
-                        aria-label={isAr ? `شركة ${dev.nameAr}` : `${dev.nameEn} development company`}
                         className="hover:scale-110 transition-transform duration-700 shrink-0"
                       >
                         <DeveloperLogoItem dev={dev} isAr={isAr} />
                       </Link>
                     ))}
                   </div>
-                  {/* Glass Gradient Fades */}
                   <div className="absolute inset-y-0 left-0 w-32 md:w-80 bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
                   <div className="absolute inset-y-0 right-0 w-32 md:w-80 bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
@@ -230,8 +231,8 @@ export default async function HomePage({ params }) {
           @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
           .animate-marquee { display: flex; animation: marquee 100s linear infinite; }
           html[dir="rtl"] .animate-marquee { animation-name: marqueeRTL; }
-          .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; }
-          @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+          .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; will-change: transform; }
+          @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
           @media (max-width: 768px) { .animate-marquee { animation-duration: 50s; } }
         `}} />
       </main>
@@ -239,6 +240,9 @@ export default async function HomePage({ params }) {
   );
 }
 
+/**
+ * ✅ DeveloperLogoItem: تم تحسين الشعارات لتكون WebP تلقائياً
+ */
 const DeveloperLogoItem = ({ dev, isAr }) => {
   const mainBadgeKey = Array.isArray(dev.badges) ? dev.badges[0] : null;
   const badgeConfig = BADGE_MAP[mainBadgeKey] || BADGE_MAP.default;
@@ -249,7 +253,7 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
       <div className="w-[200px] h-[120px] md:w-[320px] md:h-[180px] bg-white rounded-[3rem] md:rounded-[4rem] border border-slate-100 shadow-sm relative transition-all duration-1000 group-hover/dev:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] group-hover/dev:border-[#C02026] group-hover/dev:-translate-y-4">
         
         {mainBadgeKey && (
-          <div className={`absolute -top-4 ${isAr ? '-left-3' : '-right-3'} z-[60] flex items-center gap-2 ${badgeConfig.bg} ${badgeConfig.color} px-5 py-2 rounded-2xl shadow-xl border border-white transform transition-transform group-hover/dev:scale-110`}>
+          <div className={`absolute -top-4 inset-inline-start-[-12px] z-[60] flex items-center gap-2 ${badgeConfig.bg} ${badgeConfig.color} px-5 py-2 rounded-2xl shadow-xl border border-white transform transition-transform group-hover/dev:scale-110`}>
              <BadgeIcon size={14} aria-hidden="true" />
              <span className="text-[9px] font-black uppercase tracking-widest">
                 {isAr ? badgeConfig.ar : badgeConfig.en}
@@ -261,8 +265,13 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
           <div className="relative w-full h-full grayscale opacity-30 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
             {dev.logo ? (
               <Image 
-                src={urlFor(dev.logo).width(400).url()} 
-                alt={`${dev.nameEn} logo`} fill className="object-contain" 
+                // تحسين: WebP تلقائي مع تحديد عرض مناسب للشعارات
+                src={urlFor(dev.logo).width(400).auto('format').url()} 
+                alt={`${dev.nameEn} logo`} 
+                fill 
+                sizes="400px"
+                className="object-contain" 
+                loading="lazy"
               />
             ) : (
               <span className="text-slate-600 font-black text-sm uppercase tracking-widest">{dev.nameEn}</span>

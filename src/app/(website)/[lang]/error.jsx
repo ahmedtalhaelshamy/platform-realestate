@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image'; // أضفنا دعم الصور المحسنة
+import { urlFor } from '@/sanity/image'; // استيراد المحرك المحسن
 import { RefreshCw, Home, AlertOctagon } from 'lucide-react';
 
 /**
@@ -30,6 +32,13 @@ export default function Error({ error, reset }) {
 
       <div className="relative z-10 max-w-lg w-full bg-white/90 backdrop-blur-2xl p-10 md:p-16 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(192,32,38,0.15)] border border-white">
         
+        {/* [تحسين]: مكان مخصص للوجو بـ WebP لو حبيت تضيفه مستقبلاً من السانتي */}
+        <div className="mb-8 opacity-20">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#C02026]">
+                Platform Real Estate
+            </p>
+        </div>
+
         {/* Animated Icon Container */}
         <div className="w-24 h-24 bg-red-50 text-[#C02026] rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-inner relative group">
            <AlertOctagon size={48} className="group-hover:rotate-12 transition-transform duration-500" aria-hidden="true" />

@@ -2,11 +2,12 @@ import { client } from '@/sanity/client';
 import Link from 'next/link';
 import { MapPin, Building2, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CONTACT_INFO } from '@/components/constants/contact';
+import { urlFor } from '@/sanity/image'; // استيراد المحرك لضمان تحسين صور المشاركة
 
 // 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
 
-// ✅ دالة الأمان لتحويل أي كائنات من Sanity لنص صافي (منعاً للـ Objects Error)
+// ✅ دالة الأمان لمنع خطأ الـ Objects Error
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -29,16 +30,24 @@ async function getData() {
 }
 
 /**
- * ✅ 1. Metadata: تحسين الأرشفة الدولية
+ * ✅ 1. Metadata: تحسين الأرشفة الدولية وصور الـ OG
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
   
+  // محاولة جلب إعدادات السيو لخريطة الموقع من Sanity إذا وجدت
+  const seo = await client.fetch(`*[_type == "siteSettings"][0].sitemapSeo`);
+  
   const title = isAr ? 'خريطة الموقع الشاملة' : 'Complete Site Map';
   const arPath = `${BASE_URL}/ar/sitemap/`;
   const enPath = `${BASE_URL}/en/sitemap/`;
   const currentPath = isAr ? arPath : enPath;
+
+  // تحسين: ضمان تحويل صورة المشاركة لـ WebP تلقائياً بوزن خفيف
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   return {
     title: `${title} | Platform Real Estate`,
@@ -54,6 +63,10 @@ export async function generateMetadata({ params }) {
         'x-default': arPath,
       },
     },
+    openGraph: {
+      title: `${title} | Platform`,
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+    }
   };
 }
 
@@ -159,6 +172,11 @@ export default async function HTMLSitemap({ params }) {
       <style dangerouslySetInnerHTML={{ __html: `
         body { background-color: #ffffff; }
         ::selection { background-color: #C02026; color: white; }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
       `}} />
     </main>
   );

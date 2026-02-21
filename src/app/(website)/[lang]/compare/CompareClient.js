@@ -152,8 +152,13 @@ export default function CompareClient({ lang }) {
                         <div className="relative aspect-[16/11] rounded-[3rem] overflow-hidden mb-10 shadow-2xl group">
                           {p.mainImage && (
                             <Image 
-                              src={urlFor(p.mainImage).width(800).quality(90).url()} 
-                              alt={title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" 
+                              // تحسين: إضافة auto('format') وتقديم أحجام متجاوبة
+                              src={urlFor(p.mainImage).width(800).auto('format').quality(90).url()} 
+                              alt={title} 
+                              fill 
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 450px"
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110" 
+                              priority
                             />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-[#080A0D] via-transparent to-transparent opacity-80" />
@@ -185,7 +190,7 @@ export default function CompareClient({ lang }) {
                 <tr className="bg-slate-50/50">
                    <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-10 border-e border-slate-50">
                       <div className="flex items-center gap-3 text-slate-900 font-black text-[11px] uppercase tracking-[0.3em]">
-                        <Info size={16} className="text-[#C02026]" /> {isAr ? 'احجز الآن' : 'Take Action'}
+                        <span className="text-[#C02026]"><Info size={16} /></span> {isAr ? 'احجز الآن' : 'Take Action'}
                       </div>
                    </td>
                    {projects.map(p => (
@@ -193,6 +198,7 @@ export default function CompareClient({ lang }) {
                         <a 
                           href={`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(isAr ? `استفسار عن مقارنة مشروع ${getSafeText(p.titleAr)}` : `Inquiry about ${getSafeText(p.titleEn)} from comparison`)}`} 
                           target="_blank" 
+                          rel="noopener noreferrer"
                           className="w-full flex items-center justify-center gap-4 bg-[#25D366] text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-500/20 hover:scale-105 transition-all active:scale-95"
                         >
                             <MessageCircle size={22} fill="currentColor" fillOpacity={0.2} /> {isAr ? 'عرض خاص' : 'Get VIP Offer'}
@@ -209,7 +215,7 @@ export default function CompareClient({ lang }) {
   );
 }
 
-// ✅ مكون الصف الذكي مع Logic المقارنة البصرية
+// ✅ مكون الصف الذكي مع Logic المقارنة البصرية (Keep All Logic)
 function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "", isPrice, isBold, isScore, isAr }) {
   
   const getValue = (obj, path) => {

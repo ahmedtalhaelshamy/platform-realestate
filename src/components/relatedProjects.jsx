@@ -3,8 +3,20 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { client } from '../sanity/client'; 
 import ProjectCard from './ProjectCard';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowUpRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowUpRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
+/**
+ * 🛠️ دالة الأمان لضمان عدم حدوث Crash بسبب البيانات
+ */
+const getSafeText = (val) => {
+  if (!val) return "";
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+  }
+  return String(val);
+};
 
 export default function RelatedProjects({ lang, currentId, locationId }) {
   const scrollRef = useRef(null);
@@ -13,22 +25,14 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
   const [loading, setLoading] = useState(true);
   const isAr = lang === 'ar';
 
-  // 1. جلب البيانات (الأولوية للمشاريع في نفس المنطقة)
+  // 1. جلب البيانات بذكاء (ترتيب حسب المنطقة ثم الأحدث)
   const fetchRelated = useCallback(async () => {
     try {
       const query = `*[_type == "project" && _id != $currentId] | order(location._ref == $locationId desc, _createdAt desc)[0...8] {
-        _id,
-        titleAr,
-        titleEn,
-        price,
-        installments,
-        downPayment,
-        "slug": slug.current,
-        mainImage,
-        "locationAr": location->nameAr,
-        "locationEn": location->nameEn,
-        "developerAr": developer->nameAr,
-        "developerEn": developer->nameEn
+        _id, titleAr, titleEn, price, installments, downPayment,
+        "slug": slug.current, mainImage,
+        "location": location->{ nameAr, nameEn },
+        "developer": developer->{ nameAr, nameEn }
       }`;
       const data = await client.fetch(query, { 
         currentId: currentId || "", 
@@ -36,7 +40,7 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
       });
       setProjects(data);
     } catch (err) {
-      console.error("Related Projects Fetch Error:", err);
+      console.error("Related Projects Intel Error:", err);
     } finally {
       setLoading(false);
     }
@@ -46,16 +50,16 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
     fetchRelated();
   }, [fetchRelated]);
 
-  // 2. دالة التمرير اليدوي
+  // 2. منطق التمرير اليدوي المحسن
   const scroll = (direction) => {
     if (scrollRef.current) {
       const { clientWidth } = scrollRef.current;
-      const scrollAmount = direction === 'left' ? -clientWidth / 1.5 : clientWidth / 1.5;
+      const scrollAmount = direction === 'left' ? -clientWidth / 1.2 : clientWidth / 1.2;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
-  // 3. منطق التمرير التلقائي
+  // 3. التمرير التلقائي الاحترافي (Auto-Pilot)
   useEffect(() => {
     if (loading || projects.length === 0 || isPaused) return;
 
@@ -63,28 +67,28 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
       const slider = scrollRef.current;
       if (slider) {
         const { scrollLeft, clientWidth, scrollWidth } = slider;
-        
-        // حساب النهاية بدقة لدعم RTL و LTR
         const isEnd = isAr 
-          ? Math.abs(scrollLeft) >= (scrollWidth - clientWidth - 100)
-          : scrollLeft >= (scrollWidth - clientWidth - 100);
+          ? Math.abs(scrollLeft) >= (scrollWidth - clientWidth - 50)
+          : scrollLeft >= (scrollWidth - clientWidth - 50);
 
         if (isEnd) {
           slider.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          const step = isAr ? -400 : 400;
+          const step = isAr ? -350 : 350;
           slider.scrollBy({ left: step, behavior: 'smooth' });
         }
       }
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isPaused, isAr, loading, projects.length]);
 
   if (loading) return (
-    <div className="py-24 text-center" role="status" aria-live="polite">
-      <div className="w-12 h-12 border-4 border-slate-100 border-t-[#C02026] rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-slate-400 font-medium italic">{isAr ? 'نختار لك أفضل البدائل...' : 'Selecting best alternatives...'}</p>
+    <div className="py-32 text-center bg-white" role="status">
+      <Loader2 className="w-12 h-12 text-[#C02026] animate-spin mx-auto mb-6 opacity-20" />
+      <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[10px]">
+        {isAr ? 'نحلل أفضل البدائل الاستثمارية...' : 'Analyzing Portfolio Matches...'}
+      </p>
     </div>
   );
 
@@ -92,82 +96,80 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
 
   return (
     <section 
-      className="py-20 bg-[#FDFDFD] border-t border-slate-50 relative overflow-hidden"
+      className="py-24 bg-white border-t border-slate-50 relative overflow-hidden"
       aria-labelledby="related-title"
     >
-      {/* Header */}
-      <div className="max-w-7xl mx-auto px-6 mb-12 flex items-end justify-between">
-        <div className="space-y-3 text-start">
-          <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-[#C02026]" />
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[30vw] h-[30vw] bg-red-50/50 rounded-full blur-[120px] -z-10 opacity-40" />
+
+      {/* Header Section */}
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 mb-16 flex items-end justify-between">
+        <div className="space-y-4 text-start">
+          <div className="flex items-center gap-3">
+            <Sparkles size={18} className="text-[#C02026]" />
             <span className="text-[#C02026] text-[10px] font-black uppercase tracking-[0.4em]">
-              {isAr ? 'اقتراحات حصرية' : 'Exclusive Matches'}
+              {isAr ? 'فرص قد تهمك' : 'Market Recommendations'}
             </span>
           </div>
-          <h2 id="related-title" className="text-3xl md:text-4xl font-black text-slate-900 italic uppercase tracking-tighter">
-            {isAr ? 'خيارات استثمارية مشابهة' : 'Related Opportunities'}
+          <h2 id="related-title" className="text-4xl md:text-6xl font-black text-slate-950 italic uppercase tracking-tighter leading-none">
+            {isAr ? 'عقارات مشابهة' : 'Related Assets'}<span className="text-[#C02026]">.</span>
           </h2>
         </div>
 
-        {/* أزرار التحكم - مع إضافة Aria Labels للـ Accessibility */}
-        <div className="hidden md:flex gap-3">
+        {/* Navigation Arrows */}
+        <div className="hidden md:flex gap-4">
           <button 
             onClick={() => scroll('left')}
-            aria-label={isAr ? "السابق" : "Previous"}
-            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500 active:scale-90"
+            aria-label="Previous"
+            className="w-14 h-14 rounded-2xl border border-slate-100 flex items-center justify-center bg-white text-slate-900 hover:bg-slate-950 hover:text-white transition-all duration-500 shadow-sm active:scale-90"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={24} />
           </button>
           <button 
             onClick={() => scroll('right')}
-            aria-label={isAr ? "التالي" : "Next"}
-            className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center hover:bg-[#C02026] hover:text-white transition-all duration-500 active:scale-90"
+            aria-label="Next"
+            className="w-14 h-14 rounded-2xl bg-[#C02026] text-white flex items-center justify-center transition-all duration-500 shadow-xl shadow-red-900/20 active:scale-90"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={24} />
           </button>
         </div>
       </div>
 
-      {/* Slider Container */}
+      {/* 🎡 Slider Engine */}
       <div 
         className="relative group/container"
         onMouseEnter={() => setIsPaused(true)}  
         onMouseLeave={() => setIsPaused(false)} 
-        onFocus={() => setIsPaused(true)} // للوصول عبر الكيبورد
-        onBlur={() => setIsPaused(false)}
       >
         <div 
           ref={scrollRef}
-          className="flex gap-8 overflow-x-auto pb-16 hide-scrollbar snap-x snap-mandatory px-6 md:px-[calc((100vw-1280px)/2)]"
+          className="flex gap-8 overflow-x-auto pb-20 hide-scrollbar snap-x snap-mandatory px-6 md:px-12"
           role="region"
-          aria-label={isAr ? "مشاريع مشابهة" : "Related projects slider"}
         >
           {projects.map((project) => (
             <div 
               key={project._id} 
-              className="min-w-[300px] md:min-w-[420px] snap-start transition-transform duration-700 hover:scale-[0.98]"
+              className="min-w-[310px] md:min-w-[440px] snap-start transition-all duration-700 hover:scale-[0.99]"
             >
+              {/* ProjectCard handles WebP transformation internally */}
               <ProjectCard lang={lang} data={project} />
             </div>
           ))}
 
-          {/* كارت "شاهد الكل" */}
-          <div className="min-w-[300px] flex items-center justify-center">
+          {/* 🔗 Explore More Card */}
+          <div className="min-w-[300px] flex items-center justify-center ps-10">
             <Link 
-              href={`/${lang}/projects/`} // تأكد من وجود / في النهاية للسيو
-              aria-label={isAr ? "اكتشف كافة المشاريع" : "View All Assets"}
-              className="group flex flex-col items-center gap-6"
+              href={`/${lang}/projects/`} 
+              className="group flex flex-col items-center gap-8"
             >
-              <div className="w-24 h-24 rounded-3xl rotate-12 border-2 border-dashed border-slate-200 flex items-center justify-center group-hover:rotate-0 group-hover:border-[#C02026] group-hover:bg-[#C02026] transition-all duration-700">
+              <div className="w-24 h-24 rounded-[2.5rem] rotate-12 border-2 border-dashed border-slate-200 flex items-center justify-center group-hover:rotate-0 group-hover:border-[#C02026] group-hover:bg-[#C02026] transition-all duration-700 shadow-sm group-hover:shadow-2xl">
                 <ArrowUpRight size={32} className="text-slate-300 group-hover:text-white transition-colors" />
               </div>
-              <div className="text-center">
-                <span className="block font-black text-xs text-slate-900 uppercase tracking-widest">
-                  {isAr ? 'اكتشف كافة المشاريع' : 'View All Assets'}
+              <div className="text-center space-y-2">
+                <span className="block font-black text-xs text-slate-900 uppercase tracking-[0.2em] italic">
+                  {isAr ? 'اكتشف كل المحفظة' : 'View Full Portfolio'}
                 </span>
-                <span className="block text-[10px] text-[#C02026] font-bold mt-1">
-                  {isAr ? '+500 وحدة متاحة' : '+500 Units Available'}
-                </span>
+                <div className="h-1 w-12 bg-red-100 mx-auto rounded-full group-hover:w-20 transition-all duration-500" />
               </div>
             </Link>
           </div>

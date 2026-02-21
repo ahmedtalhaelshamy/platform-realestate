@@ -117,13 +117,16 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
                 >
                   <div className="relative bg-white rounded-[3rem] p-8 md:p-12 border border-slate-50 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] transition-all duration-700 group-hover:shadow-[0_40px_80px_-20px_rgba(192,32,38,0.15)] group-hover:-translate-y-3 group-hover:border-[#C02026]/20 overflow-hidden h-full flex flex-col items-center text-center">
                     
-                    {/* Logo Glass Container */}
+                    {/* Logo Glass Container - تم تحسين الصور هنا */}
                     <div className="h-32 md:h-44 w-full relative mb-10 flex items-center justify-center bg-slate-50 rounded-[2.5rem] p-8 transition-all duration-700 group-hover:bg-white">
                       {dev.logo ? (
                         <Image 
-                          src={urlFor(dev.logo).width(400).quality(90).url()} 
+                          // تحسين: WebP تلقائي مع تحديد عرض مناسب
+                          src={urlFor(dev.logo).width(400).auto('format').quality(90).url()} 
                           alt={`${devName} brand logo`} 
                           fill 
+                          // تحسين: إخبار المتصفح بحجم الصورة حسب الجهاز (Responsive Sizes)
+                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                           className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
                         />
                       ) : <Building2 size={48} className="text-slate-200" aria-hidden="true" />}
@@ -196,14 +199,12 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
                     <a 
                       href={whatsappUrl} 
                       target="_blank" rel="noopener noreferrer"
-                      aria-label="Contact via WhatsApp"
                       className="group flex items-center justify-center gap-4 bg-[#25D366] text-white px-12 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-widest transition-all hover:scale-105 shadow-[0_20px_50px_rgba(37,211,102,0.3)] active:scale-95"
                     >
                         <MessageCircle size={28} fill="currentColor" className="opacity-20" /> WhatsApp
                     </a>
                     <a 
                       href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                      aria-label="Call sales team"
                       className="group flex items-center justify-center gap-4 bg-white text-slate-950 px-12 py-8 rounded-[2.5rem] font-black uppercase text-sm tracking-widest transition-all hover:bg-[#C02026] hover:text-white shadow-2xl active:scale-95"
                     >
                         <Phone size={28} fill="currentColor" className="opacity-10" /> {isAr ? 'اتصل الآن' : 'Call Now'}

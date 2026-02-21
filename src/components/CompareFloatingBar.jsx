@@ -4,15 +4,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { GitCompare, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 
+/**
+ * 📊 CompareFloatingBar - Premium 2026 UX
+ * تم تحسينه ليكون "SSR-Safe" ويمنع أخطاء التزامن بين السيرفر والمتصفح
+ */
 export default function CompareFloatingBar({ lang }) {
   const [items, setItems] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [mounted, setMounted] = useState(false); // حماية من أخطاء الـ Hydration
   const isAr = lang === 'ar';
 
+  // 1. وظيفة تحديث البيانات من المتصفح
   const updateItems = useCallback(() => {
+    if (typeof window === 'undefined') return;
     try {
       const data = JSON.parse(localStorage.getItem('compare_projects') || '[]');
-      if (data.length > items.length) {
+      // تأثير بصري عند إضافة عنصر جديد
+      if (data.length > items.length && mounted) {
         setIsAnimating(true);
         setTimeout(() => setIsAnimating(false), 1000);
       }
@@ -20,12 +28,16 @@ export default function CompareFloatingBar({ lang }) {
     } catch (e) {
       console.error("Compare Storage Error:", e);
     }
-  }, [items.length]);
+  }, [items.length, mounted]);
 
+  // 2. إدارة دورة حياة المكون والتنصت على التغييرات
   useEffect(() => {
+    setMounted(true); // نؤكد أن المكون تم تحميله في المتصفح
     updateItems();
+    
     window.addEventListener('compareUpdated', updateItems);
-    window.addEventListener('storage', updateItems);
+    window.addEventListener('storage', updateItems); // للتزامن لو العميل فاتح أكتر من Tab
+    
     return () => {
       window.removeEventListener('compareUpdated', updateItems);
       window.removeEventListener('storage', updateItems);
@@ -35,67 +47,72 @@ export default function CompareFloatingBar({ lang }) {
   const clearCompare = () => {
     localStorage.removeItem('compare_projects');
     updateItems();
+    // إخطار باقي المكونات (مثل ProjectCard) أن القائمة أصبحت فارغة
     window.dispatchEvent(new Event('compareUpdated'));
   };
 
-  if (items.length === 0) return null;
+  // حماية: لا تظهر أي شيء حتى يتأكد React من التحميل في المتصفح
+  if (!mounted || items.length === 0) return null;
 
   return (
     <div 
       role="status" 
       aria-live="polite"
-      className="fixed bottom-36 md:bottom-12 left-1/2 -translate-x-1/2 z-[9999] w-fit min-w-[290px] md:min-w-[450px] px-4 animate-in fade-in zoom-in slide-in-from-bottom-10 duration-500"
+      className="fixed bottom-32 md:bottom-10 left-1/2 -translate-x-1/2 z-[9999] w-fit min-w-[300px] md:min-w-[480px] px-4"
     >
+      {/* Container with High-End Glassmorphism */}
       <div className={`
-        relative flex items-center gap-3 md:gap-5 p-2 md:p-3 
-        bg-slate-900/90 backdrop-blur-3xl border border-white/20 
-        rounded-full shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)]
-        transition-all duration-500 ${isAnimating ? 'scale-110 border-red-500' : 'scale-100'}
+        relative flex items-center gap-3 md:gap-6 p-2 md:p-3.5 
+        bg-slate-900/80 backdrop-blur-2xl border border-white/10 
+        rounded-full shadow-[0_40px_100px_-15px_rgba(0,0,0,0.7)]
+        transition-all duration-700 ease-out
+        ${isAnimating ? 'scale-110 border-red-500 shadow-red-900/20' : 'scale-100'}
       `}>
         
-        {/* مؤشر العدد (The Badge) */}
-        <div className="flex items-center gap-3 ps-4">
+        {/* Counter Badge Section */}
+        <div className="flex items-center gap-4 ps-4 border-e border-white/10 pe-2">
           <div className="relative">
-             <div className="bg-[#C02026] text-white p-2.5 md:p-3 rounded-full shadow-lg shadow-red-900/40">
-                <GitCompare size={20} className={`${isAnimating ? 'animate-spin' : ''}`} aria-hidden="true" />
+             <div className={`
+               p-3 rounded-full shadow-2xl transition-all duration-500
+               ${isAnimating ? 'bg-red-600' : 'bg-[#C02026]'}
+             `}>
+                <GitCompare size={22} className={`text-white ${isAnimating ? 'rotate-180' : ''} transition-transform duration-500`} aria-hidden="true" />
              </div>
-             <span className="absolute -top-1 -right-1 bg-white text-[#C02026] text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+             <span className="absolute -top-1 -right-1 bg-white text-[#C02026] text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-2xl border-2 border-[#C02026]">
                 {items.length}
              </span>
           </div>
           
-          <div className="flex flex-col text-start">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] leading-none mb-1">
-              {isAr ? 'المقارنة' : 'Compare'}
+          <div className="flex flex-col text-start hidden sm:flex">
+            <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] leading-none mb-1">
+              {isAr ? 'قائمة المقارنة' : 'Compare List'}
             </span>
-            <span className="text-xs font-bold text-white whitespace-nowrap">
-               {isAr ? `${items.length} مشاريع` : `${items.length} Projects`}
+            <span className="text-xs font-black text-white italic">
+               {isAr ? `${items.length} مشاريع مختارة` : `${items.length} Saved Assets`}
             </span>
           </div>
         </div>
 
-        {/* زر الأكشن الرئيسي - مع توحيد رابط السيو */}
+        {/* Action Button - The "Hero" of the Bar */}
         <Link 
           href={`/${lang}/compare/`}
-          aria-label={isAr ? `عرض مقارنة ${items.length} مشاريع` : `View comparison for ${items.length} projects`}
-          className="bg-white hover:bg-[#C02026] text-slate-950 hover:text-white px-6 md:px-10 py-3 md:py-4 rounded-full text-xs md:text-sm font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group shadow-xl active:scale-95"
+          className="bg-white hover:bg-[#C02026] text-slate-950 hover:text-white px-8 md:px-12 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-3 group active:scale-95 shadow-2xl"
         >
-          {isAr ? 'قارن الآن' : 'View Now'}
-          <Zap size={16} className="fill-current group-hover:animate-pulse" aria-hidden="true" />
+          {isAr ? 'بدء المقارنة' : 'Compare Now'}
+          <Zap size={16} className="fill-current group-hover:scale-125 transition-transform" aria-hidden="true" />
         </Link>
 
-        {/* زر المسح */}
+        {/* Clear Button */}
         <button 
           onClick={clearCompare}
-          className="me-3 p-2 text-white/20 hover:text-red-500 transition-colors group"
-          aria-label={isAr ? 'إفراغ قائمة المقارنة' : 'Clear all comparison items'}
-          title={isAr ? 'مسح الكل' : 'Clear All'}
+          className="me-4 p-2.5 text-white/30 hover:text-red-500 transition-all duration-300 group rounded-full hover:bg-white/5"
+          aria-label={isAr ? 'مسح الكل' : 'Clear All'}
         >
-          <X size={20} className="group-hover:rotate-90 transition-transform" />
+          <X size={22} className="group-hover:rotate-180 transition-transform duration-500" />
         </button>
 
-        {/* Glow Effect */}
-        <div className="absolute inset-0 bg-red-500/10 rounded-full blur-2xl -z-10 animate-pulse pointer-events-none" />
+        {/* Animated Aura Glow */}
+        <div className="absolute inset-0 bg-[#C02026]/10 rounded-full blur-3xl -z-10 animate-pulse pointer-events-none" />
       </div>
     </div>
   );

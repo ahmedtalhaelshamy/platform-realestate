@@ -1,4 +1,8 @@
+'use client';
+
 import Link from 'next/link';
+import Image from 'next/image'; // أضفنا Image لدعم الصور المحسنة
+import { urlFor } from '@/sanity/image'; // استيراد المحرك المحسن
 import { Home, Search, Map, MessageCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
@@ -20,6 +24,14 @@ export default function NotFound() {
 
       <div className="relative z-10 max-w-4xl w-full text-center space-y-12">
         
+        {/* [إضافة اختيارية]: شعار المنصة المحسن بتقنية WebP */}
+        {/* لو عندك حقل لوجو في Sanity تقدر تستخدمه هنا بنفس التكنيك */}
+        <div className="flex justify-center mb-[-2rem]">
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#C02026] opacity-20">
+                Platform Real Estate
+            </p>
+        </div>
+
         {/* Animated 404 Visual */}
         <div className="relative inline-block">
           <h1 className="text-[12rem] md:text-[20rem] font-black text-slate-900 leading-none tracking-tighter italic opacity-5 select-none">
@@ -65,6 +77,7 @@ export default function NotFound() {
           <a 
             href={`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g,'')}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="group p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 hover:bg-[#25D366] hover:text-white transition-all duration-500 text-start space-y-4 shadow-sm"
           >
             <MessageCircle size={32} className="text-[#25D366] group-hover:text-white transition-colors" />

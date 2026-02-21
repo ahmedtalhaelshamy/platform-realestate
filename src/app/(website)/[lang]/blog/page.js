@@ -14,6 +14,7 @@ import PostActions from './PostActions';
 /**
  * 🛠️ Blog Intelligence Hub - Standard 2026
  * تم تحسين الكود لضمان استقرار الـ Grid وتوافق الـ SEO بنسبة 100%
+ * تم إضافة دعم WebP التلقائي والصور المتجاوبة (Responsive Images)
  */
 
 // ✅ حارس النصوص لضمان عدم حدوث Objects Error
@@ -36,10 +37,11 @@ export async function generateMetadata({ params }) {
   const isAr = lang === "ar";
   const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
   
+  // تعديل: جلب كائن الـ seo بالكامل لدعم معالجة الصور
   const query = `*[_type == "blogPage"][0].seo{
     metaTitleAr, metaTitleEn,
     metaDescAr, metaDescEn,
-    "ogImage": openGraphImage.asset->url
+    openGraphImage
   }`;
   const seo = await client.fetch(query);
 
@@ -47,11 +49,16 @@ export async function generateMetadata({ params }) {
     ? (seo?.metaTitleAr || "المدونة العقارية | تحليلات السوق المصري") 
     : (seo?.metaTitleEn || "Real Estate Blog | Egypt Market Insights"));
 
+  // تحسين صورة الـ OG لتكون WebP وبمقاس مثالي للمشاركة
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    : `${baseUrl}/og-image.jpg`;
+
   return {
     title: `${title} | Platform`,
     description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
     alternates: { 
-      canonical: `${baseUrl}/${lang}/blog/`, // توحيد السلاش النهائية
+      canonical: `${baseUrl}/${lang}/blog/`, 
       languages: {
         'ar': `${baseUrl}/ar/blog/`,
         'en': `${baseUrl}/en/blog/`,
@@ -61,7 +68,7 @@ export async function generateMetadata({ params }) {
       title,
       type: 'website',
       url: `${baseUrl}/${lang}/blog/`,
-      images: seo?.ogImage ? [{ url: seo.ogImage }] : [`${baseUrl}/og-image.jpg`],
+      images: [{ url: ogImageUrl }],
       locale: isAr ? 'ar_EG' : 'en_US',
     },
   };
@@ -71,10 +78,11 @@ export default async function BlogPage({ params }) {
   const { lang } = await params;
   const isAr = lang === "ar";
 
+  // تعديل: جلب كائن mainImage بالكامل بدلاً من الرابط فقط لاستخدامه مع urlFor
   const query = `*[_type == "post"] | order(select(language == $lang => 1, 0) desc, _createdAt desc) {
       _id, title, overview, language,
       "slug": slug.current,
-      "mainImage": mainImage.asset->url,
+      mainImage,
       "imageAlt": mainImage.alt,
       _createdAt,
       "estimatedReadingTime": round(length(pt::text(body)) / 5 / 180) 
@@ -133,15 +141,17 @@ export default async function BlogPage({ params }) {
                   role="listitem"
                   className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-50 hover:shadow-[0_50px_100px_-20px_rgba(192,32,38,0.15)] transition-all duration-700 hover:-translate-y-2"
                 >
-                  {/* Image & Actions */}
+                  {/* Image & Actions - تم إضافة تحسينات الصور المتجاوبة هنا */}
                   <div className="relative aspect-[16/10] overflow-hidden">
                     {post.mainImage ? (
                       <Image 
-                        src={post.mainImage} 
+                        // تحسين: استخدام urlFor المحسن مع auto('format') و fit('crop') لتوحيد المقاسات
+                        src={urlFor(post.mainImage).width(800).height(500).auto('format').fit('crop').url()} 
                         fill 
                         className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
                         alt={post.imageAlt || postTitle}
-                        sizes="(max-width: 768px) 100vw, 33vw"
+                        // تحسين: إضافة sizes لضمان تحميل المتصفح للصورة المناسبة لكل جهاز
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         priority
                       />
                     ) : (

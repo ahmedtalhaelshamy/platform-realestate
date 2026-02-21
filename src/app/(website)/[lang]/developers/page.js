@@ -50,6 +50,7 @@ async function fetchDevelopersData() {
 
 /**
  * 🔍 SEO Metadata - أرشفة دولية موحدة
+ * تم تحسين صورة الـ OG لتكون WebP تلقائياً
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -63,6 +64,11 @@ export async function generateMetadata({ params }) {
     : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn));
   
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
+
+  // تحسين: إضافة .auto('format') لضمان أن الصورة المصغرة خفيفة جداً
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url() 
+    : `${baseUrl}/og-image.jpg`;
 
   return {
     title: `${title} | ${isAr ? 'دليل المطورين' : 'Developers Directory'}`,
@@ -78,7 +84,11 @@ export async function generateMetadata({ params }) {
       title,
       description,
       url: `${baseUrl}/${lang}/developers/`,
-      images: seo?.openGraphImage ? [{ url: urlFor(seo.openGraphImage).width(1200).url() }] : [`${baseUrl}/og-image.jpg`],
+      images: [{ 
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+      }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }

@@ -24,7 +24,6 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['400', '600', '700', '800'],
 });
 
-// 2. دالة جلب الإعدادات (Cached)
 async function getSiteSettings() {
   try {
     const query = `*[_type == "siteSettings"][0]{ 
@@ -38,7 +37,6 @@ async function getSiteSettings() {
   }
 }
 
-// 3. SEO Metadata - Standard 2026
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -69,7 +67,6 @@ export async function generateMetadata({ params }) {
         'x-default': `${baseUrl}/ar/`, 
       },
     },
-    // تحسين تعريف الأيقونات
     icons: {
       icon: [
         { url: '/favicon.ico' },
@@ -79,7 +76,6 @@ export async function generateMetadata({ params }) {
         { url: '/apple-icon.png' },
       ],
     },
-    // إضافة بيانات الروبوتات لضمان أفضل أرشفة
     robots: {
       index: true,
       follow: true,
@@ -94,19 +90,16 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// إعدادات الـ Viewport لضمان سرعة الاستجابة ومنع الـ Zoom التلقائي في الآيفون
 export const viewport = {
   themeColor: '#C02026',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5, // يسمح بالزوم للـ Accessibility ولكن يمنعه عند الضغط على الـ inputs
+  maximumScale: 5,
 };
 
-// 4. الـ Layout الرئيسي
 export default async function WebsiteLayout({ children, params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
-  
   const settings = await getSiteSettings();
 
   return (
@@ -116,6 +109,13 @@ export default async function WebsiteLayout({ children, params }) {
       className={`${almarai.variable} ${jakarta.variable} scroll-smooth`}
       suppressHydrationWarning
     >
+      <head>
+        {/* ✅ علاج الـ LCP: الربط المسبق بسيرفرات Sanity */}
+        <link rel="preconnect" href="https://cdn.sanity.io" />
+        <link rel="preconnect" href="https://0v9re5oc.api.sanity.io" crossOrigin="anonymous" />
+        {/* تسريع اكتشاف الدومين قبل الاتصال الكامل */}
+        <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+      </head>
       <body 
         className={`
           ${isAr ? 'font-almarai' : 'font-jakarta'} 
@@ -125,7 +125,6 @@ export default async function WebsiteLayout({ children, params }) {
         `}
         suppressHydrationWarning
       >
-        {/* ✅ رابط تخطي المحتوى لسهولة الوصول (Accessibility Boost) */}
         <a 
           href="#main-content" 
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-[#C02026] focus:text-white focus:px-6 focus:py-3 focus:rounded-xl focus:font-bold"
@@ -135,7 +134,6 @@ export default async function WebsiteLayout({ children, params }) {
           
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
         
-        {/* معرف المحتوى الرئيسي */}
         <main id="main-content" className="flex-grow relative w-full outline-none">
           {children}
         </main>
@@ -149,14 +147,14 @@ export default async function WebsiteLayout({ children, params }) {
         
         <Footer lang={lang} settings={settings} />
         
-        {/* تحسينات بصرية إضافية */}
         <style dangerouslySetInnerHTML={{ __html: `
           body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-          /* تخصيص الـ Scrollbar ليكون Premium */
           ::-webkit-scrollbar { width: 8px; }
           ::-webkit-scrollbar-track { background: #f8fafc; }
           ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; border: 2px solid #f8fafc; }
           ::-webkit-scrollbar-thumb:hover { background: #C02026; }
+          /* تحسين تجربة الـ Focus لمستخدمي الكيبورد (Accessibility) */
+          :focus-visible { outline: 2px solid #C02026; outline-offset: 4px; }
         `}} />
       </body>
     </html>

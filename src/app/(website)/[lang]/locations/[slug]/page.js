@@ -39,14 +39,16 @@ export async function generateStaticParams() {
 export const revalidate = 3600; 
 
 /**
- * ✅ 2. الـ SEO Metadata (الربط الدولي الموحد)
+ * ✅ 2. الـ SEO Metadata (تم تحسين الـ OG Image هنا)
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
   const data = await client.fetch(
-    `*[_type == "location" && slug.current == $slug][0]{ nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn }`,
+    `*[_type == "location" && slug.current == $slug][0]{ 
+      nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn, image 
+    }`,
     { slug }
   );
 
@@ -55,6 +57,11 @@ export async function generateMetadata({ params }) {
   const name = isAr ? getSafeText(data.nameAr) : getSafeText(data.nameEn);
   const title = isAr ? getSafeText(data.seoTitleAr || name) : getSafeText(data.seoTitleEn || name);
   const description = isAr ? getSafeText(data.seoDescAr) : getSafeText(data.seoDescEn);
+
+  // تحسين صورة الـ OG لتكون WebP تلقائياً
+  const ogImageUrl = data.image 
+    ? urlFor(data.image).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   const arPath = `${BASE_URL}/ar/locations/${slug}/`;
   const enPath = `${BASE_URL}/en/locations/${slug}/`;
@@ -75,13 +82,14 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: `${name} | Platform Real Estate`,
       url: currentPath,
+      images: [{ url: ogImageUrl }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
   };
 }
 
-// ✅ تنسيق محتوى المقال SEO - منع الـ Objects Error في الـ Headers
+// ✅ تنسيق محتوى المقال SEO
 const ptComponents = {
   block: {
     h2: ({ children }) => <h2 className="text-2xl md:text-3xl font-black mt-12 mb-6 text-slate-900 border-s-4 border-[#C02026] ps-4 leading-tight italic uppercase tracking-tighter">{children}</h2>,
@@ -137,12 +145,17 @@ export default async function LocationDetailPage({ params }) {
   return (
     <main className="min-h-screen bg-[#F8FAFC]" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION - تم تحسين صورة الهيرو لـ WebP وتجاوب الشاشات */}
       <section className="relative h-[50vh] md:h-[65vh] flex items-center justify-center overflow-hidden bg-slate-950">
         {locationData.image && (
           <Image 
-            src={urlFor(locationData.image).width(1920).quality(90).url()} 
-            alt={locName} fill className="object-cover opacity-60 scale-105 animate-slow-zoom" priority
+            // تحسين: إضافة .auto('format') لضمان WebP وتحديد sizes
+            src={urlFor(locationData.image).width(1920).auto('format').quality(90).url()} 
+            alt={locName} 
+            fill 
+            sizes="100vw"
+            className="object-cover opacity-60 scale-105 animate-slow-zoom" 
+            priority
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] via-black/20 to-black/60 z-10" />
@@ -165,7 +178,7 @@ export default async function LocationDetailPage({ params }) {
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-12 relative z-30">
         
-        {/* 2. DISTRICTS QUICK NAV */}
+        {/* 2. DISTRICTS QUICK NAV - تم تحسين صور الأحياء الدائرية */}
         <div className="flex flex-wrap justify-center gap-6 md:gap-12 -mt-28 mb-32 relative z-40">
           {districts.map((dist) => {
             const distName = isAr ? getSafeText(dist.nameAr) : getSafeText(dist.nameEn);
@@ -175,7 +188,14 @@ export default async function LocationDetailPage({ params }) {
                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-100 transition-all duration-700 group-hover:ring-4 group-hover:ring-[#C02026] overflow-hidden">
                   <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
                     {dist.image ? (
-                      <Image src={urlFor(dist.image).width(300).url()} fill alt={distName} className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <Image 
+                        // تحسين: .auto('format') للتحويل لـ WebP وتحديد sizes للموبايل
+                        src={urlFor(dist.image).width(300).auto('format').url()} 
+                        fill 
+                        sizes="(max-width: 768px) 96px, 128px"
+                        alt={distName} 
+                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
                     ) : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300"><LayoutGrid size={40} /></div>}
                   </div>
                 </div>
@@ -209,6 +229,7 @@ export default async function LocationDetailPage({ params }) {
                       {isAr ? 'عرض الكل' : 'View All'} <ArrowRight size={16} className={isAr ? 'rotate-180' : ''} />
                     </Link>
                   </header>
+                  {/* الـ ProjectCard داخلياً يعالج صوره بـ WebP كما فعلنا سابقاً */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14">
                     {district.projects.map((project) => (
                       <ProjectCard key={project._id} data={project} lang={lang} />
@@ -274,8 +295,8 @@ export default async function LocationDetailPage({ params }) {
 
                         <div className="space-y-4">
                             <a href={whatsappUrl} 
-                                target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-2xl active:scale-95">
+                                 target="_blank" rel="noopener noreferrer"
+                                 className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-2xl active:scale-95">
                                 <MessageCircle size={24} fill="currentColor" /> WhatsApp
                             </a>
                             <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 

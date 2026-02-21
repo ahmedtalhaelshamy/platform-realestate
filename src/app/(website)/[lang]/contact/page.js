@@ -45,7 +45,7 @@ async function getPageData() {
   }
 }
 
-// 2. Metadata: تحسين الأرشفة الدولية والروابط الموحدة
+// 2. Metadata: تم تحسين صورة المشاركة لتكون WebP تلقائياً
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -64,8 +64,9 @@ export async function generateMetadata({ params }) {
   const enPath = `${BASE_URL}/en/contact/`;
   const currentPath = isAr ? arPath : enPath;
 
+  // تحسين: إضافة .auto('format') لضمان أن صورة المشاركة خفيفة جداً (WebP)
   const ogImage = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).url() 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url() 
     : `${BASE_URL}/og-contact.jpg`;
 
   return {
@@ -154,6 +155,7 @@ export default async function ContactPage({ params }) {
          </nav>
       </div>
 
+      {/* الـ UI Component سيستقبل الإعدادات الجاهزة والمحسنة */}
       <ContactClientUI 
         settings={finalSettings} 
         lang={lang} 

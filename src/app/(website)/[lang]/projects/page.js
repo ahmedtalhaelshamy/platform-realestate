@@ -5,12 +5,13 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { Search, Sparkles } from 'lucide-react';
 import { Suspense } from 'react';
+import { urlFor } from '@/sanity/image'; // استيراد المحرك لمعالجة صور الـ Metadata
 
 // ✅ 1. PERFORMANCE & CACHING
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
-// ✅ 2. توليد اللغات مسبقاً (مسموح فقط في Server Components)
+// ✅ 2. توليد اللغات مسبقاً
 export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
@@ -29,7 +30,8 @@ const getSafeText = (val) => {
 };
 
 /**
- * 🔍 SEO Metadata المحسنة (مسموح فقط في Server Components)
+ * 🔍 SEO Metadata المحسنة
+ * تم تحسين صورة الـ OG لتكون WebP تلقائياً عند المشاركة
  */
 export async function generateMetadata({ params, searchParams }) {
   const { lang } = await params;
@@ -46,17 +48,27 @@ export async function generateMetadata({ params, searchParams }) {
     title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
   }
 
+  // تحسين صورة المشاركة الاجتماعية لتكون خفيفة وبصيغة WebP
+  const ogImageUrl = seo?.openGraphImage 
+    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    : `${CONTACT_INFO.domain}/og-image.jpg`;
+
   return {
     title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
     description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
     alternates: { 
       canonical: `${CONTACT_INFO.domain}/${lang}/projects/` 
     },
+    openGraph: {
+      title,
+      images: [{ url: ogImageUrl }],
+    }
   };
 }
 
 /**
  * 🛰️ دالة جلب البيانات
+ * تأكدنا من جلب كائن الصورة بالكامل mainImage لدعم التجاوب الذكي
  */
 async function getProjects(filters) {
   const { search, location, developer, type } = filters; 
@@ -198,6 +210,7 @@ async function ProjectsGrid({ filters, lang }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-16">
             {projects.map((project) => (
                 <article key={project._id}>
+                  {/* هنا ProjectCard اللي عدلناه مسبقاً هيقوم بكل شغل الـ WebP والتجاوب */}
                   <ProjectCard lang={lang} data={project} />
                 </article>
             ))}

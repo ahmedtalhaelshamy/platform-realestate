@@ -5,8 +5,18 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { PortableText } from '@portabletext/react';
 
+// ✅ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+const getSafeText = (val) => {
+  if (!val) return "";
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+  }
+  return String(val);
+};
+
 /**
- * 🏢 AboutSection Component - Optimized for SEO & Accessibility
+ * 🏢 AboutSection Component - Optimized for SEO & 2026 Performance
  */
 async function getAboutData() {
   const query = `*[_type == "aboutPage" && _id == "aboutPage"][0]{
@@ -17,7 +27,6 @@ async function getAboutData() {
     stats
   }`;
   
-  // استخدام revalidate بدل no-store لتحسين الأداء مع الحفاظ على التحديث
   return await client.fetch(query, {}, { next: { revalidate: 3600 } });
 }
 
@@ -25,16 +34,16 @@ export default async function AboutSection({ lang }) {
   const isAr = lang === 'ar';
   const data = await getAboutData();
 
-  // --- تجهيز البيانات ---
+  // --- تجهيز البيانات الآمنة ---
   const title = isAr 
-    ? data?.storyTitleAr || 'بلاتفورم للتسويق العقاري' 
-    : data?.storyTitleEn || 'Platform Real Estate';
+    ? getSafeText(data?.storyTitleAr || 'بلاتفورم للتسويق العقاري') 
+    : getSafeText(data?.storyTitleEn || 'Platform Real Estate');
 
   const content = isAr ? data?.storyContentAr : data?.storyContentEn;
 
   const firstStat = data?.stats?.[0];
-  const statValue = firstStat?.number || '+15';
-  const statLabel = isAr ? (firstStat?.labelAr || 'خبرة') : (firstStat?.labelEn || 'Experience');
+  const statValue = getSafeText(firstStat?.number || '+15');
+  const statLabel = isAr ? getSafeText(firstStat?.labelAr || 'خبرة') : getSafeText(firstStat?.labelEn || 'Experience');
 
   const features = [
     {
@@ -62,75 +71,80 @@ export default async function AboutSection({ lang }) {
   return (
     <section 
       id="about" 
-      className="py-16 md:py-24 bg-white overflow-hidden scroll-mt-20"
+      className="py-16 md:py-32 bg-white overflow-hidden scroll-mt-20"
       dir={isAr ? 'rtl' : 'ltr'}
       aria-labelledby="about-heading"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 mb-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24 mb-24">
           
-          <article className="flex-1 space-y-8 w-full text-start">
+          {/* ℹ️ النص التعريفي */}
+          <article className="flex-1 space-y-10 w-full text-start">
             <header className="space-y-4">
-              <div className="flex items-center gap-2">
-                 <span className="w-10 h-1 bg-[#C02026] rounded-full" aria-hidden="true"></span>
-                 <span className="text-xs font-black text-[#C02026] uppercase tracking-[0.2em]">
+              <div className="flex items-center gap-3">
+                 <span className="w-12 h-1 bg-[#C02026] rounded-full" aria-hidden="true"></span>
+                 <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.4em]">
                    {isAr ? 'من نحن' : 'Who We Are'}
                  </span>
               </div>
               
-              <h2 id="about-heading" className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.2] italic tracking-tighter">
-                Platform Real Estate <br />
-                <span className="text-[#C02026]">{title}</span>
+              <h2 id="about-heading" className="text-4xl md:text-6xl font-black text-slate-950 leading-[1.1] italic tracking-tighter uppercase">
+                Platform <br />
+                <span className="text-[#C02026] not-italic">{title}</span>
               </h2>
             </header>
 
-            {/* تم تحسين تباين الألوان هنا لـ slate-600 لضمان الوصول 100% */}
-            <div className="space-y-6 text-slate-600 text-base md:text-lg leading-relaxed font-medium">
+            <div className="space-y-6 text-slate-600 text-lg md:text-xl leading-relaxed font-medium text-justify">
               {content ? (
-                <div className="prose prose-slate max-w-none">
+                <div className="prose prose-xl prose-slate max-w-none prose-headings:italic">
                    <PortableText value={content} />
                 </div>
               ) : (
-                <p>{isAr ? 'جاري تحميل البيانات...' : 'Loading content...'}</p>
+                <p className="animate-pulse">{isAr ? 'جاري مزامنة البيانات...' : 'Synchronizing intel...'}</p>
               )}
             </div>
 
-            <div className="pt-2">
+            <div className="pt-4">
               <Link 
                 href={`/${lang}/contact/`} 
-                aria-label={isAr ? "تواصل مع مستشارك العقاري" : "Contact your real estate consultant"}
-                className="group inline-flex items-center gap-3 bg-[#121621] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#C02026] transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                className="group inline-flex items-center gap-5 bg-[#121621] text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#C02026] transition-all duration-500 shadow-2xl active:scale-95"
               >
                 <span>{isAr ? 'تواصل مع مستشارك الآن' : 'Contact Your Consultant'}</span>
-                <ArrowRight size={18} className={`transition-transform duration-300 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
+                <ArrowRight size={20} className={`transition-transform duration-500 ${isAr ? 'rotate-180 group-hover:-translate-x-2' : 'group-hover:translate-x-2'}`} />
               </Link>
             </div>
           </article>
 
+          {/* 🖼️ الصورة التعريفية - Optimized with WebP */}
           <div className="flex-1 w-full relative">
-            <div className="relative h-[400px] md:h-[550px] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white group">
-              <Image 
-                src={data?.storyImage ? urlFor(data.storyImage).width(800).url() : "/images/placeholder.jpg"}
-                alt={isAr ? `عن شركة بلاتفورم العقارية - ${title}` : `About Platform Real Estate - ${title}`}
-                fill
-                priority // إضافة Priority لأنها صورة أساسية في قسم التعريف
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-1000"
-              />
+            <div className="relative h-[450px] md:h-[650px] w-full rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-[12px] border-slate-50 group">
+              {data?.storyImage ? (
+                <Image 
+                  // ✅ تحسين: WebP تلقائي + دقة عالية
+                  src={urlFor(data.storyImage).width(1200).auto('format').quality(90).url()}
+                  alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
+                  fill
+                  priority // أولوية تحميل لأنها في الجزء العلوي من الصفحة
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-slate-100 animate-pulse" />
+              )}
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
-              {/* بطاقة الإحصائيات العائمة */}
-              <div className={`absolute bottom-6 md:bottom-10 ${isAr ? 'right-6 md:right-10' : 'left-6 md:left-10'} bg-white/90 backdrop-blur-xl p-4 md:p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white flex items-center gap-4`}>
-                <div className="bg-[#C02026]/10 p-3 md:p-4 rounded-full text-[#C02026]">
-                   <Star size={24} fill="currentColor" className="animate-pulse" aria-hidden="true" />
+              {/* 🏆 بطاقة الإحصائيات الفاخرة */}
+              <div className={`absolute bottom-10 ${isAr ? 'right-10' : 'left-10'} bg-white/90 backdrop-blur-2xl p-6 md:p-8 rounded-[2.5rem] shadow-2xl border border-white flex items-center gap-6 group-hover:-translate-y-2 transition-transform duration-700`}>
+                <div className="bg-[#C02026] p-4 rounded-2xl text-white shadow-xl">
+                   <Star size={28} fill="currentColor" className="animate-pulse" aria-hidden="true" />
                 </div>
                 <div className="text-start">
-                  <span className="block text-2xl md:text-3xl font-black text-slate-900 leading-none">
+                  <span className="block text-3xl md:text-5xl font-black text-slate-950 leading-none tracking-tighter">
                     {statValue}
                   </span>
-                  <span className="text-[10px] md:text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.3em] mt-1 block">
                     {statLabel}
                   </span>
                 </div>
@@ -139,16 +153,16 @@ export default async function AboutSection({ lang }) {
           </div>
         </div>
 
-        {/* مميزات الشركة */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-10 border-t border-slate-100">
+        {/* ⚡ مميزات الشركة - Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-16 border-t border-slate-100">
           {features.map((item, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors duration-300 group">
-              <div className="w-14 h-14 shrink-0 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-[#C02026] group-hover:bg-[#C02026] group-hover:text-white transition-all duration-300 shadow-sm">
+            <div key={index} className="flex items-start gap-6 p-6 rounded-3xl hover:bg-slate-50 transition-all duration-500 group border border-transparent hover:border-slate-100">
+              <div className="w-16 h-16 shrink-0 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-[#C02026] group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-xl group-hover:-rotate-6">
                 {item.icon}
               </div>
-              <div className="space-y-1 text-start">
-                <h3 className="text-lg font-black text-slate-800 group-hover:text-[#C02026] transition-colors">{item.title}</h3>
-                <p className="text-xs text-slate-600 font-bold uppercase tracking-wide leading-relaxed">{item.desc}</p>
+              <div className="space-y-2 text-start">
+                <h3 className="text-xl font-black text-slate-900 group-hover:text-[#C02026] transition-colors italic uppercase tracking-tighter">{item.title}</h3>
+                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}

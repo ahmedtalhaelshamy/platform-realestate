@@ -1,24 +1,24 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import ProjectCard from '../ProjectCard'; 
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay, Scrollbar } from 'swiper/modules';
+import { Navigation, Autoplay, Scrollbar, FreeMode, Pagination } from 'swiper/modules';
 
 // Swiper Styles
 import 'swiper/css';
 import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
-import 'swiper/css/autoplay';
+import 'swiper/css/free-mode';
 
 import { 
   LayoutGrid, Rocket, Home, TrendingUp, Star, 
-  ChevronLeft, ChevronRight, Phone, MessageCircle 
+  Phone, MessageCircle, ArrowLeft, ArrowRight
 } from 'lucide-react';
 
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// --- 1. CONFIGURATION ---
 const TABS = [
   { id: 'all', labelAr: 'الكل', labelEn: 'All', icon: LayoutGrid, field: null },
   { id: 'new', labelAr: 'إطلاق حديث', labelEn: 'New Launch', icon: Rocket, field: 'isNewLaunch' },
@@ -27,182 +27,173 @@ const TABS = [
   { id: 'featured', labelAr: 'مشاريع مميزة', labelEn: 'Featured', icon: Star, field: 'isFeatured' },
 ];
 
-function shuffleArray(array) {
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-}
-
+/**
+ * 🏆 FeaturedProjects - 2026 Premium Slider
+ * تم تحسينه ليعمل بتناغم مع نظام الـ WebP في ProjectCard وإضافة أزرار التنقل للديسكتوب
+ */
 export default function FeaturedProjects({ projects = [], isAr, lang }) {
   const [activeTab, setActiveTab] = useState('all');
-  const [isMounted, setIsMounted] = useState(false);
-  const swiperRef = useRef(null);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // 🧠 فلترة المشاريع مع التبديل السلس
-  const displayProjects = useMemo(() => {
-    if (!isMounted) return [];
-
+  // ✅ التصفية الذكية: يتم استخدام useMemo لضمان عدم إعادة الحساب إلا عند تغيير التبويب
+  const filteredProjects = useMemo(() => {
     const currentTab = TABS.find(t => t.id === activeTab);
-    
-    let filtered = activeTab === 'all' 
+    return activeTab === 'all' 
       ? projects 
       : projects.filter(p => p[currentTab?.field] === true);
+  }, [activeTab, projects]);
 
-    return filtered.length > 0 ? shuffleArray(filtered) : [];
-  }, [activeTab, projects, isMounted]);
+  // تأمين الأرقام لمنع خطأ replace 
+  const whatsappNum = (CONTACT_INFO.whatsapp || "").toString().replace(/\D/g, '');
+  const phoneNum = (CONTACT_INFO.phone || "").toString().replace(/\D/g, '');
 
-  // تجهيز روابط التواصل
-  const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
-  const whatsappLink = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? 'أريد الاستفسار عن وحدات ومشاريع حصرية إضافية' : 'Inquiry about exclusive off-market projects')}`;
-
-  if (!isMounted) {
-    return <section className="py-24 bg-slate-50 min-h-[700px]" aria-hidden="true" />;
-  }
+  const whatsappLink = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(isAr ? 'أريد الاستفسار عن وحدات ومشاريع حصرية' : 'Inquiry about exclusive projects')}`;
 
   return (
     <section 
-      className="py-24 bg-slate-50 relative font-sans overflow-hidden" 
+      className="py-32 bg-white relative overflow-hidden group/featured" 
       dir={isAr ? 'rtl' : 'ltr'}
-      aria-labelledby="featured-heading"
     >
-      <div className="max-w-[1440px] mx-auto px-6 md:px-8">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-8 relative">
         
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 text-start">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-[#C02026]">
-               <span className="w-12 h-[2px] bg-[#C02026]" aria-hidden="true"></span>
-               <span className="text-[10px] font-black uppercase tracking-[0.4em]">
-                 {isAr ? 'مختاراتنا العقارية' : 'Curated Portfolio'}
-               </span>
-            </div>
-            <h2 id="featured-heading" className="text-4xl md:text-6xl font-black text-slate-900 leading-none italic uppercase tracking-tighter">
-              {isAr ? 'أبرز المشاريع' : 'Featured Assets'}<span className="text-[#C02026]">.</span>
-            </h2>
+        {/* 1. Header Section - Optimized for LCP */}
+        <div className="mb-16 space-y-4 text-start">
+          <div className="flex items-center gap-3 text-[#C02026]">
+             <span className="w-12 h-[2px] bg-[#C02026]" />
+             <span className="text-[10px] font-black uppercase tracking-[0.4em]">
+               {isAr ? 'مختاراتنا العقارية' : 'Curated Portfolio'}
+             </span>
+          </div>
+          <h2 className="text-5xl md:text-7xl font-black text-slate-900 italic uppercase tracking-tighter">
+            {isAr ? 'أبرز المشاريع' : 'Featured Assets'}<span className="text-[#C02026]">.</span>
+          </h2>
+        </div>
+
+        {/* 2. Interactive Tabs - High Accessibility */}
+        <div className="mb-16 flex overflow-x-auto no-scrollbar pb-4 scroll-smooth">
+          <div className="flex bg-slate-50 p-2 rounded-[2.5rem] border border-slate-100 shadow-inner" role="tablist">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-3 px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
+                  activeTab === tab.id 
+                    ? 'bg-[#121621] text-white shadow-2xl scale-105' 
+                    : 'text-slate-400 hover:text-[#C02026] hover:bg-white'
+                }`}
+              >
+                <tab.icon size={16} />
+                {isAr ? tab.labelAr : tab.labelEn}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* TABS - Accessibility Upgraded to Tablist */}
-        <div className="mb-16 overflow-x-auto pb-6 no-scrollbar flex justify-start">
-          <div 
-            className="flex items-center gap-3 min-w-max p-1 bg-white rounded-full border border-slate-100 shadow-sm"
-            role="tablist"
-            aria-label="Project categories"
+        {/* 🚀 أزرار التنقل المخصصة (تظهر فقط على الديسكتوب وتختفي في الموبايل) */}
+        <button 
+          className="featured-prev absolute left-0 md:left-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/90 backdrop-blur-md text-slate-900 rounded-full shadow-2xl items-center justify-center border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90"
+          aria-label={isAr ? "السابق" : "Previous"}
+        >
+           <ArrowLeft size={28} />
+        </button>
+        <button 
+          className="featured-next absolute right-0 md:right-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/90 backdrop-blur-md text-slate-900 rounded-full shadow-2xl items-center justify-center border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90"
+          aria-label={isAr ? "التالي" : "Next"}
+        >
+           <ArrowRight size={28} />
+        </button>
+
+        {/* 3. Optimized Swiper Slider */}
+        <div className="relative min-h-[550px]">
+          <Swiper
+            // ✅ ربط الأزرار المخصصة بالـ Swiper
+            modules={[Navigation, Autoplay, Scrollbar, FreeMode, Pagination]}
+            navigation={{
+              prevEl: '.featured-prev',
+              nextEl: '.featured-next',
+            }}
+            spaceBetween={24}
+            slidesPerView={1.2}
+            freeMode={true}
+            watchSlidesProgress={true}
+            autoplay={{ delay: 6000, disableOnInteraction: false }}
+            scrollbar={{ draggable: true, hide: false }}
+            breakpoints={{
+              640: { slidesPerView: 1.5, spaceBetween: 24 },
+              768: { slidesPerView: 2.2, spaceBetween: 30, freeMode: false },
+              1024: { slidesPerView: 2.8, spaceBetween: 32 },
+              1280: { slidesPerView: 3.2, spaceBetween: 40 },
+            }}
+            className="!pb-24 !overflow-visible"
           >
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-controls="project-slider"
-                  id={`tab-${tab.id}`}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-500 active:scale-95
-                    ${isActive 
-                      ? 'bg-[#121621] text-white shadow-xl scale-105' 
-                      : 'bg-transparent text-slate-500 hover:text-[#C02026]'
-                    }`}
-                >
-                  <Icon size={14} className={isActive ? 'text-[#C02026]' : 'text-slate-400'} aria-hidden="true" />
-                  {isAr ? tab.labelAr : tab.labelEn}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            {filteredProjects.map((project) => (
+              <SwiperSlide key={project._id} className="h-auto">
+                 <ProjectCard lang={lang} data={project} />
+              </SwiperSlide>
+            ))}
 
-        {/* SLIDER */}
-        <div className="relative group/slider" id="project-slider" role="tabpanel" aria-labelledby={`tab-${activeTab}`}>
-          {displayProjects.length > 0 ? (
-            <Swiper
-              key={activeTab} 
-              onSwiper={(swiper) => (swiperRef.current = swiper)}
-              modules={[Navigation, Autoplay, Scrollbar]}
-              spaceBetween={24}
-              slidesPerView={1.15}
-              autoplay={{ delay: 5000, disableOnInteraction: false }}
-              scrollbar={{ draggable: true, hide: false }}
-              breakpoints={{
-                640: { slidesPerView: 1.5, spaceBetween: 24 },
-                1024: { slidesPerView: 2.5, spaceBetween: 32 },
-                1280: { slidesPerView: 3, spaceBetween: 40 },
-              }}
-              className="!pb-24 !overflow-visible project-swiper"
-            >
-              {displayProjects.map((project, idx) => (
-                <SwiperSlide key={`${project._id}-${idx}`} className="h-auto">
-                   <ProjectCard lang={lang} data={project} />
-                </SwiperSlide>
-              ))}
-
-              {/* CTA CARD - Upgraded for Accessibility & UX */}
-              <SwiperSlide className="h-auto">
-                <div className="h-full min-h-[500px] bg-[#121621] rounded-[3rem] p-10 flex flex-col justify-center items-center text-center relative overflow-hidden border border-white/5 shadow-2xl group/card">
-                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#C02026]/10 rounded-full blur-[100px]" aria-hidden="true" />
+            {/* 📞 Premium CTA Slide */}
+            <SwiperSlide className="h-auto">
+              <div className="h-full min-h-[520px] bg-[#121621] rounded-[3.5rem] p-12 flex flex-col justify-center items-center text-center relative overflow-hidden group/cta border-b-[12px] border-[#C02026] shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#C02026]/20 to-transparent opacity-0 group-hover/cta:opacity-100 transition-opacity duration-700" />
+                
+                <div className="relative z-10 space-y-10">
+                  <div className="w-20 h-20 bg-white/5 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl group-hover/cta:scale-110 transition-transform duration-500">
+                     <TrendingUp size={32} className="text-[#C02026]" />
+                  </div>
                   
-                  <div className="relative z-10 space-y-10 w-full">
-                    <div className="space-y-4">
-                      <h3 className="text-white text-3xl md:text-4xl font-black italic uppercase tracking-tighter leading-tight">
-                        {isAr ? 'هل تبحث عن المزيد؟' : 'Seeking More?'}
-                      </h3>
-                      <p className="text-slate-400 text-sm font-medium max-w-[250px] mx-auto">
-                        {isAr ? 'تواصل معنا الآن للحصول على قائمة الوحدات الحصرية المتاحة حالياً.' : 'Contact us for the full inventory of exclusive off-market deals.'}
-                      </p>
-                    </div>
+                  <h3 className="text-white text-3xl md:text-4xl font-black italic uppercase leading-tight tracking-tighter">
+                    {isAr ? 'هل تبحث عن\nفرصة استثنائية؟' : 'Looking for\nSomething Else?'}
+                  </h3>
 
-                    <div className="flex flex-col gap-4 w-full">
-                      <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                         aria-label={isAr ? "اتصال هاتف مبيعات" : "Call sales team"}
-                         className="bg-white text-slate-950 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-transform hover:-translate-y-1 active:scale-95">
-                        <Phone size={18} fill="currentColor" /> {isAr ? 'اتصال مباشر' : 'Call Now'}
-                      </a>
-                      
-                      <a href={whatsappLink} 
-                         target="_blank" 
-                         rel="noopener noreferrer"
-                         aria-label={isAr ? "استفسار عبر واتساب" : "Inquiry via WhatsApp"}
-                         className="bg-[#25D366] text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-transform hover:-translate-y-1 active:scale-95">
-                        <MessageCircle size={18} fill="currentColor" /> {isAr ? 'واتساب مباشر' : 'WhatsApp'}
-                      </a>
-                    </div>
-
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                       {isAr ? 'متاحون على مدار الساعة' : 'Available 24/7'}
-                    </p>
+                  <div className="space-y-4 w-full">
+                    <a 
+                      href={`tel:${phoneNum}`} 
+                      className="flex items-center justify-center gap-4 bg-white text-slate-950 w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#C02026] hover:text-white transition-all shadow-2xl active:scale-95"
+                    >
+                      <Phone size={18} /> {isAr ? 'اتصل بمستشارك' : 'Call Specialist'}
+                    </a>
+                    <a 
+                      href={whatsappLink} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-4 bg-[#25D366] text-white w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl active:scale-95"
+                    >
+                      <MessageCircle size={18} fill="currentColor" /> WhatsApp
+                    </a>
                   </div>
                 </div>
-              </SwiperSlide>
-            </Swiper>
-          ) : (
-            <div className="py-32 text-center bg-white rounded-[4rem] border-2 border-dashed border-slate-100" role="alert">
-              <p className="text-slate-400 font-black uppercase tracking-widest text-xs">
-                {isAr ? 'لا توجد مشاريع في هذا القسم حالياً' : 'No Projects Found in this Category'}
-              </p>
-            </div>
-          )}
+              </div>
+            </SwiperSlide>
+          </Swiper>
         </div>
       </div>
 
       <style jsx global>{`
-        .project-swiper .swiper-scrollbar {
-          background: rgba(0,0,0,0.05) !important;
-          height: 4px !important;
-          bottom: 40px !important;
-          width: 50% !important;
-          left: 25% !important;
+        /* إخفاء الأزرار الافتراضية إذا ظهرت */
+        .swiper-button-next, .swiper-button-prev { display: none !important; }
+        
+        /* تفعيل الأزرار المخصصة للعمل عند الهوفر فقط في شاشات الكمبيوتر */
+        .featured-prev, .featured-next {
+           cursor: pointer;
         }
-        .project-swiper .swiper-scrollbar-drag {
-          background: #C02026 !important;
+        .featured-prev.swiper-button-disabled, 
+        .featured-next.swiper-button-disabled {
+           opacity: 0.3 !important;
+           cursor: not-allowed;
+           pointer-events: none;
+        }
+
+        .swiper-scrollbar { 
+          bottom: 0px !important; 
+          height: 4px !important; 
+          background: rgba(0,0,0,0.05) !important; 
+          border-radius: 10px !important;
+        }
+        .swiper-scrollbar-drag { 
+          background: #C02026 !important; 
+          border-radius: 10px !important;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

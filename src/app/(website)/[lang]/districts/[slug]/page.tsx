@@ -47,7 +47,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * 2️⃣ الـ SEO Metadata (الربط الدولي الموحد)
+ * 2️⃣ الـ SEO Metadata (تم تحسين معالجة الصور هنا أيضاً)
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string, lang: string }> }) {
   const { slug, lang } = await params;
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   
   const district = await client.fetch(
     `*[_type == "district" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
-      nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn
+      nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn, image
     }`, 
     { slug }
   );
@@ -65,6 +65,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const name = isAr ? getSafeText(district.nameAr) : getSafeText(district.nameEn);
   const title = getSafeText(isAr ? (district.seoTitleAr || name) : (district.seoTitleEn || name));
   const description = getSafeText(isAr ? district.seoDescAr : district.seoDescEn);
+
+  // تحسين صورة الـ OG لتكون WebP
+  const ogImage = district.image 
+    ? urlFor(district.image).width(1200).height(630).auto('format').url()
+    : `${BASE_URL}/og-image.jpg`;
 
   const arPath = `${BASE_URL}/ar/districts/${slug}/`;
   const enPath = `${BASE_URL}/en/districts/${slug}/`;
@@ -82,6 +87,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${name} | Platform Real Estate`,
       url: currentPath,
+      images: [{ url: ogImage }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
@@ -125,7 +131,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const distName = isAr ? getSafeText(district.nameAr) : getSafeText(district.nameEn);
   const parentLocName = isAr ? getSafeText(district.location.nameAr) : getSafeText(district.location.nameEn);
 
-  // Cross-Selling: مشاريع في نفس المنطقة الكبرى ولكن في أحياء أخرى
+  // مشاريع في نفس المنطقة الكبرى
   const locationProjectsQuery = `*[_type == "project" && location._ref == $locationId && !references($districtId) && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...6] {
     _id, titleAr, titleEn, price, installments, downPayment, 
     isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage, 
@@ -148,13 +154,14 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن المشاريع في حي ${distName}` : `Inquiry about projects in ${distName}`)}`;
 
-  // 🏆 [SEO] Schema Markup - Local Business Neighborhood
+  // 🏆 [SEO] Schema Markup - تم تحسين اللوجو والصور في الـ Schema
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'Accommodation',
     'name': distName,
     'description': isAr ? `أفضل المشاريع العقارية في حي ${distName}` : `Best real estate assets in ${distName} district`,
     'url': `${BASE_URL}/${lang}/districts/${slug}/`,
+    'image': district.image ? urlFor(district.image).auto('format').url() : `${BASE_URL}/og-image.jpg`,
     'address': {
       '@type': 'PostalAddress',
       'addressLocality': distName,
@@ -170,12 +177,17 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
       
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION - تم تحسين الصورة هنا */}
       <section className="relative h-[50vh] md:h-[65vh] w-full bg-[#080A0D] overflow-hidden" aria-labelledby="district-title">
         {district.image ? (
           <Image 
-            src={urlFor(district.image).width(1920).quality(90).url()} 
-            alt={distName} fill className="object-cover opacity-60 scale-105 animate-slow-zoom" priority 
+            // تحسين: .auto('format') للتحويل لـ WebP + sizes للتجاوب
+            src={urlFor(district.image).width(1920).auto('format').quality(90).url()} 
+            alt={distName} 
+            fill 
+            sizes="100vw"
+            className="object-cover opacity-60 scale-105 animate-slow-zoom" 
+            priority 
           />
         ) : (
           <div className="absolute inset-0 bg-[#080A0D]" />
@@ -212,6 +224,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14" role="list">
               {district.projects.map((proj: any) => (
                 <article key={proj._id} role="listitem">
+                  {/* الـ ProjectCard معدل وجاهز بـ WebP تلقائياً */}
                   <ProjectCard data={proj} lang={lang} />
                 </article>
               ))}
@@ -280,7 +293,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             </aside>
         </div>
 
-        {/* 4. CROSS-SELLING SECTION (Projects in Parent Location) */}
+        {/* 4. CROSS-SELLING SECTION */}
         {locationProjects.length > 0 && (
           <section className="pt-32 border-t border-slate-100" aria-labelledby="related-heading">
             <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-slate-200 ps-8 gap-8 text-start">

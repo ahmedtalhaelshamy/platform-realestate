@@ -13,9 +13,6 @@ const TikTokIcon = ({ size = 20 }) => (
   </svg>
 );
 
-/**
- * 📡 جلب كافة البيانات من Sanity
- */
 async function getFooterData() {
   const query = `{
     "settings": *[_type == "siteSettings"][0]{
@@ -58,7 +55,6 @@ export default async function Footer({ lang }) {
       ? (settings?.descriptionAr || 'منصتكم العقارية الأولى في مصر. خبرة 15 عاماً في اختيار أفضل المشاريع الاستثمارية.') 
       : (settings?.descriptionEn || 'Egypt’s premier real estate platform. 15 years of expertise in high-end investments.'),
     phone: settings?.phone || CONTACT_INFO.phone,
-    // تنظيف رقم الواتساب لضمان عمل الرابط
     whatsapp: (settings?.whatsapp || CONTACT_INFO.whatsapp)?.replace(/\D/g, ''),
     address: isAr ? (settings?.addressAr || CONTACT_INFO.addressAr) : (settings?.addressEn || CONTACT_INFO.addressEn),
     mapLink: settings?.mapLocation || CONTACT_INFO.googleMapsUrl
@@ -75,9 +71,7 @@ export default async function Footer({ lang }) {
   return (
     <footer className="bg-[#080A0D] text-white pt-24 pb-12 border-t border-white/[0.03] relative overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🎨 Premium Background Glows */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C02026]/[0.03] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-red-600/[0.02] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         
@@ -87,20 +81,20 @@ export default async function Footer({ lang }) {
           <div className="lg:col-span-4 space-y-8 text-start">
             <Link href={`/${lang}/`} className="group inline-block" aria-label={data.title}>
                <div className="flex items-center gap-4">
-                  <div className="bg-[#C02026] p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 shadow-xl shadow-red-900/20">
+                  <div className="bg-[#C02026] p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 shadow-xl">
                     <ShieldCheck className="text-white" size={28} />
                   </div>
                   <span className="text-2xl font-black tracking-tighter uppercase italic">{data.title}</span>
                </div>
             </Link>
-            <p className="text-slate-400 leading-[1.8] text-sm font-medium max-w-sm">
+            <p className="text-slate-300 leading-[1.8] text-sm font-medium max-w-sm">
               {data.description}
             </p>
             <div className="flex gap-3">
               {socialLinks.map((item, idx) => (
                 <a key={idx} href={item.url} target="_blank" rel="noopener noreferrer" 
                    aria-label={`${isAr ? 'تابعنا على' : 'Follow us on'} ${item.label}`}
-                   className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-slate-400 hover:bg-[#C02026] hover:text-white hover:-translate-y-1.5 transition-all duration-500 shadow-2xl">
+                   className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-slate-300 hover:bg-[#C02026] hover:text-white hover:-translate-y-1.5 transition-all duration-500">
                   <item.Icon size={18} />
                 </a>
               ))}
@@ -109,7 +103,7 @@ export default async function Footer({ lang }) {
 
           {/* 2. Navigation Section */}
           <div className="lg:col-span-2 text-start">
-            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
               {isAr ? 'خريطة الموقع' : 'Navigation'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
             </h2>
@@ -121,7 +115,7 @@ export default async function Footer({ lang }) {
                 { name: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact/` },
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="group flex items-center gap-2 text-[13px] text-slate-400 hover:text-white transition-all font-bold uppercase tracking-tight">
+                  <Link href={link.href} className="group flex items-center gap-2 text-[13px] text-gray-200 hover:text-white transition-all font-bold uppercase tracking-tight">
                     <ChevronRight size={12} className={`text-[#C02026] transition-transform ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} />
                     {link.name}
                   </Link>
@@ -132,7 +126,7 @@ export default async function Footer({ lang }) {
 
           {/* 3. Areas Section */}
           <div className="lg:col-span-3 text-start">
-            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
               {isAr ? 'أهم المناطق' : 'Hotspots'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
             </h2>
@@ -140,7 +134,7 @@ export default async function Footer({ lang }) {
               {locations?.map((loc) => (
                 <Link key={loc.slug} href={`/${lang}/locations/${loc.slug}/`} 
                       className="group flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all">
-                  <span className="text-[12px] font-bold text-slate-400 group-hover:text-white">{isAr ? loc.nameAr : loc.nameEn}</span>
+                  <span className="text-[12px] font-bold text-gray-200 group-hover:text-white">{isAr ? loc.nameAr : loc.nameEn}</span>
                   <ArrowUpRight size={14} className="text-[#C02026] opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0" />
                 </Link>
               ))}
@@ -149,33 +143,31 @@ export default async function Footer({ lang }) {
 
           {/* 4. Contact Section */}
           <div className="lg:col-span-3 text-start space-y-10">
-            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-white flex items-center gap-3">
+            <h2 className="text-[11px] font-black mb-10 uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
               {isAr ? 'بيانات التواصل' : 'Contact Hub'}
               <div className="h-px flex-1 bg-gradient-to-r from-[#C02026] to-transparent opacity-30"></div>
             </h2>
             
             <div className="space-y-6">
               <a href={data.mapLink} target="_blank" rel="noopener noreferrer" 
-                 aria-label={isAr ? "موقعنا على الخريطة" : "Our location on Google Maps"}
                  className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0 text-[#C02026] group-hover:bg-[#C02026] group-hover:text-white transition-all shadow-xl">
                   <MapPin size={22} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{isAr ? 'العنوان' : 'Location'}</p>
-                  <p className="text-slate-300 text-[13px] font-bold leading-relaxed">{data.address}</p>
+                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{isAr ? 'العنوان' : 'Location'}</p>
+                  <p className="text-gray-200 text-[13px] font-bold leading-relaxed">{data.address}</p>
                 </div>
               </a>
 
               <a href={`https://wa.me/${data.whatsapp}`} target="_blank" rel="noopener noreferrer" 
-                 aria-label={isAr ? "تواصل معنا عبر واتساب" : "Contact us via WhatsApp"}
                  className="flex items-center gap-4 group">
                 <div className="w-11 h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0 text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all shadow-xl">
                   <MessageCircle size={22} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{isAr ? 'واتساب مباشر' : 'Live Support'}</p>
-                  <p className="text-slate-300 text-sm font-black tracking-tighter">{data.phone}</p>
+                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{isAr ? 'واتساب مباشر' : 'Live Support'}</p>
+                  <p className="text-gray-200 text-sm font-black tracking-tighter">{data.phone}</p>
                 </div>
               </a>
             </div>
@@ -183,9 +175,9 @@ export default async function Footer({ lang }) {
 
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - Contrast Fixed */}
         <div className="py-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-white/[0.02]">
-          <p className="text-slate-500 text-[10px] uppercase tracking-[0.4em] font-black text-center md:text-start leading-relaxed">
+          <p className="text-slate-300 text-[10px] uppercase tracking-[0.4em] font-black text-center md:text-start leading-relaxed">
             © {new Date().getFullYear()} {data.title} <span className="mx-2 text-white/5">|</span> 
             {isAr ? 'تم التطوير بواسطة بلاتفورم تكنولوجي' : 'Crafted by Platform Tech'}
           </p>
@@ -196,7 +188,7 @@ export default async function Footer({ lang }) {
               { id: 'Terms', ar: 'الشروط', en: 'Terms', path: 'terms' },
               { id: 'Sitemap', ar: 'خريطة الموقع', en: 'Sitemap', path: 'sitemap' }
             ].map((item) => (
-              <Link key={item.id} href={`/${lang}/${item.path}/`} className="text-slate-500 hover:text-[#C02026] text-[10px] uppercase tracking-[0.2em] font-black transition-colors">
+              <Link key={item.id} href={`/${lang}/${item.path}/`} className="text-gray-200 hover:text-[#C02026] text-[10px] uppercase tracking-[0.2em] font-black transition-colors focus:ring-1 focus:ring-red-500 rounded px-1 outline-none">
                 {isAr ? item.ar : item.en}
               </Link>
             ))}
