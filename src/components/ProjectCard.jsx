@@ -93,18 +93,18 @@ export default function ProjectCard({ data: project, lang, priority = false }) {
       <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-5 bg-slate-100 z-0">
         <Link href={projectUrl} className="block w-full h-full outline-none" tabIndex="-1" aria-hidden="true">
           <Image 
-            // ✅ Fix LCP: تحديد الأبعاد وطلب WebP من سيرفر Sanity مباشرة لتقليل حجم النقل
-            src={project.mainImage 
-              ? urlFor(project.mainImage).width(600).height(450).format('webp').quality(80).url() 
-              : "/placeholder.jpg"
-            }
-            alt={isAr ? project.titleAr : project.titleEn}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-[10s] ease-out group-hover:scale-110 will-change-transform"
-            loading={priority ? "eager" : "lazy"} // استخدام الـ priority بذكاء
-            fetchPriority={priority ? "high" : "auto"}
-          />
+  // ✅ Fix LCP: ترك تحديد الأبعاد لـ Next.js بناءً على الـ sizes لتحسين أداء الموبايل
+  src={project.mainImage 
+    ? urlFor(project.mainImage).format('webp').quality(80).url() 
+    : "/placeholder.jpg"
+  }
+  alt={isAr ? project.titleAr : project.titleEn}
+  fill
+  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+  className="object-cover transition-transform duration-[10s] ease-out group-hover:scale-110 will-change-transform"
+  loading={priority ? "eager" : "lazy"} 
+  fetchPriority={priority ? "high" : "auto"}
+/>
         </Link>
 
         {/* Badges Hub */}

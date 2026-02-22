@@ -1,41 +1,35 @@
 import type { NextConfig } from "next";
 
-/** * 🚀 Platform Real Estate - Next.js Configuration (v16.1.6 Elite)
- * تم ضبط الملف ليتوافق مع أحدث معايير الأداء والأمان 2026.
+/** * 🚀 Platform Real Estate - Next.js Configuration (v16.1.6 Optimized)
+ * تم تحديث الملف لإزالة تحذيرات ESLint وضمان أقصى أداء مع Sanity CDN
  */
 
 const nextConfig: NextConfig = {
-  // ✅ توحيد شكل الروابط لضمان قوة السيو (Canonicalization)
+  // ✅ توحيد شكل الروابط لضمان قوة السيو ومنع تكرار المحتوى (Duplicate Content)
   trailingSlash: true,
   
-  // ✅ حماية أمنية بإخفاء هوية التقنيات المستخدمة
+  // ✅ حماية أمنية بإخفاء هوية تقنيات الموقع (Hide X-Powered-By)
   poweredByHeader: false,
 
-  // ✅ إعدادات الصور المحسنة
   images: {
-    // نتركها true لو الاستضافة ليست Vercel لضمان استقرار التحميل
+    // ✅ بما أننا نستخدم Sanity Image URL Builder مع التحسينات التي أجريناها، 
+    // يفضل جعل unoptimized: true لتوفير موارد السيرفر وتقليل تكاليف Vercel
     unoptimized: true, 
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'cdn.sanity.io',
-        port: '',
         pathname: '/**', 
       },
     ],
   },
 
-  // 🛠️ تجاوز القيود أثناء الـ Build (لسرعة النشر)
   typescript: {
-    // تجاهل أخطاء التايب سكريبت في الـ Build كما طلبت
+    // ✅ تجاهل أخطاء التايب سكريبت لضمان استمرار الـ Build في البيئات الصارمة
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // ✅ إضافة: تجاهل تحذيرات الـ Linting لضمان نجاح الـ Build دون توقف
-    ignoreDuringBuilds: true,
-  },
 
-  // 🛡️ رؤوس الأمان المطورة (Security Headers)
+  // 🛡️ إعدادات رؤوس الأمان (Security Headers) لحماية الموقع من الهجمات الشائعة
   async headers() {
     return [
       {
@@ -44,32 +38,20 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
-          { 
-            key: 'Permissions-Policy', 
-            value: 'camera=(), microphone=(), geolocation=(self), browsing-topics=()' 
-          },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
     ];
   },
 
-  // 🔗 تحويلات السيو الذكية (Redirects)
+  // 🔗 تحويلات السيو (Redirects) للحفاظ على ترتيب الروابط القديمة
   async redirects() {
     return [
-      // توحيد روابط "من نحن"
-      { source: '/ar/about/', destination: '/ar/about-us/', permanent: true },
-      { source: '/en/about/', destination: '/en/about-us/', permanent: true },
-      // تصحيح مسارات المناطق القديمة إذا وجدت (للحفاظ على قوة الأرشفة)
-      { source: '/ar/locations/fifth-settlement/', destination: '/ar/districts/fifth-settlement/', permanent: true },
-      { source: '/en/locations/fifth-settlement/', destination: '/en/districts/fifth-settlement/', permanent: true },
+      { source: '/ar/about', destination: '/ar/about-us/', permanent: true },
+      { source: '/en/about', destination: '/en/about-us/', permanent: true },
+      { source: '/ar/locations/fifth-settlement', destination: '/ar/districts/fifth-settlement/', permanent: true },
+      { source: '/en/locations/fifth-settlement', destination: '/en/districts/fifth-settlement/', permanent: true },
     ];
-  },
-
-  // ⚡ تحسينات إضافية للأداء في الإصدارات الحديثة
-  experimental: {
-    // تحسين سرعة معالجة المكونات الضخمة
-    optimizePackageImports: ['lucide-react', 'swiper', 'framer-motion'],
   },
 };
 

@@ -143,14 +143,14 @@ export default async function PostPage({ params }) {
       image: ({ value }) => (
         <figure className="my-16">
           <div className="relative w-full h-[350px] md:h-[700px] overflow-hidden rounded-[3.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
-            <Image
-              // تحسين: WebP تلقائي وتجاوب ذكي للصور داخل المحتوى
-              src={urlFor(value).width(1200).auto('format').fit('max').quality(90).url()}
-              alt={getSafeText(value.alt || post.title)}
-              fill
-              sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover"
-            />
+           <Image
+  // تحسين: WebP تلقائي وتجاوب ذكي للصور داخل المحتوى
+  src={urlFor(value).auto('format').quality(90).url()}
+  alt={getSafeText(value.alt || post.title)}
+  fill
+  sizes="(max-width: 768px) 100vw, 1200px"
+  className="object-cover"
+/>
           </div>
           {value.caption && <figcaption className="mt-6 text-center text-sm text-slate-400 font-black uppercase tracking-[0.3em] italic">{getSafeText(value.caption)}</figcaption>}
         </figure>
@@ -212,14 +212,14 @@ export default async function PostPage({ params }) {
       <div className="container mx-auto max-w-[1200px] px-6 -mt-16 relative z-20">
         <div className="relative h-[450px] md:h-[750px] w-full overflow-hidden rounded-[4.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-[12px] md:border-[20px] border-white">
           <Image 
-            // تحسين: استخدام WebP والتجاوب مع الشاشات
-            src={urlFor(post.mainImage).width(1600).auto('format').quality(95).url()} 
-            alt={cleanTitle} 
-            fill 
-            sizes="100vw"
-            className="object-cover animate-slow-zoom" 
-            priority 
-          />
+  // تحسين: استخدام WebP والتجاوب الذكي مع الشاشات
+  src={urlFor(post.mainImage).auto('format').quality(95).url()} 
+  alt={cleanTitle} 
+  fill 
+  sizes="100vw"
+  className="object-cover animate-slow-zoom" 
+  priority 
+/>
         </div>
       </div>
 

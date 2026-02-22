@@ -87,20 +87,22 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
                 ${i === 1 ? 'md:col-span-2 md:row-span-1' : ''}`}
             >
               {/* 🚀 Image Optimization Engine */}
-              <Image 
-                src={urlFor(img)
-                  .width(i === 0 ? 1200 : 600)
-                  .height(i === 0 ? 900 : 450)
-                  .auto('format')
-                  .quality(80) // تقليل الجودة قليلاً (85 -> 80) لزيادة السرعة دون فقدان الدقة بالعين المجردة
-                  .url()} 
-                alt={`${projectName} architectural detail ${i + 1}`} 
-                fill 
-                sizes={i === 0 ? "(max-width: 768px) 100vw, 800px" : "(max-width: 768px) 50vw, 400px"}
-                priority={i < 2} // أولوية قصوى لأول صورتين (LCP Fix)
-                loading={i >= 2 ? "lazy" : "eager"} // تأكيد التحميل الكسول للباقي
-                className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out will-change-transform"
-              />
+       <Image 
+  src={urlFor(img)
+    .auto('format')
+    .quality(80) 
+    .url()} 
+  alt={`${projectName} architectural detail ${i + 1}`} 
+  fill 
+  // الـ sizes هنا بقت بتفهم لو هي أول صورة تاخد مساحة أكبر، والـ Next.js هيطلب المقاس الصح
+  sizes={i === 0 
+    ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
+    : "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 400px"
+  }
+  priority={i < 2} 
+  loading={i < 2 ? "eager" : "lazy"} 
+  className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out will-change-transform"
+/>
               
               {/* Overlay on Hover */}
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] pointer-events-none">
@@ -159,15 +161,15 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
                 transition={{ duration: 0.3 }}
                 className="relative w-full h-full flex items-center justify-center"
               >
-                <Image 
-                  // جودة عالية جداً للعرض الكامل (WebP)
-                  src={urlFor(images[index]).width(1600).auto('format').quality(90).url()}
-                  alt={`${projectName} full view ${index + 1}`}
-                  fill
-                  className="object-contain pointer-events-none drop-shadow-2xl select-none"
-                  sizes="100vw"
-                  priority
-                />
+             <Image 
+  // جودة عالية جداً للعرض الكامل (WebP) مع ترك التباين لـ Next.js
+  src={urlFor(images[index]).auto('format').quality(90).url()}
+  alt={`${projectName} full view ${index + 1}`}
+  fill
+  className="object-contain pointer-events-none drop-shadow-2xl select-none"
+  sizes="100vw"
+  priority
+/>
               </motion.div>
             </motion.div>
 

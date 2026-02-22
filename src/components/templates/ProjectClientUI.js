@@ -91,13 +91,13 @@ const ptComponents = {
       if (!value?.asset) return null;
       return (
         <div className="relative w-full h-64 md:h-[500px] my-10 rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100 group">
-          <Image 
-            src={urlFor(value).width(1200).auto('format').fit('max').url()} 
-            alt="Project Content" 
-            fill 
-            sizes="(max-width: 768px) 100vw, 1200px"
-            className="object-cover group-hover:scale-105 transition-transform duration-700" 
-          />
+     <Image 
+  src={urlFor(value).auto('format').url()} 
+  alt="Project Content" 
+  fill 
+  sizes="(max-width: 768px) 100vw, 1200px"
+  className="object-cover group-hover:scale-105 transition-transform duration-700" 
+/>
           {value.caption && (
             <div className="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-sm text-white p-3 text-center text-xs font-bold">
                 {getSafeText(value.caption)}
@@ -161,13 +161,13 @@ const ContentSection = ({ title, image, content, children, altBg = false, id }) 
         </div>
         {image && image.asset && (
             <div className="relative w-full aspect-video md:aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-100 group mt-10">
-                <Image 
-                  src={urlFor(image).width(1400).auto('format').url()} 
-                  alt={safeTitle} 
-                  fill 
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1400px"
-                  className="object-cover group-hover:scale-105 transition-transform duration-1000" 
-                />
+          <Image 
+  src={urlFor(image).auto('format').url()} 
+  alt={safeTitle} 
+  fill 
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1400px"
+  className="object-cover group-hover:scale-105 transition-transform duration-1000" 
+/>
             </div>
         )}
       </div>
@@ -253,15 +253,15 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
       
       <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">
         {data.mainImage && (
-          <Image 
-            src={urlFor(data.mainImage).width(1920).auto('format').url()} 
-            alt={officialName} 
-            fill 
-            sizes="100vw"
-            className="object-cover opacity-60 scale-105 animate-slow-zoom" 
-            priority 
-            fetchPriority="high"
-          />
+       <Image 
+  src={urlFor(data.mainImage).auto('format').url()} 
+  alt={officialName} 
+  fill 
+  sizes="100vw"
+  className="object-cover opacity-60 scale-105 animate-slow-zoom" 
+  priority 
+  fetchPriority="high"
+/>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
         
@@ -457,8 +457,14 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-12 relative z-10 text-start">
                         {data.developer.logo ? (
                           <div className="w-32 h-32 md:w-48 md:h-48 bg-white rounded-[2.5rem] p-6 shadow-2xl flex items-center justify-center shrink-0 overflow-hidden">
-                            <Image src={urlFor(data.developer.logo).width(300).auto('format').url()} width={180} height={180} className="object-contain" alt="Developer" />
-                          </div>
+<Image 
+  src={urlFor(data.developer.logo).auto('format').url()} 
+  width={180} 
+  height={180} 
+  className="object-contain" 
+  alt="Developer Logo" // تحسين بسيط للـ Alt عشان الـ SEO
+  sizes="180px" 
+/>                          </div>
                         ) : <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 rounded-[2.5rem] flex items-center justify-center shrink-0"><Building2 size={60} className="text-white/20"/></div>}
                         <div className="flex-1">
                             <div className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.4em] mb-3">{isArabic ? 'المطور العقاري المعتمد' : 'Verified Partner'}</div>
@@ -472,7 +478,8 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                {data.developerProjects.map((p, i) => (
                                   <Link key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
-                                    {p.mainImage && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl"><Image src={urlFor(p.mainImage).width(200).auto('format').url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt="Proj" /></div>}
+                                    {p.mainImage && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
+                                      <Image src={urlFor(p.mainImage).width(200).auto('format').url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt="Proj" /></div>}
                                     <div className="overflow-hidden">
                                       <span className="font-black text-lg text-white group-hover:text-[#C02026] block truncate italic uppercase tracking-tighter">{isArabic ? getSafeText(p.titleAr) : getSafeText(p.titleEn)}</span>
                                       <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5 uppercase mt-1"><MapPin size={12} className="text-[#C02026]" /> {isArabic ? getSafeText(p.districtData?.nameAr) : getSafeText(p.districtData?.nameEn)}</span>
@@ -502,7 +509,16 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                   )}
                   {data.author && (
                       <div className="flex items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm w-full md:w-fit text-start">
-                          {data.author.image ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md"><Image src={urlFor(data.author.image).width(120).auto('format').url()} fill className="object-cover" alt="Author" /></div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/></div>}
+                          {data.author.image ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
+
+<Image 
+  src={urlFor(data.author.image).auto('format').url()} 
+  fill 
+  className="object-cover" 
+  alt={data.author.name || "Author"} 
+  sizes="64px" 
+/>                            </div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/>
+                            </div>}
                           <div>
                             <div className="text-[10px] text-[#C02026] uppercase font-black tracking-widest mb-1">{isArabic ? 'تحليل بواسطة' : 'Analyzed By'}</div>
                             <h3 className="text-lg font-black text-slate-950 italic uppercase tracking-tighter leading-none">{data.author.name}</h3>

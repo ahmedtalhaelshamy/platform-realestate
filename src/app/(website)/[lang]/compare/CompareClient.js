@@ -172,14 +172,14 @@ export default function CompareClient({ lang }) {
                         </button>
                         <div className="relative aspect-[16/10] rounded-[3rem] overflow-hidden mb-10 shadow-2xl group">
                           {p.mainImage && (
-                            <Image 
-                              src={urlFor(p.mainImage).width(800).auto('format').url()} 
-                              alt={title} 
-                              fill 
-                              sizes="450px"
-                              className="object-cover transition-transform duration-1000 group-hover:scale-110" 
-                              priority={idx < 2}
-                            />
+                           <Image 
+  src={urlFor(p.mainImage).auto('format').url()} 
+  alt={title} 
+  fill 
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  className="object-cover transition-transform duration-1000 group-hover:scale-110" 
+  priority={idx < 2}
+/>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-80" />
                           <div className="absolute bottom-6 start-8 text-white text-start">

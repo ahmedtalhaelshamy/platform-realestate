@@ -113,14 +113,14 @@ export default function CityCarousel({ lang }) {
               {/* 🚀 Image Optimization Engine */}
               <div className="absolute inset-0 z-0">
                 {city.image ? (
-                  <Image 
-                    src={urlFor(city.image).width(900).height(1200).quality(85).auto('format').url()} 
-                    alt={isAr ? city.nameAr : city.nameEn} 
-                    fill 
-                    priority={index < 2}
-                    sizes="(max-width: 768px) 90vw, 450px"
-                    className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out opacity-90 group-hover:opacity-100" 
-                  />
+                <Image 
+    src={urlFor(city.image).quality(85).auto('format').url()} 
+    alt={isAr ? city.nameAr : city.nameEn} 
+    fill 
+    priority={index < 2}
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out opacity-90 group-hover:opacity-100" 
+/>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-slate-100">
                     <Building2 size={64} className="text-slate-300" />

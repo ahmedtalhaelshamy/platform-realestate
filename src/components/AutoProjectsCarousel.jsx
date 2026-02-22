@@ -145,14 +145,14 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
       <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-5 bg-slate-100 shrink-0">
         <Link href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
           {project?.mainImage ? (
-            <Image 
-              src={urlFor(project.mainImage).width(600).height(450).format('webp').quality(80).url()} 
-              alt={isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
-              fill
-              sizes="(max-width: 768px) 90vw, 400px"
-              priority={isPriority}
-              className="object-cover transition-transform duration-[2s] group-hover:scale-110 will-change-transform"
-            />
+          <Image 
+  src={urlFor(project.mainImage).format('webp').quality(80).url()} 
+  alt={isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
+  fill
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  priority={isPriority}
+  className="object-cover transition-transform duration-[2s] group-hover:scale-110 will-change-transform"
+/>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-200">
               <Building2 size={48} aria-hidden="true" />

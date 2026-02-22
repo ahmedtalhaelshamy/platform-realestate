@@ -98,14 +98,14 @@ export default function Navbar({ lang }) {
             <div className="shrink-0">
               <Link href={`/${currentLang}/`} className="block relative z-50">
                 <div className={`relative transition-all duration-500 ${scrolled || !isHomePage ? 'w-24 h-10' : 'w-32 h-14'}`}>
-                  <Image 
-                    src="/logo.png" 
-                    fill 
-                    priority 
-                    sizes="150px"
-                    alt="Platform Real Estate" 
-                    className={`object-contain transition-all duration-500 ${logoFilter}`} 
-                  />
+               <Image 
+  src="/logo.png" 
+  fill 
+  priority 
+  sizes="(max-width: 768px) 120px, 150px" // تحسين: الموبايل مش محتاج أكتر من 120px
+  alt="Platform Real Estate" 
+  className={`object-contain transition-all duration-500 ${logoFilter}`} 
+/>
                 </div>
               </Link>
             </div>
@@ -173,12 +173,13 @@ export default function Navbar({ lang }) {
             </div>
 
             {/* 📱 Mobile Toggle */}
-            <button 
-                onClick={() => setIsOpen(!isOpen)} 
-                className={`lg:hidden p-3 rounded-2xl transition-all active:scale-90 ${isOpen ? 'bg-slate-100 text-slate-900' : (isHomePage && !scrolled ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900')}`}
-            >
-              {isOpen ? <X size={26} /> : <Menu size={26} />}
-            </button>
+           <button 
+    aria-label={isOpen ? "Close menu" : "Open menu"}
+    onClick={() => setIsOpen(!isOpen)} 
+    className={`lg:hidden p-3 rounded-2xl transition-all active:scale-90 ${isOpen ? 'bg-slate-100 text-slate-900' : (isHomePage && !scrolled ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900')}`}
+>
+    {isOpen ? <X size={26} /> : <Menu size={26} />}
+</button>
           </div>
         </div>
       </nav>
@@ -195,10 +196,23 @@ export default function Navbar({ lang }) {
         }}
       >
         {/* Mobile Sidebar Header */}
-        <div className="p-8 flex items-center justify-between border-b border-slate-50">
-          <div className="relative w-28 h-10"><Image src="/logo.png" alt="Platform Logo" fill className="object-contain" /></div>
-          <button onClick={closeMenu} className="p-3 bg-slate-50 rounded-2xl text-slate-500 hover:text-[#C02026] transition-colors"><X size={22}/></button>
-        </div>
+     <div className="p-8 flex items-center justify-between border-b border-slate-50">
+  <div className="relative w-28 h-10">
+<Image 
+  src="/logo.png" 
+  alt="Platform Logo" 
+  fill 
+  className="object-contain" 
+  sizes="112px" // لأن الحاوية (Container) عرضها w-28 يعني 112 بيكسل بالظبط
+/>  </div>
+  <button 
+    aria-label="Close menu" 
+    onClick={closeMenu} 
+    className="p-3 bg-slate-50 rounded-2xl text-slate-500 hover:text-[#C02026] transition-colors"
+  >
+    <X size={22}/>
+  </button>
+</div>
 
         {/* Mobile Navigation Links */}
         <div className="flex-1 overflow-y-auto p-8 space-y-3 custom-scrollbar">

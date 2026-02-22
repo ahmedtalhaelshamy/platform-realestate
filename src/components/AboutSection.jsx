@@ -124,15 +124,15 @@ export default async function AboutSection({ lang }) {
           <div className="flex-1 w-full relative">
             <div className="relative h-[450px] md:h-[650px] w-full rounded-[3.5rem] overflow-hidden shadow-premium border-[12px] border-brand-gray-50 group">
               {data?.storyImage ? (
-                <Image 
-                  // ✅ تحسين: تحديد الأبعاد وطلب WebP لتقليل حجم الـ LCP
-                  src={urlFor(data.storyImage).width(1000).height(1400).format('webp').quality(80).url()}
-                  alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
-                  fill
-                  priority={true} // أهم تعديل للأداء: تحميل فوري للصورة الرئيسية
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
-                />
+             <Image
+  // ✅ تحسين: ترك تحديد الأبعاد لـ Next.js بناءً على الـ sizes
+  src={urlFor(data.storyImage).format('webp').quality(80).url()}
+  alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
+  fill
+  priority={true} // أهم تعديل للأداء: تحميل فوري للصورة الرئيسية
+  sizes="(max-width: 768px) 100vw, 50vw"
+  className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
+/>
               ) : (
                 <div className="absolute inset-0 bg-slate-100 animate-pulse" />
               )}

@@ -150,14 +150,14 @@ export default async function LocationDetailPage({ params }) {
       {/* 1. HERO SECTION - Optimized LCP 2026 */}
       <section className="relative h-[55vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-brand-dark">
         {locationData.image && (
-          <Image 
-            src={urlFor(locationData.image).width(1920).format('webp').quality(80).url()} 
-            alt={locName} 
-            fill 
-            sizes="100vw"
-            className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
-            priority
-          />
+        <Image 
+  src={urlFor(locationData.image).format('webp').quality(80).url()} 
+  alt={locName} 
+  fill 
+  sizes="100vw"
+  className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
+  priority
+/>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-gray-50 via-brand-dark/20 to-brand-dark/60 z-10" />
         
@@ -189,13 +189,13 @@ export default async function LocationDetailPage({ params }) {
                 <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-premium border border-slate-100 transition-all duration-700 group-hover:ring-4 group-hover:ring-brand-red overflow-hidden">
                   <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
                     {dist.image ? (
-                      <Image 
-                        src={urlFor(dist.image).width(300).format('webp').url()} 
-                        fill 
-                        sizes="128px"
-                        alt={distName} 
-                        className="object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform" 
-                      />
+                     <Image 
+  src={urlFor(dist.image).format('webp').url()} 
+  fill 
+  sizes="128px"
+  alt={distName} 
+  className="object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform" 
+/>
                     ) : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300"><LayoutGrid size={32} aria-hidden="true" /></div>}
                   </div>
                 </div>

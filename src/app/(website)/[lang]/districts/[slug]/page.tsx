@@ -169,14 +169,14 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
       {/* 1. HERO SECTION - Optimized for Visual Impact */}
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">
         {district.image ? (
-          <Image 
-            src={urlFor(district.image).width(1920).format('webp').quality(80).url()} 
-            alt={distName} 
-            fill 
-            sizes="100vw"
-            className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
-            priority 
-          />
+        <Image 
+  src={urlFor(district.image).format('webp').quality(80).url()} 
+  alt={distName} 
+  fill 
+  sizes="100vw"
+  className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
+  priority 
+/>
         ) : (
           <div className="absolute inset-0 bg-brand-dark" />
         )}

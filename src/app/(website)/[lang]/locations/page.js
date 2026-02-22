@@ -145,14 +145,14 @@ export default async function LocationsIndexPage({ params }) {
                   className="group relative h-[500px] md:h-[650px] rounded-[3rem] md:rounded-[4rem] overflow-hidden shadow-xl transition-all duration-700 block bg-slate-100 hover:-translate-y-4 hover:shadow-premium outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20"
                 >
                   {loc.image ? (
-                      <Image 
-                          src={urlFor(loc.image).width(800).height(1000).format('webp').quality(80).url()} 
-                          alt={locName} 
-                          fill 
-                          sizes="(max-width: 768px) 100vw, 450px"
-                          className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
-                          priority={index < 3} 
-                      />
+                    <Image 
+  src={urlFor(loc.image).format('webp').quality(80).url()} 
+  alt={locName} 
+  fill 
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
+  priority={index < 3} 
+/>
                   ) : (
                       <div className="w-full h-full bg-slate-50 flex items-center justify-center">
                           <MapPin size={64} className="text-slate-200" aria-hidden="true" />
