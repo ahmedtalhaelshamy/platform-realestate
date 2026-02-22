@@ -99,7 +99,7 @@ export default async function AboutPage({ params }) {
     '@type': 'RealEstateAgent',
     'name': isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
     'url': `${BASE_URL}/${lang}/about-us/`,
-    'logo': `${BASE_URL}/logo.png`,
+    'logo': `${BASE_URL}/logo.webp`,
     'image': `${BASE_URL}/og-about.jpg`,
     'description': getSafeText(isAr ? data?.seo?.metaDescAr : data?.seo?.metaDescEn),
     'address': {

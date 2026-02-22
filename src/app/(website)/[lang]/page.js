@@ -106,7 +106,7 @@ export default async function HomePage({ params }) {
     "@type": "RealEstateAgent",
     "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
     "url": `${CONTACT_INFO.domain}/${lang}/`,
-    "logo": `${CONTACT_INFO.domain}/logo.png`,
+    "logo": `${CONTACT_INFO.domain}/logo.webp`,
     "telephone": CONTACT_INFO.phone,
     "sameAs": Object.values(CONTACT_INFO.social),
     "address": { "@type": "PostalAddress", "addressLocality": "New Cairo", "addressCountry": "EG" }

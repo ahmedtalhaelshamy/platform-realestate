@@ -99,7 +99,7 @@ export default function Navbar({ lang }) {
               <Link href={`/${currentLang}/`} className="block relative z-50">
                 <div className={`relative transition-all duration-500 ${scrolled || !isHomePage ? 'w-24 h-10' : 'w-32 h-14'}`}>
                <Image 
-  src="/logo.png" 
+  src="/logo.webp" 
   fill 
   priority 
   sizes="(max-width: 768px) 120px, 150px" // تحسين: الموبايل مش محتاج أكتر من 120px
@@ -199,7 +199,7 @@ export default function Navbar({ lang }) {
      <div className="p-8 flex items-center justify-between border-b border-slate-50">
   <div className="relative w-28 h-10">
 <Image 
-  src="/logo.png" 
+  src="/logo.webp" 
   alt="Platform Logo" 
   fill 
   className="object-contain" 
