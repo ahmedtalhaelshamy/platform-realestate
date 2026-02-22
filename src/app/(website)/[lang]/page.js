@@ -122,16 +122,29 @@ export default async function HomePage({ params }) {
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
-            <Image 
-  // شيلنا الـ width الثابت عشان نسمح لـ Next.js يولد أحجام مختلفة (srcset)
-  src={urlFor(settings.heroImage).format('webp').quality(80).url()} 
+<Image 
+  // استخدام auto('format') يتيح لـ Sanity تقديم AVIF للمتصفحات الحديثة (أصغر من WebP)
+  src={urlFor(settings.heroImage)
+    .auto('format') 
+    .quality(80) 
+    .url()} 
+  
   alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
+  
+  // أولوية قصوى للتحميل لأنها أول ما يراه المستخدم (LCP)
   priority={true} 
   fetchPriority="high" 
+  
+  // ملء الحاوية الأب (تأكد أن الحاوية لديها position: relative)
   fill
-  // السطر ده هو السحر: بيقول للمتصفح حمل حجم الصورة المناسب لعرض الشاشة
-  sizes="100vw"
+  
+  // تحديد الأحجام بدقة يمنع تحميل بكسلات زائدة لا تراها العين
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
+  
+  // تحسين الأداء البصري
   className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
+  
+  // صورة التمويه (Blur) خفيفة جداً لتحسين تجربة الانتظار
   placeholder="blur"
   blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
 />
