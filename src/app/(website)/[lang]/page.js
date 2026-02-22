@@ -234,7 +234,6 @@ export default async function HomePage({ params }) {
           @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(33.33%); } }
           .animate-marquee { display: flex; animation: marquee 120s linear infinite; }
           html[dir="rtl"] .animate-marquee { animation-name: marqueeRTL; }
-          .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; will-change: transform; }
           @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
           @media (max-width: 768px) { .animate-marquee { animation-duration: 60s; } }
           .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }
