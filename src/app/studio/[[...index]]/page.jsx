@@ -5,93 +5,96 @@ import config from '../../../../sanity.config';
 import { useEffect, useState } from 'react';
 
 /**
- * 🛠️ Sanity Studio Page - Standard 2026
- * Optimized for React 19 & Next.js 16
- * تم ضبط الحاويات لضمان عدم حدوث تداخل مع ستايلات الموقع الأساسي
+ * 🛠️ Sanity Studio Page - Platform Real Estate 2026
+ * Optimized for React 19 & Next.js 16 (Elite Standard)
  */
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // استخدام ريفريش الفريم لضمان نظافة العملية (Clean Mount)
-    const timer = requestAnimationFrame(() => {
-      setMounted(true);
-    });
+    // نضمن أن الرندر يحدث فقط في المتصفح
+    setMounted(true);
     
-    return () => cancelAnimationFrame(timer);
+    // منع السكرول في الخلفية أثناء وجود الاستوديو
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, []);
 
   // 1. واجهة التحميل الفاخرة (Premium Splash Loader)
-  // تم تحسين الألوان لتطابق هوية بلاتفورم (Platform Real Estate)
   if (!mounted) {
     return (
       <div 
         role="status"
-        aria-label="Loading Studio"
+        aria-label="Loading Platform Studio"
         style={{ 
           height: '100vh', 
+          width: '100vw',
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center', 
           justifyContent: 'center', 
           backgroundColor: '#080A0D', 
-          color: '#ffffff',
-          fontFamily: 'var(--font-jakarta), sans-serif', // استخدام الخط الأساسي للمشروع
-          gap: '24px'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 999999
         }} 
       >
-        {/* لوجو بسيط متحرك للتحميل بألوان البراند */}
+        {/* Spinner بألوان البراند */}
         <div style={{
-          width: '50px',
-          height: '50px',
-          border: '4px solid rgba(192, 32, 38, 0.1)',
-          borderTop: '4px solid #C02026',
+          width: '40px',
+          height: '40px',
+          border: '3px solid rgba(192, 32, 38, 0.1)',
+          borderTop: '3px solid #C02026',
           borderRadius: '50%',
-          animation: 'spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite'
+          animation: 'spin 0.6s linear infinite'
         }} />
         
         <div style={{ 
+          marginTop: '20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '8px'
+          gap: '4px'
         }}>
             <div style={{ 
-              fontSize: '11px', 
-              letterSpacing: '0.5em', 
+              fontSize: '10px', 
+              letterSpacing: '0.4em', 
               textTransform: 'uppercase',
               fontWeight: '900',
-              color: '#C02026'
+              color: '#C02026',
+              fontFamily: 'sans-serif'
             }} className="animate-pulse">
               Platform Studio
             </div>
             <div style={{ 
-              fontSize: '9px', 
-              letterSpacing: '0.2em', 
+              fontSize: '8px', 
+              letterSpacing: '0.1em', 
               textTransform: 'uppercase',
-              fontWeight: '600',
-              opacity: 0.4
+              color: '#ffffff',
+              opacity: 0.3,
+              fontFamily: 'sans-serif'
             }}>
-              Market Intelligence 2026
+              Initializing Market Intel 2026
             </div>
         </div>
 
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
           .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-          /* إخفاء أي عناصر قد تظهر بالخطأ أثناء التحميل */
-          body { margin: 0; padding: 0; background-color: #080A0D; }
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+          body { margin: 0 !important; padding: 0 !important; background-color: #080A0D !important; }
         `}} />
       </div>
     );
   }
 
-  // 2. الحاوية الرئيسية للاستوديو
-  // تم استخدام عزل تام (Absolute Isolation) لضمان أن الاستوديو يعمل كـ Micro-frontend مستقل
+  // 2. الحاوية الرئيسية للاستوديو (Isolated Canvas)
   return (
     <div 
-      className="sanity-studio-wrapper"
+      className="sanity-studio-container"
       style={{ 
         height: '100vh', 
         width: '100%', 
@@ -100,12 +103,11 @@ export default function StudioPage() {
         top: 0,
         left: 0,
         zIndex: 99999,
-        backgroundColor: '#ffffff' // الاستوديو داخلياً يفضل الخلفية الفاتحة للتعديل
+        backgroundColor: '#ffffff'
       }}
     >
       <NextStudio 
         config={config} 
-        // تفعيل هذا الخيار لضمان عدم حدوث وميض (Flicker) أثناء التنقل بين المخططات (Schemas)
         unstable_noOverscroll={true}
       />
     </div>

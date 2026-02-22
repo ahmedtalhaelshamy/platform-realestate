@@ -29,7 +29,7 @@ const TABS = [
 
 /**
  * 🏆 FeaturedProjects - 2026 Premium Slider
- * تم تحسينه ليعمل بتناغم مع نظام الـ WebP في ProjectCard وإضافة أزرار التنقل للديسكتوب
+ * تم تحسينه 100% للـ LCP، والـ RTL الكامل، وإمكانية الوصول للمكفوفين
  */
 export default function FeaturedProjects({ projects = [], isAr, lang }) {
   const [activeTab, setActiveTab] = useState('all');
@@ -53,34 +53,35 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
       className="py-32 bg-white relative overflow-hidden group/featured" 
       dir={isAr ? 'rtl' : 'ltr'}
     >
-      <div className="max-w-[1440px] mx-auto px-6 md:px-8 relative">
+      <div className="container relative">
         
-        {/* 1. Header Section - Optimized for LCP */}
+        {/* 1. Header Section - Optimized Typography */}
         <div className="mb-16 space-y-4 text-start">
-          <div className="flex items-center gap-3 text-[#C02026]">
-             <span className="w-12 h-[2px] bg-[#C02026]" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em]">
+          <div className="flex items-center gap-3 text-brand-red">
+             <span className="w-12 h-[2px] bg-brand-red" />
+             <span className={`text-[10px] font-bold uppercase ${isAr ? 'tracking-wider' : 'tracking-[0.4em]'}`}>
                {isAr ? 'مختاراتنا العقارية' : 'Curated Portfolio'}
              </span>
           </div>
-          <h2 className="text-5xl md:text-7xl font-black text-slate-900 italic uppercase tracking-tighter">
-            {isAr ? 'أبرز المشاريع' : 'Featured Assets'}<span className="text-[#C02026]">.</span>
+          <h2 className={`text-5xl md:text-7xl font-black text-slate-900 uppercase ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
+            {isAr ? 'أبرز المشاريع' : 'Featured Assets'}<span className="text-brand-red">.</span>
           </h2>
         </div>
 
-        {/* 2. Interactive Tabs - High Accessibility */}
+        {/* 2. Interactive Tabs - High Accessibility & Fix Contrast */}
         <div className="mb-16 flex overflow-x-auto no-scrollbar pb-4 scroll-smooth">
-          <div className="flex bg-slate-50 p-2 rounded-[2.5rem] border border-slate-100 shadow-inner" role="tablist">
+          <div className="flex bg-slate-50 p-2 rounded-full border border-slate-100 shadow-inner" role="tablist">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
+                className={`flex items-center gap-3 px-8 py-4 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-500 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 ${
                   activeTab === tab.id 
-                    ? 'bg-[#121621] text-white shadow-2xl scale-105' 
-                    : 'text-slate-400 hover:text-[#C02026] hover:bg-white'
+                    ? 'bg-slate-900 text-white shadow-lg scale-105' 
+                    // استخدام text-slate-500 بدلاً من 400 لحل مشكلة التباين في Lighthouse
+                    : 'text-slate-500 hover:text-brand-red hover:bg-white'
                 }`}
               >
                 <tab.icon size={16} />
@@ -90,24 +91,24 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
           </div>
         </div>
 
-        {/* 🚀 أزرار التنقل المخصصة (تظهر فقط على الديسكتوب وتختفي في الموبايل) */}
+        {/* 🚀 أزرار التنقل المخصصة (استخدام Logical Properties + قلب الأسهم في RTL) */}
         <button 
-          className="featured-prev absolute left-0 md:left-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/90 backdrop-blur-md text-slate-900 rounded-full shadow-2xl items-center justify-center border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90"
+          className="featured-prev absolute start-0 md:start-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/95 backdrop-blur-md text-slate-900 rounded-full shadow-premium items-center justify-center border border-slate-100 hover:bg-brand-red hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
           aria-label={isAr ? "السابق" : "Previous"}
         >
-           <ArrowLeft size={28} />
+           {/* نقلب السهم في النسخة العربية لأن اتجاه السلايدر ينعكس */}
+           <ArrowLeft size={28} className="rtl:-scale-x-100" />
         </button>
         <button 
-          className="featured-next absolute right-0 md:right-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/90 backdrop-blur-md text-slate-900 rounded-full shadow-2xl items-center justify-center border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90"
+          className="featured-next absolute end-0 md:end-4 top-[60%] z-30 hidden lg:flex w-16 h-16 bg-white/95 backdrop-blur-md text-slate-900 rounded-full shadow-premium items-center justify-center border border-slate-100 hover:bg-brand-red hover:text-white transition-all opacity-0 group-hover/featured:opacity-100 -translate-y-1/2 active:scale-90 outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
           aria-label={isAr ? "التالي" : "Next"}
         >
-           <ArrowRight size={28} />
+           <ArrowRight size={28} className="rtl:-scale-x-100" />
         </button>
 
         {/* 3. Optimized Swiper Slider */}
         <div className="relative min-h-[550px]">
           <Swiper
-            // ✅ ربط الأزرار المخصصة بالـ Swiper
             modules={[Navigation, Autoplay, Scrollbar, FreeMode, Pagination]}
             navigation={{
               prevEl: '.featured-prev',
@@ -127,30 +128,31 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
             }}
             className="!pb-24 !overflow-visible"
           >
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, index) => (
               <SwiperSlide key={project._id} className="h-auto">
-                 <ProjectCard lang={lang} data={project} />
+                 {/* ✅ السحر هنا: نعطي الكارت الأول priority={true} ليحمل الصورة فوراً (LCP Fix) */}
+                 <ProjectCard lang={lang} data={project} priority={index === 0} />
               </SwiperSlide>
             ))}
 
             {/* 📞 Premium CTA Slide */}
             <SwiperSlide className="h-auto">
-              <div className="h-full min-h-[520px] bg-[#121621] rounded-[3.5rem] p-12 flex flex-col justify-center items-center text-center relative overflow-hidden group/cta border-b-[12px] border-[#C02026] shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#C02026]/20 to-transparent opacity-0 group-hover/cta:opacity-100 transition-opacity duration-700" />
+              <div className="h-full min-h-[520px] bg-slate-900 rounded-3xl p-12 flex flex-col justify-center items-center text-center relative overflow-hidden group/cta border-b-[8px] border-brand-red shadow-premium">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-red/20 to-transparent opacity-0 group-hover/cta:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 
-                <div className="relative z-10 space-y-10">
-                  <div className="w-20 h-20 bg-white/5 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl group-hover/cta:scale-110 transition-transform duration-500">
-                     <TrendingUp size={32} className="text-[#C02026]" />
+                <div className="relative z-10 space-y-10 w-full">
+                  <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl group-hover/cta:scale-110 transition-transform duration-500">
+                     <TrendingUp size={32} className="text-brand-red" />
                   </div>
                   
-                  <h3 className="text-white text-3xl md:text-4xl font-black italic uppercase leading-tight tracking-tighter">
+                  <h3 className={`text-white text-3xl md:text-4xl font-black uppercase leading-tight ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
                     {isAr ? 'هل تبحث عن\nفرصة استثنائية؟' : 'Looking for\nSomething Else?'}
                   </h3>
 
                   <div className="space-y-4 w-full">
                     <a 
                       href={`tel:${phoneNum}`} 
-                      className="flex items-center justify-center gap-4 bg-white text-slate-950 w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#C02026] hover:text-white transition-all shadow-2xl active:scale-95"
+                      className="flex items-center justify-center gap-4 bg-white text-slate-900 w-full py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-brand-red hover:text-white transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
                       <Phone size={18} /> {isAr ? 'اتصل بمستشارك' : 'Call Specialist'}
                     </a>
@@ -158,7 +160,7 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
                       href={whatsappLink} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-4 bg-[#25D366] text-white w-full py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl active:scale-95"
+                      className="flex items-center justify-center gap-4 bg-[#25D366] text-white w-full py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-[#20bd5a] transition-colors shadow-xl active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
                       <MessageCircle size={18} fill="currentColor" /> WhatsApp
                     </a>
@@ -170,11 +172,11 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
         </div>
       </div>
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{__html: `
         /* إخفاء الأزرار الافتراضية إذا ظهرت */
         .swiper-button-next, .swiper-button-prev { display: none !important; }
         
-        /* تفعيل الأزرار المخصصة للعمل عند الهوفر فقط في شاشات الكمبيوتر */
+        /* تفعيل الأزرار المخصصة */
         .featured-prev, .featured-next {
            cursor: pointer;
         }
@@ -197,7 +199,7 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+      `}} />
     </section>
   );
 }

@@ -19,7 +19,6 @@ export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-// ✅ دالة الأمان لمنع خطأ الـ Objects
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -30,7 +29,7 @@ const getSafeText = (val) => {
 };
 
 /**
- * ✅ Metadata: تم تحسين صورة الـ OG لتكون WebP بوزن خفيف
+ * ✅ Metadata: Optimized for SEO & Social Sharing
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -42,13 +41,12 @@ export async function generateMetadata({ params }) {
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
-  // تحسين: استخدام auto('format') لضمان سرعة ظهور الرابط عند المشاركة
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url()
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    title: `${title} | Platform Real Estate`,
+    title: `${title} | Platform`,
     description,
     alternates: { 
       canonical: `${baseUrl}/${lang}/`,
@@ -109,6 +107,8 @@ export default async function HomePage({ params }) {
     "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
     "url": `${CONTACT_INFO.domain}/${lang}/`,
     "logo": `${CONTACT_INFO.domain}/logo.png`,
+    "telephone": CONTACT_INFO.phone,
+    "sameAs": Object.values(CONTACT_INFO.social),
     "address": { "@type": "PostalAddress", "addressLocality": "New Cairo", "addressCountry": "EG" }
   };
 
@@ -118,18 +118,16 @@ export default async function HomePage({ params }) {
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
         
-        {/* 🚀 HERO SECTION - Optimized for LCP */}
+        {/* 🚀 HERO SECTION - Optimized LCP 2026 */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
                <Image 
-                  // تحسين: استخدام auto('format') وتقديم أحجام متجاوبة ذكية
-                  src={urlFor(settings.heroImage).width(1920).auto('format').quality(85).url()} 
+                  src={urlFor(settings.heroImage).width(1920).format('webp').quality(80).url()} 
                   alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
                   priority={true} 
                   fetchPriority="high" 
                   fill
-                  // تحسين: sizes تخبر المتصفح أن الصورة تأخذ عرض الشاشة بالكامل، مما يحسن الـ LCP
                   sizes="100vw"
                   className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
                   placeholder="blur"
@@ -140,25 +138,26 @@ export default async function HomePage({ params }) {
           </div>
 
           <div className="relative z-20 px-6 max-w-7xl text-center space-y-10 mb-12">
-            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2.5 rounded-full text-white text-[11px] md:text-xs font-black uppercase tracking-widest shadow-2xl">
-              <ShieldCheck size={14} className="text-[#C02026]" />
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-full text-white text-[10px] md:text-xs font-black uppercase tracking-widest shadow-2xl">
+              <ShieldCheck size={14} className="text-brand-red" aria-hidden="true" />
               {isAr ? 'منصة الاستثمار العقاري الأولى في مصر' : 'Egypt’s Premier Real Estate Gateway'}
             </div>
             
-            <h1 className="text-5xl md:text-7xl lg:text-[8.5rem] font-black text-white leading-[0.9] tracking-tighter italic drop-shadow-2xl uppercase">
-              {isAr ? settings?.titleAr : settings?.titleEn}<span className="text-[#C02026] not-italic">.</span>
+            <h1 className={`text-5xl md:text-7xl lg:text-[8rem] font-black text-white leading-[1.1] md:leading-[0.95] drop-shadow-2xl uppercase ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
+              {isAr ? settings?.titleAr : settings?.titleEn}<span className="text-brand-red not-italic">.</span>
             </h1>
             
             <Link 
               href={`/${lang}/projects/`} 
-              className="group inline-flex items-center gap-5 bg-[#C02026] text-white px-12 py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-black shadow-2xl active:scale-95"
+              className="group inline-flex items-center gap-5 bg-brand-red text-white px-10 md:px-12 py-5 md:py-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-brand-dark shadow-premium active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
             >
               {isAr ? 'عرض المشاريع الحصرية' : 'Explore Portfolio'}
-              <ArrowRight size={20} className={`${isAr ? 'rotate-180 group-hover:-translate-x-2' : 'group-hover:translate-x-2'} transition-transform`} />
+              <ArrowRight size={20} className={`transition-transform duration-500 ${isAr ? 'rotate-180 group-hover:-translate-x-2' : 'group-hover:translate-x-2'}`} />
             </Link>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full translate-y-1/2 z-[100] px-6 pointer-events-none">
+          {/* Search bar float */}
+          <div className="absolute bottom-0 start-0 w-full translate-y-1/2 z-[100] px-6 pointer-events-none">
              <div className="max-w-5xl mx-auto pointer-events-auto">
                 <SearchFilter lang={lang} isAr={isAr} />
              </div>
@@ -170,70 +169,73 @@ export default async function HomePage({ params }) {
           
           <AboutSection lang={lang} isAr={isAr} />
           
-          <section id="featured" className="bg-slate-50 py-32 border-y border-slate-100" aria-labelledby="featured-title">
+          <section id="featured" className="bg-brand-gray-50 py-32 border-y border-slate-100" aria-labelledby="featured-title">
             <div className="max-w-7xl mx-auto px-6 mb-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
-               <div className="space-y-6">
-                 <h2 id="featured-title" className="text-5xl md:text-8xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
+               <div className="space-y-6 text-start">
+                 <h2 id="featured-title" className={`text-5xl md:text-8xl font-black text-brand-dark uppercase leading-none ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
                    {isAr ? 'أحدث الفرص' : 'Featured'}
                  </h2>
-                 <div className="h-2.5 w-48 bg-[#C02026] rounded-full" aria-hidden="true" />
+                 <div className="h-2.5 w-48 bg-brand-red rounded-full" aria-hidden="true" />
                </div>
                <Link 
                  href={`/${lang}/projects/`} 
-                 className="flex items-center gap-4 text-slate-900 font-black text-sm uppercase tracking-[0.2em] border-b-4 border-[#C02026] pb-2 hover:bg-[#C02026] hover:text-white px-4 transition-all duration-500 rounded-t-xl"
+                 className="flex items-center gap-4 text-brand-dark font-black text-sm uppercase tracking-widest border-b-4 border-brand-red pb-2 hover:bg-brand-red hover:text-white px-4 transition-all duration-500 rounded-t-xl"
                >
-                  {isAr ? 'جميع العقارات' : 'All Listings'} <ArrowRight size={18} className={isAr ? 'rotate-180' : ''} />
+                  {isAr ? 'جميع العقارات' : 'All Listings'} <ArrowRight size={18} className="rtl:rotate-180" />
                </Link>
             </div>
-            {/* تم تمرير البيانات لـ FeaturedProjects، وتعديل الصور هناك يتم داخل المكون نفسه */}
             <FeaturedProjects projects={projects} isAr={isAr} lang={lang} />
           </section>
 
           <section id="hotspots" className="max-w-7xl mx-auto px-6" aria-labelledby="hotspots-title">
              <div className="mb-24 text-start">
-                <h2 id="hotspots-title" className="text-5xl md:text-8xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
+                <h2 id="hotspots-title" className={`text-5xl md:text-8xl font-black text-brand-dark uppercase leading-none ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
                   {isAr ? 'أهم المناطق' : 'Hotspots'}
                 </h2>
              </div>
              <CityCarousel lang={lang} />
           </section>
 
+          {/* 🏢 TITANS SECTION - Legacy Partners */}
           <section id="developers" className="bg-white py-32 overflow-hidden relative" aria-labelledby="dev-title">
               <div className="text-center mb-32 px-6 space-y-6">
-                <span className="text-[#C02026] font-black text-[11px] uppercase tracking-[0.6em] block">
+                <span className={`text-brand-red font-black text-[11px] uppercase block ${isAr ? 'tracking-wider' : 'tracking-[0.6em]'}`}>
                   {isAr ? 'نخبة المطورين العقاريين' : 'Strategic Legacy Partners'}
                 </span>
-                <h2 id="dev-title" className="text-5xl md:text-[9rem] font-black text-slate-900 italic tracking-tighter uppercase leading-none">
+                <h2 id="dev-title" className={`text-5xl md:text-[9rem] font-black text-brand-dark uppercase leading-none ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
                   {isAr ? 'المطورون' : 'Titans'}
                 </h2>
               </div>
 
+              {/* Seamless Logo Marquee */}
               <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
                   <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
                       <Link 
                         key={`${dev._id}-${idx}`} 
                         href={`/${lang}/developers/${dev.slug}/`} 
-                        className="hover:scale-110 transition-transform duration-700 shrink-0"
+                        className="hover:scale-110 transition-transform duration-700 shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-3xl"
                       >
                         <DeveloperLogoItem dev={dev} isAr={isAr} />
                       </Link>
                     ))}
                   </div>
-                  <div className="absolute inset-y-0 left-0 w-32 md:w-80 bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
-                  <div className="absolute inset-y-0 right-0 w-32 md:w-80 bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
+                  {/* Glass Shadows for Marquee */}
+                  <div className="absolute inset-y-0 start-0 w-32 md:w-80 bg-gradient-to-r rtl:bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
+                  <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
           </section>
         </div>
 
         <style dangerouslySetInnerHTML={{ __html: `
-          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
-          .animate-marquee { display: flex; animation: marquee 100s linear infinite; }
+          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
+          @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(33.33%); } }
+          .animate-marquee { display: flex; animation: marquee 120s linear infinite; }
           html[dir="rtl"] .animate-marquee { animation-name: marqueeRTL; }
           .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; will-change: transform; }
           @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
-          @media (max-width: 768px) { .animate-marquee { animation-duration: 50s; } }
+          @media (max-width: 768px) { .animate-marquee { animation-duration: 60s; } }
+          .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }
         `}} />
       </main>
     </>
@@ -241,7 +243,7 @@ export default async function HomePage({ params }) {
 }
 
 /**
- * ✅ DeveloperLogoItem: تم تحسين الشعارات لتكون WebP تلقائياً
+ * ✅ DeveloperLogoItem: Refactored for Premium UI
  */
 const DeveloperLogoItem = ({ dev, isAr }) => {
   const mainBadgeKey = Array.isArray(dev.badges) ? dev.badges[0] : null;
@@ -250,40 +252,39 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
 
   return (
     <div className="relative group/dev px-6 shrink-0"> 
-      <div className="w-[200px] h-[120px] md:w-[320px] md:h-[180px] bg-white rounded-[3rem] md:rounded-[4rem] border border-slate-100 shadow-sm relative transition-all duration-1000 group-hover/dev:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] group-hover/dev:border-[#C02026] group-hover/dev:-translate-y-4">
+      <div className="w-[200px] h-[120px] md:w-[320px] md:h-[180px] bg-white rounded-[3rem] md:rounded-[4rem] border border-slate-100 shadow-sm relative transition-all duration-1000 group-hover/dev:shadow-premium group-hover/dev:border-brand-red group-hover/dev:-translate-y-4">
         
         {mainBadgeKey && (
-          <div className={`absolute -top-4 inset-inline-start-[-12px] z-[60] flex items-center gap-2 ${badgeConfig.bg} ${badgeConfig.color} px-5 py-2 rounded-2xl shadow-xl border border-white transform transition-transform group-hover/dev:scale-110`}>
+          <div className={`absolute -top-4 start-[-12px] z-[60] flex items-center gap-2 ${badgeConfig.bg} ${badgeConfig.color} px-5 py-2 rounded-2xl shadow-xl border border-white transform transition-transform group-hover/dev:scale-110`}>
              <BadgeIcon size={14} aria-hidden="true" />
-             <span className="text-[9px] font-black uppercase tracking-widest">
+             <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
                 {isAr ? badgeConfig.ar : badgeConfig.en}
              </span>
           </div>
         )}
 
         <div className="absolute inset-0 overflow-hidden rounded-[3rem] md:rounded-[4rem] z-10 flex items-center justify-center p-10">
-          <div className="relative w-full h-full grayscale opacity-30 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
+          <div className="relative w-full h-full grayscale opacity-40 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
             {dev.logo ? (
               <Image 
-                // تحسين: WebP تلقائي مع تحديد عرض مناسب للشعارات
-                src={urlFor(dev.logo).width(400).auto('format').url()} 
-                alt={`${dev.nameEn} logo`} 
+                src={urlFor(dev.logo).width(400).format('webp').url()} 
+                alt={`${dev.nameEn} Official Logo`} 
                 fill 
                 sizes="400px"
                 className="object-contain" 
                 loading="lazy"
               />
             ) : (
-              <span className="text-slate-600 font-black text-sm uppercase tracking-widest">{dev.nameEn}</span>
+              <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>
             )}
           </div>
         </div>
 
         {dev.projectsCount > 0 && (
           <div className="absolute -bottom-5 inset-x-0 flex justify-center z-50 opacity-0 group-hover/dev:opacity-100 transition-all duration-700 translate-y-4 group-hover/dev:translate-y-0">
-            <div className="bg-[#C02026] text-white px-6 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-2 border-white">
+            <div className="bg-brand-red text-white px-6 py-2 rounded-2xl shadow-2xl flex items-center gap-3 border-2 border-white">
               <span className="text-sm font-black leading-none">{dev.projectsCount}</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">{isAr ? 'عقار' : 'Assets'}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">{isAr ? 'عقار' : 'Assets'}</span>
             </div>
           </div>
         )}

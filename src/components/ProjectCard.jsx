@@ -11,10 +11,10 @@ import {
 } from 'lucide-react';
 
 /**
- * 🃏 ProjectCard - The Core Real Estate Unit
- * تم تحسينه للتعامل مع صور WebP/AVIF وتأمين الروابط من أخطاء الـ undefined
+ * 🃏 ProjectCard - The Core Real Estate Unit (Refactored for 2026)
+ * مُحسن بنسبة 100% للـ LCP وتجربة المستخدم وإمكانية الوصول
  */
-export default function ProjectCard({ data: project, lang }) {
+export default function ProjectCard({ data: project, lang, priority = false }) {
   const [isInCompare, setIsInCompare] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isAr = lang === 'ar';
@@ -86,57 +86,58 @@ export default function ProjectCard({ data: project, lang }) {
   const projectUrl = `/${lang}/projects/${project.slug}/`;
 
   return (
-    <div className="group relative bg-white rounded-[2.5rem] p-3 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(192,32,38,0.15)] hover:-translate-y-2 overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
+    // استخدام Logical Properties بشكل صحيح وإضافة الظل المخصص (Premium Shadow)
+    <div className="group relative bg-white rounded-3xl p-3 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-premium hover:-translate-y-1 overflow-hidden focus-within:ring-2 focus-within:ring-brand-red" dir={isAr ? 'rtl' : 'ltr'}>
       
       {/* 🖼️ Media Section - Optimized for Next.js Image */}
-      <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-5 bg-slate-100 z-0">
-        <Link href={projectUrl}>
+      <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-5 bg-slate-100 z-0">
+        <Link href={projectUrl} className="block w-full h-full outline-none" tabIndex="-1" aria-hidden="true">
           <Image 
-            // السحر هنا: auto('format') + quality(85) لضمان أصغر حجم WebP ممكن
+            // ✅ Fix LCP: تحديد الأبعاد وطلب WebP من سيرفر Sanity مباشرة لتقليل حجم النقل
             src={project.mainImage 
-              ? urlFor(project.mainImage).width(800).height(600).auto('format').fit('crop').quality(85).url() 
+              ? urlFor(project.mainImage).width(600).height(450).format('webp').quality(80).url() 
               : "/placeholder.jpg"
             }
             alt={isAr ? project.titleAr : project.titleEn}
             fill
-            // sizes: بتعرف المتصفح إن الكارت بياخد 1/3 الشاشة في الديسك توب وكامل الشاشة في الموبايل
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
-            loading="lazy" 
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-[10s] ease-out group-hover:scale-110 will-change-transform"
+            loading={priority ? "eager" : "lazy"} // استخدام الـ priority بذكاء
+            fetchPriority={priority ? "high" : "auto"}
           />
         </Link>
 
         {/* Badges Hub */}
-        <div className="absolute top-4 inset-x-4 z-20 flex justify-between items-start">
+        <div className="absolute top-4 inset-x-4 z-20 flex justify-between items-start pointer-events-none">
           <div className="flex flex-col gap-2">
             {project.isNewLaunch && (
-              <span className="bg-[#C02026] text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-widest shadow-2xl animate-pulse">
+              <span className="bg-brand-red text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                 {isAr ? 'إطلاق حديث' : 'New Launch'}
               </span>
             )}
           </div>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 pointer-events-auto">
             <button 
               onClick={toggleCompare} 
-              aria-label="Add to comparison"
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all shadow-xl backdrop-blur-md border ${isInCompare ? 'bg-[#C02026] text-white border-[#C02026]' : 'bg-white/90 text-slate-900 border-white/20 hover:bg-[#C02026] hover:text-white'}`}
+              aria-label={isInCompare ? (isAr ? 'إزالة من المقارنة' : 'Remove from comparison') : (isAr ? 'إضافة للمقارنة' : 'Add to compare')}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-md backdrop-blur-md border outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-red ${isInCompare ? 'bg-brand-red text-white border-brand-red' : 'bg-white/90 text-slate-800 border-white/20 hover:bg-brand-red hover:text-white'}`}
             >
-              {isInCompare ? <Check size={20} /> : <GitCompare size={20} />}
+              {mounted && isInCompare ? <Check size={18} /> : <GitCompare size={18} />}
             </button>
             <button 
               onClick={handleShare} 
-              aria-label="Share project"
-              className="w-11 h-11 rounded-2xl flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-900 border border-white/20 shadow-xl hover:bg-black hover:text-white transition-all"
+              aria-label={isAr ? 'مشاركة المشروع' : 'Share project'}
+              className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-800 border border-white/20 shadow-md hover:bg-slate-900 hover:text-white transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-900"
             >
-              <Share2 size={18} />
+              <Share2 size={16} />
             </button>
           </div>
         </div>
 
         {/* Floating Price Tag */}
-        <div className="absolute bottom-4 inset-inline-start-4">
-            <div className="bg-slate-950/90 backdrop-blur-xl px-5 py-2.5 rounded-2xl shadow-2xl border border-white/10 text-white font-black text-sm italic tracking-tighter">
+        <div className="absolute bottom-4 start-4 z-20 pointer-events-none">
+            <div className="bg-slate-900/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-white/10 text-white font-bold text-sm tracking-tight">
               {formattedPrice}
             </div>
         </div>
@@ -144,63 +145,65 @@ export default function ProjectCard({ data: project, lang }) {
 
       {/* ℹ️ Info Content */}
       <div className="flex flex-col flex-grow px-2 text-start">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center gap-1.5 text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-            <Building2 size={12} className="shrink-0 text-[#C02026]" />
-            <span className="text-[10px] font-black uppercase truncate max-w-[120px]">{developer}</span>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-1.5 text-slate-600 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+            <Building2 size={12} className="shrink-0 text-brand-red" />
+            <span className="text-[11px] font-bold uppercase truncate max-w-[140px]">{developer}</span>
           </div>
         </div>
 
-        <Link href={projectUrl}>
-          {/* ✅ الحل هنا: إضافة px-2 لمنع القص وتغيير tracking-tighter لـ tracking-tight */}
-          <h3 className="text-xl font-black text-slate-950 mb-3 leading-[1.4] hover:text-[#C02026] transition-colors line-clamp-2 min-h-[3.2rem] italic tracking-tight px-2">
+        <Link href={projectUrl} className="outline-none rounded focus-visible:ring-2 focus-visible:ring-brand-red mb-2">
+          {/* ✅ Fix CLS: تحديد ارتفاع أدنى للعنوان لكي لا تتكسر الشبكة (Grid) */}
+          <h3 className="text-lg font-bold text-slate-900 leading-snug hover:text-brand-red transition-colors line-clamp-2 min-h-[3rem]">
             {isAr ? project.titleAr : project.titleEn}
           </h3>
         </Link>
 
-        <div className="flex items-center gap-2 text-slate-400 text-xs font-bold mb-6 px-2">
-          <MapPin size={14} className="text-[#C02026]" />
+        {/* ✅ Fix Contrast: تغيير text-slate-400 إلى text-slate-500 لنجاح فحص Lighthouse */}
+        <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold mb-5">
+          <MapPin size={14} className="text-brand-red shrink-0" />
           <span className="truncate">{district || (isAr ? 'موقع متميز' : 'Prime Location')}</span>
         </div>
 
         {/* 📊 Key Statistics Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-slate-50/50 p-4 rounded-[1.5rem] border border-slate-100 text-center group-hover:bg-white group-hover:border-red-50 transition-colors">
-            <p className="text-sm font-black text-slate-900 leading-none mb-1">{project.installments || '0'} {isAr ? 'سنوات' : 'Years'}</p>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{isAr ? 'تقسيط' : 'Plan'}</p>
+        <div className="grid grid-cols-2 gap-3 mb-6 mt-auto">
+          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center transition-colors hover:border-brand-red/20">
+            <p className="text-sm font-bold text-slate-900 leading-none mb-1">{project.installments || '0'} {isAr ? 'سنوات' : 'Years'}</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{isAr ? 'تقسيط' : 'Plan'}</p>
           </div>
-          <div className="bg-slate-50/50 p-4 rounded-[1.5rem] border border-slate-100 text-center group-hover:bg-white group-hover:border-red-50 transition-colors">
-            <p className="text-sm font-black text-slate-900 leading-none mb-1">{project.downPayment || '0'}%</p>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{isAr ? 'مقدم' : 'Down'}</p>
+          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center transition-colors hover:border-brand-red/20">
+            <p className="text-sm font-bold text-slate-900 leading-none mb-1">{project.downPayment || '0'}%</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{isAr ? 'مقدم' : 'Down'}</p>
           </div>
         </div>
       </div>
 
       {/* 📞 Call to Action Hub */}
-      <div className="mt-auto flex items-center gap-2.5 pt-4 border-t border-slate-50">
+      <div className="mt-auto flex items-center gap-2 pt-4 border-t border-slate-100">
         <a 
           href={`tel:${phoneNum}`} 
-          aria-label={isAr ? "اتصال هاتفي بمبيعات المشروع" : "Call project sales"}
-          className="flex-1 h-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center gap-3 hover:bg-[#C02026] transition-all duration-500 shadow-xl active:scale-95 group/btn"
+          aria-label={isAr ? `الاتصال بمبيعات مشروع ${project.titleAr}` : `Call sales for ${project.titleEn}`}
+          className="flex-1 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center gap-2 hover:bg-brand-red transition-all duration-300 shadow-md active:scale-95 group/btn outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2"
         >
-          <Phone size={18} fill="currentColor" className="group-hover/btn:rotate-12 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isAr ? 'اتصال' : 'Call'}</span>
+          <Phone size={16} fill="currentColor" className="group-hover/btn:rotate-12 transition-transform" />
+          <span className="text-[11px] font-bold uppercase tracking-wider">{isAr ? 'اتصال' : 'Call'}</span>
         </a>
         
         <a 
           href={whatsappLink} 
           target="_blank" rel="noopener noreferrer" 
-          aria-label={isAr ? "استفسار عبر واتساب" : "Inquiry via WhatsApp"}
-          className="w-14 h-14 rounded-2xl bg-[#25D366] text-white flex items-center justify-center hover:bg-green-600 shadow-xl hover:shadow-green-500/20 transition-all active:scale-95"
+          aria-label={isAr ? `تواصل عبر واتساب لمشروع ${project.titleAr}` : `WhatsApp inquiry for ${project.titleEn}`}
+          className="w-12 h-12 rounded-xl bg-[#25D366] text-white flex items-center justify-center hover:bg-[#20bd5a] shadow-md transition-all active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2"
         >
-          <MessageCircle size={22} fill="currentColor" />
+          <MessageCircle size={20} fill="currentColor" />
         </a>
 
         <Link 
           href={projectUrl} 
-          className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-900 flex items-center justify-center border border-slate-100 hover:bg-slate-950 hover:text-white transition-all shadow-sm"
+          aria-label={isAr ? `عرض تفاصيل مشروع ${project.titleAr}` : `View details for ${project.titleEn}`}
+          className="w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
         >
-          <ArrowUpRight size={22} />
+          <ArrowUpRight size={20} />
         </Link>
       </div>
     </div>

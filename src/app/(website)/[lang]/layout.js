@@ -9,18 +9,18 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 1. إعداد الخطوط - تم تحسين الأوزان لتقليل حجم الملف
+// 1. إعداد الخطوط - تم تحسين الأوزان لتقليل حجم الملف وضمان الأداء
 const almarai = Almarai({
   subsets: ['arabic'],
   variable: '--font-almarai',
-  display: 'swap',
+  display: 'swap', // مهم جداً لمنع الـ Render Blocking
   weight: ['400', '700', '800'],
 });
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
-  display: 'swap',
+  display: 'swap', // مهم جداً لمنع الـ Render Blocking
   weight: ['400', '600', '700', '800'],
 });
 
@@ -90,11 +90,12 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// تحسين إطار العرض (Viewport) بناءً على توصيات Lighthouse
 export const viewport = {
   themeColor: '#C02026',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 5, // السماح للمستخدم بتكبير الشاشة (مهم لسهولة الوصول)
 };
 
 export default async function WebsiteLayout({ children, params }) {
@@ -105,6 +106,7 @@ export default async function WebsiteLayout({ children, params }) {
   return (
     <html 
       lang={lang} 
+      xmlLang={lang} // إضافة xmlLang بناءً على توصية تقرير إمكانية الوصول
       dir={isAr ? 'rtl' : 'ltr'} 
       className={`${almarai.variable} ${jakarta.variable} scroll-smooth`}
       suppressHydrationWarning
@@ -119,17 +121,18 @@ export default async function WebsiteLayout({ children, params }) {
       <body 
         className={`
           ${isAr ? 'font-almarai' : 'font-jakarta'} 
-          min-h-screen flex flex-col bg-slate-50 text-slate-900 
-          antialiased selection:bg-[#C02026] selection:text-white
+          min-h-screen flex flex-col bg-brand-gray-50 text-brand-dark 
+          antialiased selection:bg-brand-red selection:text-white
           overflow-x-hidden
         `}
         suppressHydrationWarning
       >
+        {/* رابط تخطي المحتوى لمستخدمي الكيبورد (Accessibility) */}
         <a 
           href="#main-content" 
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-[#C02026] focus:text-white focus:px-6 focus:py-3 focus:rounded-xl focus:font-bold"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:inset-inline-start-4 focus:z-[9999] focus:bg-brand-red focus:text-white focus:px-6 focus:py-3 focus:rounded-xl focus:font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-red"
         >
-          {isAr ? 'تخطي للرئيسية' : 'Skip to Content'}
+          {isAr ? 'تخطي للمحتوى الرئيسي' : 'Skip to main content'}
         </a>
           
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
@@ -147,11 +150,12 @@ export default async function WebsiteLayout({ children, params }) {
         
         <Footer lang={lang} settings={settings} />
         
+        {/* ملاحظة: يُفضل نقل هذه الأنماط إلى ملف globals.css لتقليل الـ Inline Styles وتحسين أداء الـ Paint */}
         <style dangerouslySetInnerHTML={{ __html: `
           body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
           ::-webkit-scrollbar { width: 8px; }
-          ::-webkit-scrollbar-track { background: #f8fafc; }
-          ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; border: 2px solid #f8fafc; }
+          ::-webkit-scrollbar-track { background: #F8FAFC; }
+          ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 20px; border: 2px solid #F8FAFC; }
           ::-webkit-scrollbar-thumb:hover { background: #C02026; }
           /* تحسين تجربة الـ Focus لمستخدمي الكيبورد (Accessibility) */
           :focus-visible { outline: 2px solid #C02026; outline-offset: 4px; }

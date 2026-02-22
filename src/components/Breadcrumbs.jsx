@@ -4,22 +4,22 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 
 /**
- * 🗺️ Breadcrumbs Component - SEO & UX Optimized
- * يضمن هذا المكون تجربة تصفح سلسة مع تعزيز أرشفة جوجل عبر JSON-LD.
+ * 🗺️ Breadcrumbs Component - SEO & UX Optimized 2026
+ * يدعم اللغتين تلقائياً ويولد بيانات منظمة لمحركات البحث (BreadcrumbList Schema)
  */
 export default function Breadcrumbs({ items, lang = 'ar' }) {
-  // ✅ التخلص من أي متغير وسيط لتفادي أخطاء الـ Scope في Next.js Build
+  const isAr = lang === 'ar';
   
-  // توحيد الدومين الأساسي بأمان
+  // توحيد الدومين الأساسي بأمان للـ Schema
   const domain = process.env.NEXT_PUBLIC_BASE_URL || 'https://platformrealestate.co';
   const baseUrl = domain.replace(/\/$/, '');
 
-  // حماية من الأخطاء لو كانت الداتا فاضية أو مش Array
+  // حماية من البيانات غير الصالحة
   const safeItems = Array.isArray(items) ? items : [];
   if (safeItems.length === 0) return null;
 
-  // تحديد أيقونة الفاصل بناءً على اللغة مباشرة
-  const Separator = lang === 'ar' ? ChevronLeft : ChevronRight;
+  // اختيار الأيقونة الفاصلة بناءً على اتجاه اللغة
+  const SeparatorIcon = isAr ? ChevronLeft : ChevronRight;
 
   // ✅ SEO: إنشاء بيانات Schema.org بصيغة JSON-LD
   const jsonLd = {
@@ -29,14 +29,13 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
       {
         "@type": "ListItem",
         "position": 1,
-        "name": lang === 'ar' ? 'الرئيسية' : 'Home',
+        "name": isAr ? 'الرئيسية' : 'Home',
         "item": `${baseUrl}/${lang}/` 
       },
       ...safeItems.map((item, index) => ({
         "@type": "ListItem",
         "position": index + 2,
         "name": item?.label || '',
-        // ضمان إضافة سلاش نهائية في بيانات السكيما لتطابق الروابط الفعلية
         "item": item?.href ? `${baseUrl}${item.href}${item.href.endsWith('/') ? '' : '/'}` : undefined
       }))
     ]
@@ -44,30 +43,31 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
 
   return (
     <>
-      {/* 🤖 حقن بيانات السكيما لمحركات البحث */}
+      {/* 🤖 بيانات السكيما لمحركات البحث لظهار المسار في نتائج جوجل */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <nav 
-        aria-label="Breadcrumb" 
-        className="w-full mb-6 select-none animate-in fade-in slide-in-from-top-2 duration-700"
+        aria-label={isAr ? "مسار التنقل" : "Breadcrumb"} 
+        className="w-full mb-8 select-none animate-fade-in-up"
+        dir={isAr ? 'rtl' : 'ltr'}
       >
-        <ol className="flex items-center overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar text-sm md:text-base font-medium text-slate-500">
+        <ol className="flex items-center overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar text-sm font-bold">
           
-          {/* 🏠 1. رابط الرئيسية */}
+          {/* 🏠 1. رابط الرئيسية - محسّن للوصول */}
           <li className="flex items-center shrink-0">
             <Link 
               href={`/${lang}/`} 
-              className="flex items-center gap-2 hover:text-[#C02026] transition-all duration-300 focus:outline-none focus:text-[#C02026] group"
-              aria-label={lang === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
+              className="flex items-center gap-2 text-slate-500 hover:text-brand-red transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-lg group"
+              aria-label={isAr ? 'العودة للرئيسية' : 'Back to Home'}
             >
-              <div className="p-1.5 rounded-lg bg-slate-50 group-hover:bg-red-50 transition-colors">
-                <Home size={16} strokeWidth={2.5} className="mb-0.5" />
+              <div className="p-2 rounded-xl bg-slate-100 group-hover:bg-brand-red/10 transition-colors">
+                <Home size={16} strokeWidth={2.5} aria-hidden="true" />
               </div>
-              <span className="hidden md:inline-block font-black uppercase tracking-widest text-[10px]">
-                {lang === 'ar' ? 'الرئيسية' : 'Home'}
+              <span className="hidden sm:inline-block font-black uppercase tracking-widest text-[10px]">
+                {isAr ? 'الرئيسية' : 'Home'}
               </span>
             </Link>
           </li>
@@ -80,18 +80,20 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
 
             return (
               <li key={index} className="flex items-center shrink-0">
-                <Separator size={14} className="mx-2 text-slate-300 rtl:rotate-0 shrink-0 opacity-60" aria-hidden="true" />
+                {/* الفاصل أيقوني - لا يقرأه قارئ الشاشة */}
+                <SeparatorIcon size={14} className="mx-2 md:mx-3 text-slate-300 shrink-0" aria-hidden="true" />
 
                 {itemHref && !isLast ? (
                   <Link 
                     href={itemHref.endsWith('/') ? itemHref : `${itemHref}/`} 
-                    className="hover:text-[#C02026] transition-all duration-300 focus:outline-none font-bold text-[11px] md:text-sm uppercase tracking-tighter italic"
+                    className="text-slate-500 hover:text-brand-red transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-md py-1 px-1 font-bold text-[11px] md:text-xs uppercase tracking-tight italic"
                   >
                     {itemLabel}
                   </Link>
                 ) : (
+                  // العنصر الأخير (الصفحة الحالية): يتم إبرازه باللون الأحمر ومنع تآكله
                   <span 
-                    className="text-[#C02026] font-black text-[11px] md:text-sm uppercase tracking-tighter italic max-w-[150px] md:max-w-[300px] truncate cursor-default"
+                    className="text-brand-red font-black text-[11px] md:text-xs uppercase tracking-tight italic max-w-[180px] md:max-w-[350px] truncate cursor-default leading-relaxed px-1"
                     aria-current="page"
                     title={itemLabel}
                   >
@@ -103,10 +105,10 @@ export default function Breadcrumbs({ items, lang = 'ar' }) {
           })}
         </ol>
 
-        <style jsx>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           .hide-scrollbar::-webkit-scrollbar { display: none; }
           .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `}</style>
+        `}} />
       </nav>
     </>
   );

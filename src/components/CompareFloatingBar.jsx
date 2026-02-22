@@ -6,12 +6,12 @@ import Link from 'next/link';
 
 /**
  * 📊 CompareFloatingBar - Premium 2026 UX
- * تم تحسينه ليكون "SSR-Safe" ويمنع أخطاء التزامن بين السيرفر والمتصفح
+ * تم تحسينه ليكون متوافقاً مع معايير الأداء (Lighthouse) ودعم RTL/LTR بالكامل
  */
 export default function CompareFloatingBar({ lang }) {
   const [items, setItems] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [mounted, setMounted] = useState(false); // حماية من أخطاء الـ Hydration
+  const [mounted, setMounted] = useState(false); 
   const isAr = lang === 'ar';
 
   // 1. وظيفة تحديث البيانات من المتصفح
@@ -19,7 +19,7 @@ export default function CompareFloatingBar({ lang }) {
     if (typeof window === 'undefined') return;
     try {
       const data = JSON.parse(localStorage.getItem('compare_projects') || '[]');
-      // تأثير بصري عند إضافة عنصر جديد
+      // تأثير بصري عند إضافة عنصر جديد لتعزيز تجربة المستخدم
       if (data.length > items.length && mounted) {
         setIsAnimating(true);
         setTimeout(() => setIsAnimating(false), 1000);
@@ -32,11 +32,11 @@ export default function CompareFloatingBar({ lang }) {
 
   // 2. إدارة دورة حياة المكون والتنصت على التغييرات
   useEffect(() => {
-    setMounted(true); // نؤكد أن المكون تم تحميله في المتصفح
+    setMounted(true); 
     updateItems();
     
     window.addEventListener('compareUpdated', updateItems);
-    window.addEventListener('storage', updateItems); // للتزامن لو العميل فاتح أكتر من Tab
+    window.addEventListener('storage', updateItems); 
     
     return () => {
       window.removeEventListener('compareUpdated', updateItems);
@@ -44,47 +44,49 @@ export default function CompareFloatingBar({ lang }) {
     };
   }, [updateItems]);
 
-  const clearCompare = () => {
+  const clearCompare = (e) => {
+    e.preventDefault();
     localStorage.removeItem('compare_projects');
     updateItems();
-    // إخطار باقي المكونات (مثل ProjectCard) أن القائمة أصبحت فارغة
     window.dispatchEvent(new Event('compareUpdated'));
   };
 
-  // حماية: لا تظهر أي شيء حتى يتأكد React من التحميل في المتصفح
+  // حماية من أخطاء الـ Hydration (SSR Safe)
   if (!mounted || items.length === 0) return null;
 
   return (
     <div 
       role="status" 
       aria-live="polite"
-      className="fixed bottom-32 md:bottom-10 left-1/2 -translate-x-1/2 z-[9999] w-fit min-w-[300px] md:min-w-[480px] px-4"
+      className="fixed bottom-32 md:bottom-10 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 z-[9000] w-fit min-w-[300px] md:min-w-[480px] px-4 animate-fade-in-up"
     >
       {/* Container with High-End Glassmorphism */}
       <div className={`
-        relative flex items-center gap-3 md:gap-6 p-2 md:p-3.5 
-        bg-slate-900/80 backdrop-blur-2xl border border-white/10 
-        rounded-full shadow-[0_40px_100px_-15px_rgba(0,0,0,0.7)]
-        transition-all duration-700 ease-out
-        ${isAnimating ? 'scale-110 border-red-500 shadow-red-900/20' : 'scale-100'}
+        relative flex items-center gap-3 md:gap-6 p-2 md:p-3 
+        bg-slate-900/90 backdrop-blur-2xl border border-white/10 
+        rounded-full shadow-premium
+        transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+        will-change-transform
+        ${isAnimating ? 'scale-105 border-brand-red/50 shadow-brand-red/20' : 'scale-100'}
       `}>
         
         {/* Counter Badge Section */}
         <div className="flex items-center gap-4 ps-4 border-e border-white/10 pe-2">
           <div className="relative">
              <div className={`
-               p-3 rounded-full shadow-2xl transition-all duration-500
-               ${isAnimating ? 'bg-red-600' : 'bg-[#C02026]'}
+               p-3 rounded-full shadow-lg transition-all duration-500
+               ${isAnimating ? 'bg-red-600 scale-110' : 'bg-brand-red'}
              `}>
-                <GitCompare size={22} className={`text-white ${isAnimating ? 'rotate-180' : ''} transition-transform duration-500`} aria-hidden="true" />
+                <GitCompare size={20} className={`text-white ${isAnimating ? 'rotate-12' : ''} transition-transform`} aria-hidden="true" />
              </div>
-             <span className="absolute -top-1 -right-1 bg-white text-[#C02026] text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-2xl border-2 border-[#C02026]">
+             {/* عداد دائري باستخدام Logical Property (end) */}
+             <span className="absolute -top-1 -end-1 bg-white text-brand-red text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-xl border-2 border-brand-red">
                 {items.length}
              </span>
           </div>
           
           <div className="flex flex-col text-start hidden sm:flex">
-            <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] leading-none mb-1">
+            <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">
               {isAr ? 'قائمة المقارنة' : 'Compare List'}
             </span>
             <span className="text-xs font-black text-white italic">
@@ -93,26 +95,26 @@ export default function CompareFloatingBar({ lang }) {
           </div>
         </div>
 
-        {/* Action Button - The "Hero" of the Bar */}
+        {/* Action Button - الموجه لصفحة المقارنة */}
         <Link 
           href={`/${lang}/compare/`}
-          className="bg-white hover:bg-[#C02026] text-slate-950 hover:text-white px-8 md:px-12 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-3 group active:scale-95 shadow-2xl"
+          className="bg-white hover:bg-brand-red text-slate-900 hover:text-white px-6 md:px-10 py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-3 group active:scale-95 shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           {isAr ? 'بدء المقارنة' : 'Compare Now'}
-          <Zap size={16} className="fill-current group-hover:scale-125 transition-transform" aria-hidden="true" />
+          <Zap size={14} className="fill-current group-hover:scale-125 transition-transform" aria-hidden="true" />
         </Link>
 
-        {/* Clear Button */}
+        {/* Clear Button - ✅ تم تحسين التباين وإمكانية الوصول */}
         <button 
           onClick={clearCompare}
-          className="me-4 p-2.5 text-white/30 hover:text-red-500 transition-all duration-300 group rounded-full hover:bg-white/5"
-          aria-label={isAr ? 'مسح الكل' : 'Clear All'}
+          className="me-4 p-2.5 text-white/40 hover:text-red-500 transition-all duration-300 group rounded-full hover:bg-white/5 outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+          aria-label={isAr ? `مسح كافة المشاريع (${items.length})` : `Clear all ${items.length} assets`}
         >
-          <X size={22} className="group-hover:rotate-180 transition-transform duration-500" />
+          <X size={20} className="group-hover:rotate-90 transition-transform duration-500" aria-hidden="true" />
         </button>
 
-        {/* Animated Aura Glow */}
-        <div className="absolute inset-0 bg-[#C02026]/10 rounded-full blur-3xl -z-10 animate-pulse pointer-events-none" />
+        {/* Animated Aura Glow - تأثير بصري احترافي */}
+        <div className="absolute inset-0 bg-brand-red/5 rounded-full blur-2xl -z-10 animate-pulse pointer-events-none" />
       </div>
     </div>
   );

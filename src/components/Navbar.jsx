@@ -122,7 +122,7 @@ export default function Navbar({ lang }) {
               
               <div className="relative group h-10 flex items-center"> 
                 <button className={`flex items-center gap-2 text-[13px] font-black uppercase tracking-widest transition-all duration-300 ${textColor} ${pathname.includes('locations') ? '!text-[#C02026]' : ''}`}>
-                  {isAr ? 'المشاريع' : 'Portfolio'} 
+                  {isAr ? 'المشاريع' : 'Projects'} 
                   <ChevronDown size={14} className="group-hover:-rotate-180 transition-transform duration-500" />
                 </button>
                 
