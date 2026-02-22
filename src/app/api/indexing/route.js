@@ -43,13 +43,14 @@ export async function POST(req) {
     const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
 
     // تحويل اسم الـ Type من سانتي ليتوافق مع اسم المجلد في رابط الموقع
-    let folderName = 'projects'; // القيمة الافتراضية
+    // تم التعديل هنا لتستخدم صيغة الجمع "projects" لتوحيد الروابط
+    let folderName = 'projects'; 
     
     if (type === 'developer') folderName = 'developers';
     if (type === 'location')  folderName = 'locations';  // المناطق
     if (type === 'district')  folderName = 'districts';  // الأحياء
     if (type === 'post')      folderName = 'blog';       // المقالات
-    if (type === 'project')   folderName = 'projects';
+    if (type === 'project')   folderName = 'projects';   // التأكد من استخدام الجمع هنا أيضاً
 
     // بناء الرابط النهائي مع ضمان وجود الـ Trailing Slash (/)
     const urlToIndex = `${baseUrl}/${lang}/${folderName}/${cleanSlug}/`.replace(/\/+$/, '/');
