@@ -47,7 +47,7 @@ export async function POST(req) {
 
     // 6. بناء الرابط الموحد المعتمد (Strict Trailing Slash Enforcement)
     // النتيجة: https://platformrealestate.co/ar/projects/district-one-west/
-    const urlToIndex = `https://platformrealestate.co/${lang}/${type}/${slug}/`;
+    const urlToIndex = `https://platformrealestate.co/${lang}/${type}/${slug}`;
 
     // 7. تنفيذ طلب الإرسال (The Core Action)
     // نستخدم URL_UPDATED لأنه يصلح للإضافة الجديدة والتحديث معاً
