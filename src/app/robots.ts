@@ -1,32 +1,45 @@
 import { MetadataRoute } from 'next';
-import { CONTACT_INFO } from '@/components/constants/contact';
 
 /**
  * 🤖 Robots.txt Configuration - The SEO Compass
- * وظيفة الملف: توجيه عناكب جوجل للمحتوى المفيد ومنعها من المناطق التقنية أو الحساسة.
+ * التحديث: تم فتح مسارات التحقق لضمان عدم حدوث خطأ "Permission denied"
  */
 export default function robots(): MetadataRoute.Robots {
-  // 🏁 الدومين الموحد المعتمد - نضمن عدم وجود تشتت (Canonical Authority)
+  // 🏁 الدومين الموحد المعتمد
   const baseUrl = 'https://platformrealestate.co';
 
   return {
-    rules: {
-      userAgent: '*', // ينطبق على جميع محركات البحث (Google, Bing, Yandex, etc.)
-      allow: [
-        '/',
-        '/_next/static/', // السماح بملفات التنسيق لضمان رندرة الصفحة بشكل صحيح
-        '/_next/image/',  // السماح بالصور المحسنة لظهورها في بحث الصور
-        '/api/og/',       // السماح لصور المشاركة (Open Graph) للظهور في منصات التواصل
-      ],
-      disallow: [
-        '/studio/',       // منع أرشفة لوحة تحكم Sanity (حماية وخصوصية)
-        '/admin/',        // منع أرشفة أي مسارات إدارية
-        '/api/',          // منع أرشفة الـ APIs لتقليل الضغط على السيرفر
-        '/private/',      // أي ملفات خاصة بالشركة
-        '/*?*',           // 🛡️ منع أرشفة روابط الفلاتر والبحث (UX & Duplicate Content Protection)
-      ],
-    },
-    // ✅ الإشارة لخريطة الموقع لضمان زحف سريع وشامل
+    rules: [
+      {
+        /**
+         * 1️⃣ قاعدة عامة لجميع محركات البحث (Google, Bing, etc.)
+         */
+        userAgent: '*',
+        allow: [
+          '/',
+          '/_next/static/', // لضمان رندرة CSS بشكل صحيح
+          '/_next/image/',  // لأرشفة الصور المحسنة
+          '/api/og/',       // لصور مشاركة السوشيال ميديا
+        ],
+        disallow: [
+          '/studio/',       // لوحة تحكم Sanity
+          '/admin/',        // المسارات الإدارية
+          '/api/',          // منع أرشفة الـ APIs العامة
+          '/private/',      // الملفات الخاصة
+          '/*?*',           // منع تكرار المحتوى بسبب الفلاتر
+        ],
+      },
+      {
+        /**
+         * 2️⃣ قاعدة استثنائية لأدوات الفهرسة والتحقق (Indexing Bots)
+         * هذا الجزء يساعد في حل مشكلة "Failed to verify ownership" 
+         * إذا كانت الأداة تستخدم روابط تتبع أو بارامترات للتحقق.
+         */
+        userAgent: ['AdsBot-Google', 'Twitterbot', 'facebookexternalhit'], 
+        allow: '/',
+      }
+    ],
+    // ✅ الإشارة لخريطة الموقع
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

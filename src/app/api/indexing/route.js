@@ -3,27 +3,26 @@ import { NextResponse } from 'next/server';
 
 /**
  * 🤖 Google Indexing Gateway - Platform Real Estate Standard 2026
- * المهمة: إخطار جوجل فوراً لضمان أرشفة لحظية للمشاريع والمقالات.
+ * التحديث: معالجة ذكية للروابط لضمان مطابقة ملكية URL في Search Console.
  */
 export async function POST(req) {
   try {
     const body = await req.json();
     
-    // 1. استلام البيانات مع الحفاظ على الخيارات الافتراضية الذكية
+    // 1. استلام البيانات
     const { secret, slug, lang = 'ar', type = 'projects' } = body;
 
-    // 2. التحقق من أمن الطلب (Security Shield)
+    // 2. التحقق من أمن الطلب
     if (!process.env.INDEXING_SECRET || secret !== process.env.INDEXING_SECRET) {
-      console.error('Indexing Auth Failed: Missing or Invalid Secret Key');
+      console.error('Indexing Auth Failed: Invalid Secret Key');
       return NextResponse.json({ success: false, message: 'Unauthorized Access' }, { status: 401 });
     }
 
-    // 3. التحقق من وجود المعرف (Slug)
     if (!slug) {
       return NextResponse.json({ success: false, message: 'Resource Slug is required' }, { status: 400 });
     }
 
-    // 4. معالجة المفتاح الخاص لبيئات Vercel/Production
+    // 3. معالجة المفاتيح الخاصة (Vercel Fix)
     const privateKey = process.env.GOOGLE_PRIVATE_KEY
       ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n')
       : undefined;
@@ -31,10 +30,10 @@ export async function POST(req) {
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 
     if (!privateKey || !clientEmail) {
-      throw new Error("Critical Google Credentials (Private Key or Client Email) are missing");
+      throw new Error("Google Credentials missing in Environment Variables");
     }
 
-    // 5. إعداد نظام الصلاحيات المعتمد من جوجل
+    // 4. إعداد الصلاحيات
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: clientEmail,
@@ -45,12 +44,14 @@ export async function POST(req) {
 
     const indexing = google.indexing('v3');
 
-    // 6. بناء الرابط الموحد المعتمد (Strict Trailing Slash Enforcement)
-    // النتيجة: https://platformrealestate.co/ar/projects/district-one-west/
-    const urlToIndex = `https://platformrealestate.co/${lang}/${type}/${slug}`;
+    // 5. بناء الرابط مع ضمان وجود الـ Trailing Slash (/) في النهاية
+    // جوجل تعتبر example.com/page و example.com/page/ رابطين مختلفين تماماً
+    // التعديل هنا يضمن إضافة الـ / دائماً لمطابقة الـ URL Prefix الموثق
+    const baseUrl = 'https://platformrealestate.co';
+    const cleanSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+    const urlToIndex = `${baseUrl}/${lang}/${type}/${cleanSlug}/`.replace(/\/+$/, '/');
 
-    // 7. تنفيذ طلب الإرسال (The Core Action)
-    // نستخدم URL_UPDATED لأنه يصلح للإضافة الجديدة والتحديث معاً
+    // 6. تنفيذ الطلب
     const response = await indexing.urlNotifications.publish({
       auth,
       requestBody: {
@@ -59,27 +60,27 @@ export async function POST(req) {
       },
     });
 
-    // 8. تسجيل العملية بنجاح في سجلات النظام
-    console.log(`[Indexing Success] Google notified for: ${urlToIndex}`);
+    console.log(`✅ [Indexing Success]: ${urlToIndex}`);
 
     return NextResponse.json({ 
       success: true,
-      message: 'Google Indexing triggered successfully!', 
+      message: 'Google notified successfully', 
       url: urlToIndex,
-      googleResponse: response.data 
+      data: response.data 
     });
 
   } catch (error) {
-    // معالجة الأخطاء الحرجة وتسجيلها بدقة
-    console.error('Indexing API Error Log:', {
+    // 7. تحسين سجل الأخطاء لكشف السبب الحقيقي (Detailed Error Logging)
+    console.error('❌ [Indexing API Error]:', {
       message: error.message,
-      stack: error.stack
+      googleDetails: error.response?.data || 'Check Search Console Permissions'
     });
 
     return NextResponse.json({ 
       success: false,
       message: 'Indexing operation failed', 
-      error: error.message 
+      error: error.message,
+      details: error.response?.data?.error?.message || 'Permission Denied'
     }, { status: 500 });
   }
 }
