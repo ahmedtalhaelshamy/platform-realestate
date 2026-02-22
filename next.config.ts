@@ -1,20 +1,25 @@
 import type { NextConfig } from "next";
 
 /** * 🚀 Platform Real Estate - Next.js Configuration (v16.1.6 Optimized)
- * تم تحديث الملف لإزالة تحذيرات ESLint وضمان أقصى أداء مع Sanity CDN
+ * تم التعديل لرفع سكور الأداء (LCP) عن طريق تفعيل تحسين الصور من Vercel
  */
 
 const nextConfig: NextConfig = {
-  // ✅ توحيد شكل الروابط لضمان قوة السيو ومنع تكرار المحتوى (Duplicate Content)
+  // ✅ توحيد شكل الروابط لضمان قوة السيو ومنع تكرار المحتوى
   trailingSlash: true,
   
-  // ✅ حماية أمنية بإخفاء هوية تقنيات الموقع (Hide X-Powered-By)
+  // ✅ حماية أمنية بإخفاء هوية تقنيات الموقع
   poweredByHeader: false,
 
   images: {
-    // ✅ بما أننا نستخدم Sanity Image URL Builder مع التحسينات التي أجريناها، 
-    // يفضل جعل unoptimized: true لتوفير موارد السيرفر وتقليل تكاليف Vercel
-    unoptimized: true, 
+    // 🚀 التعديل الجوهري: جعلها false للسماح لـ Next.js/Vercel بإنشاء مقاسات متجاوبة
+    // هذا سيقلل حجم صورة الـ Hero من 500KB إلى أقل من 50KB للموبايل
+    unoptimized: false, 
+    
+    // ✅ تحسين: زيادة عدد المقاسات المدعومة لضمان أدق حجم لكل شاشة
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    
     remotePatterns: [
       {
         protocol: 'https',
@@ -25,11 +30,11 @@ const nextConfig: NextConfig = {
   },
 
   typescript: {
-    // ✅ تجاهل أخطاء التايب سكريبت لضمان استمرار الـ Build في البيئات الصارمة
+    // ✅ تجاهل أخطاء التايب سكريبت أثناء الـ Build
     ignoreBuildErrors: true,
   },
 
-  // 🛡️ إعدادات رؤوس الأمان (Security Headers) لحماية الموقع من الهجمات الشائعة
+  // 🛡️ إعدادات رؤوس الأمان (Security Headers)
   async headers() {
     return [
       {
@@ -44,7 +49,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 🔗 تحويلات السيو (Redirects) للحفاظ على ترتيب الروابط القديمة
+  // 🔗 تحويلات السيو (Redirects)
   async redirects() {
     return [
       { source: '/ar/about', destination: '/ar/about-us/', permanent: true },

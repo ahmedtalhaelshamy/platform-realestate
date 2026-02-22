@@ -122,17 +122,19 @@ export default async function HomePage({ params }) {
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
-               <Image 
-                  src={urlFor(settings.heroImage).width(1920).format('webp').quality(80).url()} 
-                  alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
-                  priority={true} 
-                  fetchPriority="high" 
-                  fill
-                  sizes="100vw"
-                  className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-                  placeholder="blur"
-                  blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
-               />
+            <Image 
+  // شيلنا الـ width الثابت عشان نسمح لـ Next.js يولد أحجام مختلفة (srcset)
+  src={urlFor(settings.heroImage).format('webp').quality(80).url()} 
+  alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
+  priority={true} 
+  fetchPriority="high" 
+  fill
+  // السطر ده هو السحر: بيقول للمتصفح حمل حجم الصورة المناسب لعرض الشاشة
+  sizes="100vw"
+  className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
+  placeholder="blur"
+  blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
+/>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
           </div>
