@@ -6,21 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
-import { Building2, Search, ShieldCheck, Briefcase, X, ArrowUpRight, ChevronRight, ChevronLeft } from 'lucide-react';
-
-// ✅ 1. دوال الحماية (خارج المكون للأداء)
-const getSafeText = (val) => {
-  if (!val) return "";
-  if (typeof val === 'string') return val;
-  if (Array.isArray(val)) return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
-  if (typeof val === 'object' && val.children) return val.children.map(child => child.text).join('');
-  return String(val);
-};
-
-const normalize = (text) => {
-  return text.toLowerCase().trim()
-    .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
-};
+import { Building2, Search, X, ChevronRight, ChevronLeft, MessageCircle, Phone, Briefcase } from 'lucide-react';
 
 export default function DevelopersListClient({ initialDevelopers = [], lang }) {
   const isAr = lang === 'ar';
@@ -28,127 +14,91 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  // إغلاق القائمة عند الضغط بالخارج
   useEffect(() => {
     const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setIsOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ✅ 2. منطق الفلترة الموحد (عربي + إنجليزي)
   const filtered = useMemo(() => {
-    const s = normalize(query);
+    const s = query.toLowerCase().trim();
     if (!s) return initialDevelopers;
     return initialDevelopers.filter(dev => 
-      normalize(getSafeText(dev.nameAr)).includes(s) || 
-      normalize(getSafeText(dev.nameEn)).includes(s)
+      (dev.nameAr || "").includes(s) || (dev.nameEn || "").toLowerCase().includes(s)
     );
   }, [query, initialDevelopers]);
 
-  // الاقتراحات (أول 5 نتائج)
-  const suggestions = query.length > 0 ? filtered.slice(0, 5) : [];
+  const whatsappNum = (CONTACT_INFO.whatsapp || "").toString().replace(/\D/g, '');
 
   return (
-    <main className={`min-h-screen bg-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
+    <main className="min-h-screen bg-white pb-20 overflow-x-hidden" dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🚀 HERO & SMART SEARCH */}
-      <header className="relative bg-[#080A0D] pt-32 pb-48 md:pt-48 md:pb-60 overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#C02026_0.5px,transparent_0.5px)] [background-size:30px_30px]" />
-        
-        <div className="relative z-50 max-w-7xl mx-auto px-6 text-center">
-          <div className="flex justify-center mb-10">
-            <Breadcrumbs items={[{ label: isAr ? 'المطورين' : 'TITANS' }]} lang={lang} />
-          </div>
-          
-          <h1 className="text-6xl md:text-[9.5rem] font-black text-white mb-8 tracking-tighter uppercase leading-[0.8] italic drop-shadow-2xl">
+      {/* 🔍 HEADER & SEARCH */}
+      <header className="relative bg-[#080A0D] pt-32 pb-40 px-4">
+        <div className="relative z-50 max-w-7xl mx-auto text-center">
+          <div className="flex justify-center mb-8"><Breadcrumbs items={[{ label: isAr ? 'المطورين' : 'TITANS' }]} lang={lang} /></div>
+          <h1 className="text-5xl md:text-[8rem] font-black text-white mb-12 tracking-tighter uppercase italic">
             {isAr ? 'عمالقة' : 'THE'} <span className="text-[#C02026] not-italic">{isAr ? 'التطوير' : 'TITANS'}</span>
           </h1>
 
-          {/* 🔍 Search Box Container */}
-          <div className="max-w-3xl mx-auto relative mt-20" ref={wrapperRef}>
-            <div className="relative z-50">
-              <Search className={`absolute ${isAr ? 'right-8' : 'left-8'} top-1/2 -translate-y-1/2 text-slate-400`} size={24} />
-              <input 
-                type="text" 
-                value={query}
-                onFocus={() => setIsOpen(true)}
-                onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
-                placeholder={isAr ? "ابحث بالعربي أو English..." : "Search Titans (Bilingual)..."} 
-                className="w-full bg-white border-4 border-transparent rounded-[2.5rem] py-8 px-20 text-xl font-black focus:border-[#C02026] outline-none shadow-2xl text-slate-900 italic transition-all"
-              />
-              {query && (
-                <button onClick={() => { setQuery(""); setIsOpen(false); }} className={`absolute ${isAr ? 'left-8' : 'right-8'} top-1/2 -translate-y-1/2 bg-slate-100 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all`}>
-                  <X size={18} />
-                </button>
-              )}
-            </div>
-
-            {/* ✨ Elegant Suggestions Box ✨ */}
-            {isOpen && suggestions.length > 0 && (
-              <div className="absolute top-[110%] inset-x-0 bg-white rounded-[3rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] border border-slate-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#C02026]">{isAr ? 'نتائج مقترحة' : 'Top Matches'}</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase italic">{filtered.length} {isAr ? 'مطور' : 'titans'}</span>
-                </div>
-                <div className="max-h-[380px] overflow-y-auto">
-                  {suggestions.map((dev) => (
-                    <Link 
-                      key={dev._id} 
-                      href={`/${lang}/developers/${dev.slug}/`}
-                      className="flex items-center gap-5 p-5 hover:bg-red-50 transition-all group border-b border-slate-50 last:border-0"
-                    >
-                      <div className="w-14 h-14 bg-white rounded-2xl p-2 border border-slate-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        {dev.logo ? <Image src={urlFor(dev.logo).width(80).url()} alt="logo" width={40} height={40} className="object-contain" /> : <Building2 size={20} className="text-slate-200" />}
-                      </div>
-                      <div className="flex-grow text-start">
-                        <h4 className="text-base font-black uppercase italic tracking-tighter text-slate-900 group-hover:text-[#C02026]">{getSafeText(isAr ? dev.nameAr : dev.nameEn)}</h4>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{dev.projectsCount || 0} {isAr ? 'مشروع' : 'Units'}</p>
-                      </div>
-                      <div className="text-slate-200 group-hover:text-[#C02026] transition-colors">
-                        {isAr ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="max-w-2xl mx-auto relative" ref={wrapperRef}>
+            <Search className={`absolute ${isAr ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 text-slate-400`} size={20} />
+            <input 
+              type="text" value={query} onFocus={() => setIsOpen(true)}
+              onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+              placeholder={isAr ? "ابحث عن مطور..." : "Search titans..."} 
+              className="w-full bg-white rounded-full py-5 md:py-7 px-14 md:px-16 text-lg font-bold focus:ring-4 focus:ring-[#C02026]/20 outline-none text-slate-900 shadow-2xl"
+            />
           </div>
         </div>
       </header>
 
-      {/* 🏙️ TITANS GRID */}
-      <section className="max-w-[1440px] mx-auto px-6 pt-32 pb-40 relative z-10">
-        {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-14">
-            {filtered.map((dev) => {
-               const name = getSafeText(isAr ? dev.nameAr : dev.nameEn);
-               return (
-                 <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group relative bg-white rounded-[3.5rem] p-10 border border-slate-50 shadow-sm hover:shadow-2xl transition-all duration-700 hover:-translate-y-3 flex flex-col items-center text-center">
-                    <div className="h-32 md:h-44 w-full relative mb-10 flex items-center justify-center bg-slate-50 rounded-[3rem] p-8 group-hover:bg-white transition-colors overflow-hidden">
-                      {dev.logo ? (
-                        <Image src={urlFor(dev.logo).width(400).auto('format').url()} alt={name} fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" />
-                      ) : <Building2 size={48} className="text-slate-200" />}
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-black text-slate-950 group-hover:text-[#C02026] transition-colors uppercase italic tracking-tighter line-clamp-1">{name}</h2>
-                    <div className="mt-6 inline-flex items-center gap-2 py-3 px-6 bg-slate-50 rounded-2xl group-hover:bg-[#C02026] group-hover:text-white transition-all shadow-inner font-black uppercase text-[10px] tracking-widest">
-                      <Briefcase size={14} /> {dev.projectsCount || 0} {isAr ? 'مشروع' : 'Units'}
-                    </div>
-                 </Link>
-               );
-            })}
-          </div>
-        ) : (
-          <div className="py-40 text-center bg-slate-50 rounded-[4rem] border-2 border-dashed border-slate-200">
-             <Search size={64} className="mx-auto text-slate-200 mb-6 animate-pulse" />
-             <h2 className="text-2xl font-black text-slate-400 italic uppercase tracking-widest">{isAr ? 'لا توجد نتائج' : 'No matches found'}</h2>
-          </div>
-        )}
+      {/* 🏙️ GRID */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10">
+          {filtered.map((dev) => (
+            <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex flex-col items-center text-center">
+              <div className="aspect-square w-full relative mb-6 bg-slate-50 rounded-[2rem] md:rounded-[3rem] p-6 border border-slate-100 group-hover:border-[#C02026]/30 transition-all">
+                {dev.logo ? (
+                  <Image src={urlFor(dev.logo).width(400).url()} alt="logo" fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" />
+                ) : <Building2 size={40} className="text-slate-200" />}
+              </div>
+              {/* ✅ سطر الحماية من التآكل */}
+              <h2 className="text-base md:text-xl font-black text-slate-900 px-2 leading-tight uppercase italic overflow-visible w-full break-words">
+                {isAr ? dev.nameAr : dev.nameEn}
+              </h2>
+              <div className="mt-3 text-[10px] font-black text-[#C02026] uppercase tracking-widest bg-red-50 px-4 py-1.5 rounded-full">
+                {dev.projectsCount || 0} {isAr ? 'مشروع' : 'Units'}
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        body { background-color: #ffffff; }
-      `}} />
+      {/* 🚀 THE ONLY CTA BOX (Mobile & Desktop) */}
+      <section className="max-w-7xl mx-auto px-6 py-10">
+        <div className="bg-[#080A0D] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 border-b-[10px] border-[#C02026] relative overflow-hidden">
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div className="text-center lg:text-start space-y-4">
+              <h3 className="text-3xl md:text-6xl font-black text-white italic uppercase tracking-tighter">
+                {isAr ? 'شريك' : 'YOUR'} <span className="text-[#C02026] not-italic">{isAr ? 'النجاح' : 'PARTNER'}</span>
+              </h3>
+              <p className="text-slate-400 text-sm md:text-lg font-medium italic max-w-md">
+                {isAr ? 'نساعدك في اختيار المطور الأنسب لاستثمارك مجاناً.' : 'Expert guidance to choose the right titan for your investment.'}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+              <a href={`https://wa.me/${whatsappNum}`} className="bg-[#25D366] text-white px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl">
+                <MessageCircle size={20} fill="currentColor" /> WhatsApp
+              </a>
+              <a href={`tel:${CONTACT_INFO.phone}`} className="bg-white text-slate-900 px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl">
+                <Phone size={20} fill="currentColor" /> {isAr ? 'اتصل بنا' : 'Call Now'}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

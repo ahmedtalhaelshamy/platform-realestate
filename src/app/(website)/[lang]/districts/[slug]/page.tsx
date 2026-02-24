@@ -163,8 +163,10 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   };
 
   return (
-    <main className={`min-h-screen bg-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
+<main 
+  className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
+  dir={isAr ? 'rtl' : 'ltr'}
+>      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       
       {/* 1. HERO SECTION - Optimized for Visual Impact */}
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">

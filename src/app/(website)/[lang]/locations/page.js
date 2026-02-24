@@ -105,8 +105,10 @@ export default async function LocationsIndexPage({ params }) {
   ];
 
   return (
-    <main className={`min-h-screen bg-white selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
-      
+<main 
+  className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
+  dir={isAr ? 'rtl' : 'ltr'}
+>      
       {/* 🤖 بيانات السكيما الجغرافية */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 

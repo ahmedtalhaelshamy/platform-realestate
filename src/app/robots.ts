@@ -1,45 +1,45 @@
 import { MetadataRoute } from 'next';
+import { CONTACT_INFO } from '@/components/constants/contact';
 
 /**
  * 🤖 Robots.txt Configuration - The SEO Compass
- * التحديث: تم فتح مسارات التحقق لضمان عدم حدوث خطأ "Permission denied"
+ * الغرض: توجيه عناكب البحث (Crawlers) وحماية المسارات الخاصة.
  */
 export default function robots(): MetadataRoute.Robots {
-  // 🏁 الدومين الموحد المعتمد
-  const baseUrl = 'https://platformrealestate.co';
+  // ✅ سحب الدومين من الثوابت الموحدة وتنظيفه
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
   return {
     rules: [
       {
         /**
-         * 1️⃣ قاعدة عامة لجميع محركات البحث (Google, Bing, etc.)
+         * 1️⃣ القاعدة العامة: لجميع محركات البحث
          */
         userAgent: '*',
         allow: [
           '/',
-          '/_next/static/', // لضمان رندرة CSS بشكل صحيح
-          '/_next/image/',  // لأرشفة الصور المحسنة
-          '/api/og/',       // لصور مشاركة السوشيال ميديا
+          '/_next/static/', // ضروري عشان جوجل يشوف الـ CSS والـ JS ويقيم الصفحة صح
+          '/_next/image/',  // لأرشفة الصور المحسنة (LCP)
+          '/api/og/',       // لضمان ظهور صور المشاركة على السوشيال ميديا
         ],
         disallow: [
-          '/studio/',       // لوحة تحكم Sanity
-          '/admin/',        // المسارات الإدارية
+          '/studio/',       // لوحة تحكم Sanity (ممنوع الأرشفة)
+          '/admin/',        // المسارات الإدارة
           '/api/',          // منع أرشفة الـ APIs العامة
           '/private/',      // الملفات الخاصة
-          '/*?*',           // منع تكرار المحتوى بسبب الفلاتر
+          '/*?*',           // 🔥 منع أرشفة روابط الفلاتر (Query Params) لمنع المحتوى المكرر في Semrush
         ],
       },
       {
         /**
-         * 2️⃣ قاعدة استثنائية لأدوات الفهرسة والتحقق (Indexing Bots)
-         * هذا الجزء يساعد في حل مشكلة "Failed to verify ownership" 
-         * إذا كانت الأداة تستخدم روابط تتبع أو بارامترات للتحقق.
+         * 2️⃣ قاعدة استثنائية لبوتات السوشيال ميديا والإعلانات
+         * تسمح لهم بالوصول الكامل لضمان ظهور الـ Previews بشكل سليم.
          */
-        userAgent: ['AdsBot-Google', 'Twitterbot', 'facebookexternalhit'], 
+        userAgent: ['AdsBot-Google', 'Twitterbot', 'facebookexternalhit', 'Bingbot'], 
         allow: '/',
       }
     ],
-    // ✅ الإشارة لخريطة الموقع
+    // ✅ الإشارة لرابط خريطة الموقع الموحد
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

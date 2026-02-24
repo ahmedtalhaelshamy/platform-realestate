@@ -1,52 +1,40 @@
 import { client } from '@/sanity/client';
 import DevelopersListClient from './DevelopersListClient';
 import { Suspense } from 'react';
+import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ 1. PERFORMANCE: ضبط الصفحة لتكون Static مع تحديث كل ساعة
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
-/**
- * 📡 جلب بيانات العمالقة (Titans)
- * قمنا بالتأكد من جلب nameAr و nameEn معاً لدعم البحث الثنائي
- */
-async function fetchDevelopersData() {
-  const query = `*[_type == "developer" && !(_id in path("drafts.**"))] | order(order asc) {
-    _id,
-    nameAr,
-    nameEn,
-    "slug": slug.current,
-    logo,
-    "projectsCount": count(*[_type == "project" && references(^._id) && !(_id in path("drafts.**"))])
-  }`;
-  
-  try {
-    const data = await client.fetch(query);
-    return data || [];
-  } catch (error) {
-    console.error("Critical error fetching developers:", error);
-    return [];
-  }
+// ✅ الجزء ده هو المسؤول عن حل مشاكل Semrush و Google Search Console
+export async function generateMetadata({ params }) {
+  const { lang } = await params;
+  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, ''); // تنظيف الدومين
+  const currentUrl = `${baseUrl}/${lang}/developers/`; // الرابط الأساسي النظيف
+
+  return {
+    title: lang === 'ar' ? `أهم المطورين العقاريين في مصر | ${CONTACT_INFO.siteNameAr}` : `Top Developers | ${CONTACT_INFO.siteNameEn}`,
+    alternates: {
+      canonical: currentUrl, // حل مشكلة الـ Canonical
+      languages: {
+        'ar-EG': `${baseUrl}/ar/developers/`, // حل مشكلة الـ Hreflang عربي
+        'en-US': `${baseUrl}/en/developers/`, // حل مشكلة الـ Hreflang إنجليزي
+        'x-default': `${baseUrl}/ar/developers/`, // التوجيه الافتراضي
+      },
+    },
+  };
 }
 
-/**
- * 🏗️ المكون الرئيسي لصفحة المطورين (Server-Side)
- */
 export default async function DevelopersPage({ params }) {
-  // ✅ Next.js 15: يجب عمل await للـ params قبل استخدامها
-  const resolvedParams = await params;
-  const { lang } = resolvedParams;
-
-  // جلب البيانات في السيرفر لضمان الـ SEO وسرعة التحميل
-  const developers = await fetchDevelopersData();
+  const { lang } = await params;
+  
+  const developers = await client.fetch(`*[_type == "developer" && !(_id in path("drafts.**"))] | order(order asc) {
+    _id, nameAr, nameEn, "slug": slug.current, logo,
+    "projectsCount": count(*[_type == "project" && references(^._id) && !(_id in path("drafts.**"))])
+  }`);
 
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-slate-100 border-t-[#C02026] rounded-full animate-spin"></div>
-      </div>
-    }>
-      {/* تمرير البيانات كاملة لمكون الكلينت الذكي */}
+    <Suspense fallback={<div className="h-screen flex items-center justify-center font-black animate-pulse">LOADING...</div>}>
       <DevelopersListClient initialDevelopers={developers} lang={lang} />
     </Suspense>
   );
