@@ -4,7 +4,7 @@ import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
-import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, CheckCircle } from 'lucide-react';
+import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -103,6 +103,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
+  // 🚀 تطوير الـ Query لجلب المقالات المربوطة بالحي (relatedPosts)
   const query = `{
     "district": *[_type == "district" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
       _id, nameAr, nameEn, descriptionAr, descriptionEn, image,
@@ -113,11 +114,14 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         "developer": developer->{nameAr, nameEn},
         "districtData": district->{ nameAr, nameEn },
         "locationData": location->{ nameAr, nameEn }
+      },
+      "relatedPosts": *[_type == "post" && references(^._id) && language == $lang] | order(_createdAt desc)[0...3] {
+        title, "slug": slug.current, mainImage, overview, _createdAt
       }
     }
   }`;
 
-  const data = await client.fetch(query, { slug });
+  const data = await client.fetch(query, { slug, lang });
   if (!data?.district) return notFound();
 
   const { district } = data;
@@ -147,7 +151,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في ${distName}` : `Property inquiry in ${distName} District`)}`;
 
-  // ✅ SEO: بيانات منظمة متقدمة (Accommodation/Place)
+  // ✅ SEO: بيانات منظمة متقدمة (Place)
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "Place",
@@ -163,22 +167,23 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   };
 
   return (
-<main 
-  className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
-  dir={isAr ? 'rtl' : 'ltr'}
->      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
+    <main 
+      className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
+      dir={isAr ? 'rtl' : 'ltr'}
+    >       
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       
-      {/* 1. HERO SECTION - Optimized for Visual Impact */}
+      {/* 1. HERO SECTION */}
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">
         {district.image ? (
         <Image 
-  src={urlFor(district.image).format('webp').quality(80).url()} 
-  alt={distName} 
-  fill 
-  sizes="100vw"
-  className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
-  priority 
-/>
+          src={urlFor(district.image).format('webp').quality(80).url()} 
+          alt={distName} 
+          fill 
+          sizes="100vw"
+          className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
+          priority 
+        />
         ) : (
           <div className="absolute inset-0 bg-brand-dark" />
         )}
@@ -214,7 +219,6 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12" role="list">
               {district.projects.map((proj: any, index: number) => (
                 <div key={proj._id} role="listitem" className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                  {/* ✅ تم تعديل isPriority إلى priority هنا */}
                   <ProjectCard data={proj} lang={lang} priority={index < 3} />
                 </div>
               ))}
@@ -250,7 +254,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                 )}
             </article>
 
-            {/* Sticky Sidebar CTA - The Lead Machine */}
+            {/* Sticky Sidebar CTA */}
             <aside className="lg:col-span-4 lg:sticky lg:top-32 order-1 lg:order-2">
                 <section className="bg-brand-dark rounded-[4rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border-b-[16px] border-brand-red group">
                     <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none" aria-hidden="true">
@@ -274,8 +278,9 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                                className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-green-500/30">
                                 <MessageCircle size={24} fill="currentColor" aria-hidden="true" /> WhatsApp Advisor
                             </a>
+                            {/* ✅ زرار الاتصال الجديد: أحمر، هوفر أبيض، نص أسود عند الهوفر */}
                             <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                               className="flex items-center justify-center gap-4 w-full py-6 bg-white text-brand-dark hover:bg-brand-red hover:text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20">
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20">
                                 <Phone size={24} fill="currentColor" aria-hidden="true" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
                             </a>
                         </div>
@@ -284,7 +289,59 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             </aside>
         </div>
 
-        {/* 4. CROSS-SELLING: Regional Hotshots */}
+        {/* 📰 ✅ 4. AREA INSIGHTS (Related News Section) */}
+        {district.relatedPosts && district.relatedPosts.length > 0 && (
+          <section className="pt-32 border-t border-slate-100">
+            <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-[#C02026] ps-8 gap-8 text-start">
+               <div>
+                  <h2 className={`text-4xl md:text-7xl font-black text-slate-950 uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
+                    {isAr ? `أخبار ${distName}` : `${distName} Reports`}
+                  </h2>
+                  <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-4">
+                    {isAr ? 'آخر التطورات والتحليلات العقارية في المنطقة' : 'Latest updates and market analysis for this area'}
+                  </p>
+               </div>
+               <Link 
+                href={`/${lang}/blog/`}
+                className="bg-brand-dark text-white hover:bg-[#C02026] px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-premium group shrink-0"
+               >
+                 {isAr ? 'كل المقالات' : 'All Reports'} <ArrowRight size={18} className="inline-block group-hover:translate-x-2 transition-transform rtl:rotate-180" />
+               </Link>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+              {district.relatedPosts.map((post: any) => (
+                <Link 
+                  key={post.slug} 
+                  href={`/${lang}/blog/${post.slug}/`}
+                  className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500"
+                >
+                  <div className="aspect-[16/10] overflow-hidden relative">
+                    <Image 
+                      src={urlFor(post.mainImage).width(600).auto('format').url()} 
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  </div>
+                  <div className="p-10 flex flex-col flex-1 text-start">
+                    <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.3em] mb-4 block">
+                      {new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <h3 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors leading-tight italic uppercase">
+                      {post.title}
+                    </h3>
+                    <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">
+                      {post.overview}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 5. CROSS-SELLING: Regional Hotshots */}
         {locationProjects.length > 0 && (
           <section className="pt-32 border-t border-slate-100" aria-labelledby="related-heading">
             <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-slate-200 ps-8 gap-8 text-start">

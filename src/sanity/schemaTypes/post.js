@@ -2,9 +2,10 @@ export const post = {
   name: 'post',
   title: 'المقالات (Blog)',
   type: 'document',
-  // ✅ إضافة مجموعات لتنظيم الحقول (Fieldsets)
   fieldsets: [
-    { name: 'seo', title: 'إعدادات الأرشفة والظهور (SEO)', options: { collapsible: true, collapsed: true } }
+    { name: 'seo', title: 'إعدادات الأرشفة والظهور (SEO)', options: { collapsible: true, collapsed: true } },
+    // ✅ إضافة مجموعة جديدة للعلاقات عشان المنظر يكون احترافي
+    { name: 'relations', title: 'الروابط والارتباطات (Internal Links)', options: { collapsible: true } }
   ],
   fields: [
     { 
@@ -63,7 +64,6 @@ export const post = {
       of: [
         { 
           type: 'block',
-          // ✅ تخصيص العناوين لضمان SEO هيكلي سليم
           styles: [
             { title: 'Normal', value: 'normal' },
             { title: 'Heading 2 (H2)', value: 'h2' },
@@ -75,7 +75,33 @@ export const post = {
       ] 
     },
 
-    // 🚀 ✅ قسم السيو المطور (SEO Metadata)
+    // 🚀 ✅ إضافة حقول الربط الجديدة (بدون مسح القديم)
+    {
+      name: 'relatedProjects',
+      title: 'مشاريع مرتبطة بالخبر',
+      type: 'array',
+      fieldset: 'relations',
+      of: [{ type: 'reference', to: [{ type: 'project' }] }],
+      description: 'اختر المشاريع التي يتحدث عنها هذا المقال'
+    },
+    {
+      name: 'relatedDevelopers',
+      title: 'مطورون عقاريون مرتبطون',
+      type: 'array',
+      fieldset: 'relations',
+      of: [{ type: 'reference', to: [{ type: 'developer' }] }],
+      description: 'اختر المطورين المذكورين في هذا الخبر'
+    },
+    {
+      name: 'relatedDistricts',
+      title: 'أحياء ومناطق مرتبطة',
+      type: 'array',
+      fieldset: 'relations',
+      of: [{ type: 'reference', to: [{ type: 'district' }] }],
+      description: 'اختر المناطق التي يغطيها هذا المقال'
+    },
+
+    // قسم السيو المطور (SEO Metadata) كما هو
     {
       name: 'seoTitle',
       type: 'string',
@@ -103,7 +129,6 @@ export const post = {
     }
   ],
 
-  // تحسين شكل عرض المقال داخل قائمة Sanity
   preview: {
     select: {
       title: 'title',

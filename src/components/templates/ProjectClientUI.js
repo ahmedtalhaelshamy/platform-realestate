@@ -91,13 +91,13 @@ const ptComponents = {
       if (!value?.asset) return null;
       return (
         <div className="relative w-full h-64 md:h-[500px] my-10 rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100 group">
-     <Image 
-  src={urlFor(value).auto('format').url()} 
-  alt="Project Content" 
-  fill 
-  sizes="(max-width: 768px) 100vw, 1200px"
-  className="object-cover group-hover:scale-105 transition-transform duration-700" 
-/>
+          <Image 
+            src={urlFor(value).auto('format').url()} 
+            alt="Project Content" 
+            fill 
+            sizes="(max-width: 768px) 100vw, 1200px"
+            className="object-cover group-hover:scale-105 transition-transform duration-700" 
+          />
           {value.caption && (
             <div className="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-sm text-white p-3 text-center text-xs font-bold">
                 {getSafeText(value.caption)}
@@ -161,13 +161,13 @@ const ContentSection = ({ title, image, content, children, altBg = false, id }) 
         </div>
         {image && image.asset && (
             <div className="relative w-full aspect-video md:aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-100 group mt-10">
-          <Image 
-  src={urlFor(image).auto('format').url()} 
-  alt={safeTitle} 
-  fill 
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1400px"
-  className="object-cover group-hover:scale-105 transition-transform duration-1000" 
-/>
+              <Image 
+                src={urlFor(image).auto('format').url()} 
+                alt={safeTitle} 
+                fill 
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1400px"
+                className="object-cover group-hover:scale-105 transition-transform duration-1000" 
+              />
             </div>
         )}
       </div>
@@ -176,8 +176,7 @@ const ContentSection = ({ title, image, content, children, altBg = false, id }) 
 };
 
 // --- 4. MAIN COMPONENT ---
-export default function ProjectClientUI({ data, lang, breadcrumbItems, similarProjects = [] }) {
-  // ✅ أسم جديد تماماً لتجنب الكاش القديم
+export default function ProjectClientUI({ data, lang, breadcrumbItems, similarProjects = [], relatedPosts = [] }) {
   const isArabic = lang === 'ar';
   
   const [inquiries, setInquiries] = useState(0);
@@ -253,15 +252,15 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
       
       <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">
         {data.mainImage && (
-       <Image 
-  src={urlFor(data.mainImage).auto('format').url()} 
-  alt={officialName} 
-  fill 
-  sizes="100vw"
-  className="object-cover opacity-60 scale-105 animate-slow-zoom" 
-  priority 
-  fetchPriority="high"
-/>
+          <Image 
+            src={urlFor(data.mainImage).auto('format').url()} 
+            alt={officialName} 
+            fill 
+            sizes="100vw"
+            className="object-cover opacity-60 scale-105 animate-slow-zoom" 
+            priority 
+            fetchPriority="high"
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
         
@@ -414,7 +413,6 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </div>
                 <div className="bg-white/5 backdrop-blur-2xl rounded-[3rem] p-4 md:p-10 border border-white/10 shadow-inner">
                   <Suspense fallback={<div className="h-96 animate-pulse bg-white/5 rounded-[2.5rem]" />}>
-                      {/* تمرير Prop للـ Calculator ليعمل بدون مشاكل */}
                       <InstallmentCalculator 
                         lang={lang} 
                         isAr={isArabic} 
@@ -462,7 +460,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   width={180} 
   height={180} 
   className="object-contain" 
-  alt="Developer Logo" // تحسين بسيط للـ Alt عشان الـ SEO
+  alt="Developer Logo" 
   sizes="180px" 
 />                          </div>
                         ) : <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 rounded-[2.5rem] flex items-center justify-center shrink-0"><Building2 size={60} className="text-white/20"/></div>}
@@ -510,7 +508,6 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                   {data.author && (
                       <div className="flex items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm w-full md:w-fit text-start">
                           {data.author.image ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
-
 <Image 
   src={urlFor(data.author.image).auto('format').url()} 
   fill 
@@ -543,6 +540,61 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </section>
             )}
 
+            {/* 📰 ✅ قسم الأخبار الجديد المربوط بالمشروع (تم إضافته هنا) */}
+            {relatedPosts && relatedPosts.length > 0 && (
+              <section className="py-20 bg-slate-50 rounded-[3rem] my-10 px-4 md:px-10 border border-slate-100">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-12 text-center md:text-start gap-4">
+                  <div>
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 italic tracking-tighter uppercase leading-none mb-4">
+                      {isArabic ? 'آخر التطورات والأخبار' : 'Latest Updates'}
+                    </h2>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
+                      {isArabic ? 'تابع كل جديد بخصوص هذا المشروع' : 'Stay updated with this project'}
+                    </p>
+                  </div>
+                  <Link 
+                    href={`/${lang}/blog/`}
+                    className="group flex items-center gap-3 bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all"
+                  >
+                    {isArabic ? 'كل الأخبار' : 'All News'}
+                    <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform rtl:rotate-180" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {relatedPosts.map((post) => (
+                    <Link 
+                      key={post.slug} 
+                      href={`/${lang}/blog/${post.slug}/`}
+                      className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col h-full"
+                    >
+                      <div className="aspect-[16/10] overflow-hidden relative">
+                        {post.mainImage && (
+                          <Image 
+                            src={urlFor(post.mainImage).width(600).auto('format').url()} 
+                            alt={post.title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                        )}
+                      </div>
+                      <div className="p-8 flex flex-col flex-1">
+                        <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.2em] mb-4 block">
+                          {new Date(post._createdAt).toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
+                        </span>
+                        <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors line-clamp-2 leading-tight italic uppercase">
+                          {post.title}
+                        </h3>
+                        <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">
+                          {post.overview}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {similarProjects?.length > 0 && (
                 <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
@@ -551,7 +603,6 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                            <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
                            <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
                         </div>
-                        {/* تمرير Prop لـ Carousel ليعمل بدون مشاكل */}
                         <div className="w-full"><AutoProjectCarousel projects={similarProjects} lang={lang} isAr={isArabic} desktopSlides={3} /></div>
                     </div>
                 </section>

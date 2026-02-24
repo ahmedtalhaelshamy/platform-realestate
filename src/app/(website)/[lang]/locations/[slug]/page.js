@@ -19,10 +19,10 @@ const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
   if (Array.isArray(val)) {
-    return val.map(block => block.children?.map(child => child.text).join('')).join(' ');
+    return val.map(block => block.children?.map((child) => child.text).join('')).join(' ');
   }
   if (typeof val === 'object' && val.children) {
-    return val.children.map(child => child.text).join('');
+    return val.children.map((child) => child.text).join('');
   }
   return String(val);
 };
@@ -148,16 +148,16 @@ export default async function LocationDetailPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(locationSchema) }} />
 
       {/* 1. HERO SECTION - Optimized LCP 2026 */}
-      <section className="relative h-[55vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-brand-dark">
+      <section className="relative h-[65vh] md:h-[80vh] flex items-center justify-center overflow-hidden bg-brand-dark pt-20">
         {locationData.image && (
         <Image 
-  src={urlFor(locationData.image).format('webp').quality(80).url()} 
-  alt={locName} 
-  fill 
-  sizes="100vw"
-  className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
-  priority
-/>
+          src={urlFor(locationData.image).format('webp').quality(80).url()} 
+          alt={locName} 
+          fill 
+          sizes="100vw"
+          className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
+          priority
+        />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-gray-50 via-brand-dark/20 to-brand-dark/60 z-10" />
         
@@ -171,9 +171,20 @@ export default async function LocationDetailPage({ params }) {
               {isAr ? 'فرص استثمارية حصرية 2026' : 'Exclusive 2026 Asset Guide'}
             </span>
           </div>
-          <h1 className={`text-5xl md:text-[8rem] lg:text-[10rem] font-black mb-6 drop-shadow-2xl uppercase leading-none ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
+          <h1 className={`text-5xl md:text-[8rem] lg:text-[10rem] font-black mb-10 drop-shadow-2xl uppercase leading-none ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
             {locName}
           </h1>
+
+          {/* ✅ زرار الاتصال الجديد في قسم الـ Hero */}
+          <div className="flex justify-center mt-6">
+            <a 
+              href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+              className="flex items-center gap-4 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all duration-300 shadow-2xl active:scale-95 group relative z-50 cursor-pointer"
+            >
+              <Phone size={22} fill="currentColor" className="group-hover:animate-bounce transition-colors" />
+              <span>{isAr ? 'تواصل مع مستشار عقاري' : 'Call Area Expert'}</span>
+            </a>
+          </div>
         </div>
       </section>
 
@@ -216,8 +227,8 @@ export default async function LocationDetailPage({ params }) {
             {districts.map((district, dIndex) => (
               district.projects && district.projects.length > 0 && (
                 <section key={district._id} id={district.slug} className="scroll-mt-40">
-                  <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-s-[12px] border-brand-red ps-8 gap-6">
-                    <div className="text-start">
+                  <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-s-[12px] border-brand-red ps-8 gap-6 text-start">
+                    <div>
                       <h2 className={`text-3xl md:text-6xl font-black text-brand-dark uppercase tracking-tight leading-none ${isAr ? '' : 'italic'}`}>
                         {isAr ? `مشاريع ${getSafeText(district.nameAr)}` : `${getSafeText(district.nameEn)} Legacy`}
                       </h2>
@@ -239,7 +250,6 @@ export default async function LocationDetailPage({ params }) {
               )
             ))}
 
-            {/* General Projects in Location */}
             {generalProjects.length > 0 && (
               <section className="bg-white p-10 md:p-16 rounded-[4rem] border border-slate-100 shadow-sm">
                 <h2 className={`text-3xl md:text-5xl font-black mb-16 text-brand-dark uppercase tracking-tight leading-none text-start ${isAr ? '' : 'italic'}`}>
@@ -301,8 +311,9 @@ export default async function LocationDetailPage({ params }) {
                                  className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-green-500/30">
                                 <MessageCircle size={24} fill="currentColor" /> WhatsApp Expert
                             </a>
-                            <a href={`tel:${CONTACT_INFO.phone.replace(/\D/g, '')}`} 
-                               className="flex items-center justify-center gap-4 w-full py-6 bg-white text-brand-dark hover:bg-brand-red hover:text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20">
+                            {/* ✅ الزرار المصحح في الـ Sidebar: خلفية حمراء -> نص أبيض -> هوفر أبيض -> نص أسود */}
+                            <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none cursor-pointer">
                                 <Phone size={24} fill="currentColor" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
                             </a>
                         </div>
@@ -312,7 +323,7 @@ export default async function LocationDetailPage({ params }) {
                 {/* Browse by District Hub */}
                 <div className="bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-premium text-start group">
                     <h5 className="text-[11px] font-black uppercase text-slate-400 mb-8 tracking-[0.4em] flex items-center gap-3">
-                      <LayoutGrid size={16} className="text-brand-red" /> {isAr ? 'تصفح حسب الحي' : 'Browse Districts'}
+                      <MapPin size={16} className="text-brand-red" /> {isAr ? 'تصفح حسب الحي' : 'Browse Districts'}
                     </h5>
                     <div className="flex flex-wrap gap-3">
                         {districts.map(d => (
