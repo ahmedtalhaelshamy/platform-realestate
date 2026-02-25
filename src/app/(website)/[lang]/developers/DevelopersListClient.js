@@ -6,9 +6,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
-import { Building2, Search, X, ChevronRight, ChevronLeft, MessageCircle, Phone, Briefcase } from 'lucide-react';
+import { Building2, Search, X, ChevronRight, ChevronLeft, MessageCircle, Phone, Calendar, ArrowRight } from 'lucide-react';
 
-export default function DevelopersListClient({ initialDevelopers = [], lang }) {
+export default function DevelopersListClient({ initialDevelopers = [], initialPosts = [], lang }) {
   const isAr = lang === 'ar';
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +37,7 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
       <header className="relative bg-[#080A0D] pt-32 pb-40 px-4">
         <div className="relative z-50 max-w-7xl mx-auto text-center">
           <div className="flex justify-center mb-8"><Breadcrumbs items={[{ label: isAr ? 'المطورين' : 'TITANS' }]} lang={lang} /></div>
-          <h1 className="text-5xl md:text-[8rem] font-black text-white mb-12 tracking-tighter uppercase italic">
+          <h1 className="text-5xl md:text-[8rem] font-black text-white mb-12 tracking-tighter uppercase italic leading-none">
             {isAr ? 'عمالقة' : 'THE'} <span className="text-[#C02026] not-italic">{isAr ? 'التطوير' : 'TITANS'}</span>
           </h1>
 
@@ -53,7 +53,7 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
         </div>
       </header>
 
-      {/* 🏙️ GRID */}
+      {/* 🏙️ DEVELOPERS GRID */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10">
           {filtered.map((dev) => (
@@ -61,9 +61,8 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
               <div className="aspect-square w-full relative mb-6 bg-slate-50 rounded-[2rem] md:rounded-[3rem] p-6 border border-slate-100 group-hover:border-[#C02026]/30 transition-all">
                 {dev.logo ? (
                   <Image src={urlFor(dev.logo).width(400).url()} alt="logo" fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" />
-                ) : <Building2 size={40} className="text-slate-200" />}
+                ) : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} className="text-slate-200" /></div>}
               </div>
-              {/* ✅ سطر الحماية من التآكل */}
               <h2 className="text-base md:text-xl font-black text-slate-900 px-2 leading-tight uppercase italic overflow-visible w-full break-words">
                 {isAr ? dev.nameAr : dev.nameEn}
               </h2>
@@ -75,7 +74,54 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
         </div>
       </section>
 
-      {/* 🚀 THE ONLY CTA BOX (Mobile & Desktop) */}
+      {/* 📰 ✅ قسم أخبار العمالقة (TITAN INTEL) */}
+      {initialPosts && initialPosts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-20 border-t border-slate-100">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
+            <div className={`text-center ${isAr ? 'md:text-right' : 'md:text-left'}`}>
+              <span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[10px] block mb-2">{isAr ? 'تقارير وتحليلات' : 'MARKET REPORTS'}</span>
+              <h2 className="text-4xl md:text-6xl font-black text-slate-900 italic uppercase tracking-tighter leading-none">
+                {isAr ? 'أخبار العمالقة' : 'TITAN INTEL'}
+              </h2>
+            </div>
+            <Link href={`/${lang}/blog/`} className="group flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#C02026] transition-all shadow-xl">
+               {isAr ? 'كل الأخبار' : 'All Insights'}
+               <ArrowRight size={16} className={`transition-transform group-hover:translate-x-2 ${isAr ? 'rotate-180 group-hover:-translate-x-2' : ''}`} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {initialPosts.slice(0, 3).map((post) => (
+              <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
+                <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
+                  {post.mainImage && (
+                    <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />
+                  )}
+                  <div className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'}`}>
+                    <span className="bg-white/90 backdrop-blur-md text-slate-900 px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg">
+                      {isAr ? 'أخبار الشركات' : 'Corporate'}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 flex flex-col flex-1 text-start">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                    <Calendar size={12} className="text-[#C02026]" />
+                    {new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short' })}
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors leading-tight italic uppercase">
+                    {post.title}
+                  </h3>
+                  <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">
+                    {post.overview}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 🚀 THE ONLY CTA BOX */}
       <section className="max-w-7xl mx-auto px-6 py-10">
         <div className="bg-[#080A0D] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 border-b-[10px] border-[#C02026] relative overflow-hidden">
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
@@ -88,10 +134,10 @@ export default function DevelopersListClient({ initialDevelopers = [], lang }) {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-              <a href={`https://wa.me/${whatsappNum}`} className="bg-[#25D366] text-white px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl">
+              <a href={`https://wa.me/${whatsappNum}`} className="bg-[#25D366] text-white px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl hover:scale-105 transition-transform">
                 <MessageCircle size={20} fill="currentColor" /> WhatsApp
               </a>
-              <a href={`tel:${CONTACT_INFO.phone}`} className="bg-white text-slate-900 px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl">
+              <a href={`tel:${CONTACT_INFO.phone}`} className="bg-white text-slate-900 px-8 py-5 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 shadow-xl hover:scale-105 transition-transform">
                 <Phone size={20} fill="currentColor" /> {isAr ? 'اتصل بنا' : 'Call Now'}
               </a>
             </div>

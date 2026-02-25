@@ -37,14 +37,12 @@ function getSafeText(input) {
 
 /**
  * 🖼️ حارس الصور المطور - Optimized for Social Media Sharing (OG Images)
- * أضفنا .auto('format') لضمان وصول الصورة بأفضل صيغة للمتصفح (WebP/AVIF)
  */
 const getSafeImageUrl = (source) => {
   if (!source || !source.asset || !source.asset._ref) {
     return `${BASE_URL}/og-image.jpg`; 
   }
   try {
-    // تم توحيد مقاسات الـ OG Image لتناسب معايير فيسبوك وجوجل مع ضغط عالي WebP
     return urlFor(source)
       .width(1200)
       .height(630)
@@ -144,26 +142,34 @@ export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
+  // 🚀 استعلام GROQ المطور: جلب المشروع مع الأخبار المربوطة به بذكاء
   const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
+    _id,
     "slug": slug.current,
     "brochureUrl": brochure.asset->url,
-    "districtData": district->{ nameAr, nameEn, "slug": slug.current },
+    "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
     "locationData": location->{ nameAr, nameEn, "slug": slug.current },
-    "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn },
-    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
+    "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn, _id },
+    "developerProjects": *[_type == "project" && references(^.developer._id) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
         _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
     },
     "author": author->{ name, image, jobTitle },
-    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
+    "relatedProjects": *[_type == "project" && references(^.district._id) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
         _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
+    },
+    // 📰 جلب الأخبار: يبحث عن أي مقال يشير لهذا المشروع تحديداً
+    "relatedPosts": *[_type == "post" && language == $lang && references(^._id)] | order(_createdAt desc)[0...3] {
+      title, "slug": slug.current, mainImage, overview, _createdAt
     }
   }`;
 
-  const data = await client.fetch(query, { slug });
+  // تأكد من تمرير slug و lang كباراميترز للاستعلام
+  const data = await client.fetch(query, { slug, lang });
+  
   if (!data) return notFound();
 
-  // 🛡️ معالجة البيانات قبل إرسالها للـ Client Component لمنع خطأ الـ Objects
+  // 🛡️ معالجة البيانات قبل إرسالها للـ Client Component
   const sanitizedData = {
     ...data,
     titleAr: getSafeText(data.titleAr),
@@ -205,13 +211,14 @@ export default async function ProjectDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
       />
       
-      {/* البيانات بتتبعت للـ Client Component اللي هو "المنفذ الفعلي" لعرض الصور */}
+      {/* 🚀 تمرير البيانات كاملة بما فيها relatedPosts لمكون الـ UI */}
       <ProjectClientUI 
           data={sanitizedData} 
           lang={lang} 
           isAr={isAr} 
           breadcrumbItems={breadcrumbItems}
           similarProjects={data.relatedProjects || []}
+          relatedPosts={data.relatedPosts || []}
       />
     </main>
   );

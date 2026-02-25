@@ -4,7 +4,6 @@ export const post = {
   type: 'document',
   fieldsets: [
     { name: 'seo', title: 'إعدادات الأرشفة والظهور (SEO)', options: { collapsible: true, collapsed: true } },
-    // ✅ إضافة مجموعة جديدة للعلاقات عشان المنظر يكون احترافي
     { name: 'relations', title: 'الروابط والارتباطات (Internal Links)', options: { collapsible: true } }
   ],
   fields: [
@@ -45,7 +44,6 @@ export const post = {
           name: 'alt',
           type: 'string',
           title: 'وصف الصورة (Alt Text)',
-          description: 'مهم جداً لمحركات البحث ولتسهيل القراءة لذوي الاحتياجات الخاصة'
         }
       ]
     },
@@ -53,14 +51,13 @@ export const post = {
       name: 'overview', 
       type: 'text', 
       title: 'نبذة مختصرة',
-      description: 'تظهر في كارت المقال في الصفحة الرئيسية والمدونة',
+      description: 'تظهر في كارت المقال وفي نتائج البحث',
       validation: Rule => Rule.required().max(200)
     },
     { 
       name: 'body', 
       type: 'array', 
       title: 'المحتوى التفصيلي', 
-      description: 'استخدم العناوين (H2, H3) لتنظيم المقال برمجياً لسيو أفضل',
       of: [
         { 
           type: 'block',
@@ -75,7 +72,7 @@ export const post = {
       ] 
     },
 
-    // 🚀 ✅ إضافة حقول الربط الجديدة (بدون مسح القديم)
+    // 🚀 قسم العلاقات (تم إضافة المنطقة والمطور والحي والمشروع)
     {
       name: 'relatedProjects',
       title: 'مشاريع مرتبطة بالخبر',
@@ -93,21 +90,28 @@ export const post = {
       description: 'اختر المطورين المذكورين في هذا الخبر'
     },
     {
+      name: 'relatedLocations',
+      title: 'مناطق مرتبطة (المدن)',
+      type: 'array',
+      fieldset: 'relations',
+      of: [{ type: 'reference', to: [{ type: 'location' }] }],
+      description: 'اختر المناطق الكبرى المرتبطة (مثل: القاهرة الجديدة، العاصمة الإدارية)'
+    },
+    {
       name: 'relatedDistricts',
-      title: 'أحياء ومناطق مرتبطة',
+      title: 'أحياء ومناطق فرعية مرتبطة',
       type: 'array',
       fieldset: 'relations',
       of: [{ type: 'reference', to: [{ type: 'district' }] }],
-      description: 'اختر المناطق التي يغطيها هذا المقال'
+      description: 'اختر الأحياء الدقيقة (مثل: التجمع الخامس، منطقة المستثمرين)'
     },
 
-    // قسم السيو المطور (SEO Metadata) كما هو
+    // قسم السيو (SEO Metadata)
     {
       name: 'seoTitle',
       type: 'string',
       title: 'عنوان السيو (Meta Title)',
       fieldset: 'seo',
-      description: 'العنوان الذي يظهر في نتائج بحث جوجل (يفضل 60 حرف)',
       validation: Rule => Rule.max(70)
     },
     {
@@ -116,7 +120,6 @@ export const post = {
       title: 'وصف السيو (Meta Description)',
       fieldset: 'seo',
       rows: 3,
-      description: 'الوصف الذي يظهر تحت العنوان في جوجل (يفضل 160 حرف)',
       validation: Rule => Rule.max(160)
     },
     {

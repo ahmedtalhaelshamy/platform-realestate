@@ -115,8 +115,12 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         "districtData": district->{ nameAr, nameEn },
         "locationData": location->{ nameAr, nameEn }
       },
-      "relatedPosts": *[_type == "post" && references(^._id) && language == $lang] | order(_createdAt desc)[0...3] {
-        title, "slug": slug.current, mainImage, overview, _createdAt
+      "relatedPosts": *[_type == "post" && language == $lang && (references(^._id) || references(string::split(^._id, "drafts.")[1]))] | order(_createdAt desc)[0...3] {
+  title,
+  "slug": slug.current,
+  mainImage,
+  overview,
+  _createdAt
       }
     }
   }`;
@@ -289,6 +293,34 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             </aside>
         </div>
 
+
+        {/* 5. CROSS-SELLING: Regional Hotshots */}
+        {locationProjects.length > 0 && (
+          <section className="pt-32 border-t border-slate-100" aria-labelledby="related-heading">
+            <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-slate-200 ps-8 gap-8 text-start">
+                <div className="space-y-4">
+                    <h2 id="related-heading" className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
+                        {isAr ? `أبرز مشاريع ${parentLocName}` : `More in ${parentLocName}`}
+                    </h2>
+                    <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-widest italic">
+                        {isAr ? `فرص إضافية استثمارية مختارة في ${parentLocName} بالكامل` : `Regional investment picks across the entire ${parentLocName} area`}
+                    </p>
+                </div>
+                <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-premium group shrink-0 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20">
+                    {isAr ? 'كل المشاريع' : 'All Listings'} <ArrowUpRight size={18} className="inline-block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" aria-hidden="true" />
+                </Link>
+            </header>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14" role="list">
+              {locationProjects.map((proj: any) => (
+                <div key={proj._id} role="listitem">
+                  <ProjectCard data={proj} lang={lang} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        
         {/* 📰 ✅ 4. AREA INSIGHTS (Related News Section) */}
         {district.relatedPosts && district.relatedPosts.length > 0 && (
           <section className="pt-32 border-t border-slate-100">
@@ -341,33 +373,9 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
           </section>
         )}
 
-        {/* 5. CROSS-SELLING: Regional Hotshots */}
-        {locationProjects.length > 0 && (
-          <section className="pt-32 border-t border-slate-100" aria-labelledby="related-heading">
-            <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-slate-200 ps-8 gap-8 text-start">
-                <div className="space-y-4">
-                    <h2 id="related-heading" className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
-                        {isAr ? `أبرز مشاريع ${parentLocName}` : `More in ${parentLocName}`}
-                    </h2>
-                    <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-widest italic">
-                        {isAr ? `فرص إضافية استثمارية مختارة في ${parentLocName} بالكامل` : `Regional investment picks across the entire ${parentLocName} area`}
-                    </p>
-                </div>
-                <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-premium group shrink-0 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20">
-                    {isAr ? 'كل المشاريع' : 'All Listings'} <ArrowUpRight size={18} className="inline-block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" aria-hidden="true" />
-                </Link>
-            </header>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14" role="list">
-              {locationProjects.map((proj: any) => (
-                <div key={proj._id} role="listitem">
-                  <ProjectCard data={proj} lang={lang} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
       </div>
+
+      
 
       <style dangerouslySetInnerHTML={{ __html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }

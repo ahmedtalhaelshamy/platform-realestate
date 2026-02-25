@@ -462,7 +462,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   className="object-contain" 
   alt="Developer Logo" 
   sizes="180px" 
-/>                          </div>
+/>                           </div>
                         ) : <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 rounded-[2.5rem] flex items-center justify-center shrink-0"><Building2 size={60} className="text-white/20"/></div>}
                         <div className="flex-1">
                             <div className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.4em] mb-3">{isArabic ? 'المطور العقاري المعتمد' : 'Verified Partner'}</div>
@@ -514,8 +514,8 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   className="object-cover" 
   alt={data.author.name || "Author"} 
   sizes="64px" 
-/>                            </div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/>
-                            </div>}
+/>                             </div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/>
+                             </div>}
                           <div>
                             <div className="text-[10px] text-[#C02026] uppercase font-black tracking-widest mb-1">{isArabic ? 'تحليل بواسطة' : 'Analyzed By'}</div>
                             <h3 className="text-lg font-black text-slate-950 italic uppercase tracking-tighter leading-none">{data.author.name}</h3>
@@ -540,33 +540,33 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </section>
             )}
 
-            {/* 📰 ✅ قسم الأخبار الجديد المربوط بالمشروع (تم إضافته هنا) */}
+            {/* 📰 ✅ قسم أخبار المنطقة (Related News) */}
             {relatedPosts && relatedPosts.length > 0 && (
-              <section className="py-20 bg-slate-50 rounded-[3rem] my-10 px-4 md:px-10 border border-slate-100">
-                <div className="flex flex-col md:flex-row items-center justify-between mb-12 text-center md:text-start gap-4">
-                  <div>
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 italic tracking-tighter uppercase leading-none mb-4">
-                      {isArabic ? 'آخر التطورات والأخبار' : 'Latest Updates'}
+              <section className="py-24 bg-slate-50 rounded-[4rem] border border-slate-100 my-16 text-start">
+                <header className="flex flex-col md:flex-row items-center justify-between mb-16 px-6 md:px-12 gap-8">
+                  <div className="border-s-[12px] border-[#C02026] ps-8">
+                    <span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[10px] block mb-2">
+                      {isArabic ? 'تغطية حصرية' : 'Project Intelligence'}
+                    </span>
+                    <h2 className="text-3xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
+                      {isArabic ? `أخبار ${officialName}` : `${officialName} Intel`}
                     </h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
-                      {isArabic ? 'تابع كل جديد بخصوص هذا المشروع' : 'Stay updated with this project'}
-                    </p>
                   </div>
                   <Link 
                     href={`/${lang}/blog/`}
-                    className="group flex items-center gap-3 bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl border border-slate-100 hover:bg-[#C02026] hover:text-white transition-all"
+                    className="group flex items-center gap-4 bg-white text-slate-900 px-10 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest border border-slate-200 hover:bg-[#C02026] hover:text-white transition-all shadow-xl shrink-0"
                   >
-                    {isArabic ? 'كل الأخبار' : 'All News'}
-                    <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform rtl:rotate-180" />
+                    {isArabic ? 'كل الأخبار' : 'Explore Blog'}
+                    <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform rtl:rotate-180" />
                   </Link>
-                </div>
+                </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-6 md:px-12">
                   {relatedPosts.map((post) => (
                     <Link 
                       key={post.slug} 
                       href={`/${lang}/blog/${post.slug}/`}
-                      className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col h-full"
+                      className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700"
                     >
                       <div className="aspect-[16/10] overflow-hidden relative">
                         {post.mainImage && (
@@ -574,18 +574,18 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             src={urlFor(post.mainImage).width(600).auto('format').url()} 
                             alt={post.title}
                             fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
                           />
                         )}
                       </div>
-                      <div className="p-8 flex flex-col flex-1">
+                      <div className="p-10 flex flex-col flex-1">
                         <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.2em] mb-4 block">
                           {new Date(post._createdAt).toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
                         </span>
-                        <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors line-clamp-2 leading-tight italic uppercase">
+                        <h3 className="text-2xl font-black text-slate-950 mb-6 group-hover:text-[#C02026] transition-colors line-clamp-2 leading-tight italic uppercase">
                           {post.title}
                         </h3>
-                        <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">
+                        <p className="text-slate-500 text-sm font-medium line-clamp-3 leading-relaxed">
                           {post.overview}
                         </p>
                       </div>
@@ -596,10 +596,10 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             )}
 
             {similarProjects?.length > 0 && (
-                <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden">
+                <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden text-start">
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
                     <div className="max-w-[1440px] mx-auto px-12 relative z-10">
-                        <div className="flex items-end justify-between mb-16 text-start">
+                        <div className="flex items-end justify-between mb-16">
                            <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
                            <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
                         </div>

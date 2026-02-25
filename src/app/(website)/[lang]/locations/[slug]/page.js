@@ -12,9 +12,6 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 // 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
 
-/**
- * 🛠️ دالة الأمان لمنع خطأ الـ Objects
- */
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -30,55 +27,23 @@ const getSafeText = (val) => {
 export async function generateStaticParams() {
   const query = `*[_type == "location" && defined(slug.current)]{ "slug": slug.current }`;
   const locations = await client.fetch(query);
-  
-  return locations.flatMap((loc) => [
-    { lang: 'ar', slug: loc.slug },
-    { lang: 'en', slug: loc.slug },
-  ]);
+  return locations.flatMap((loc) => [{ lang: 'ar', slug: loc.slug }, { lang: 'en', slug: loc.slug }]);
 }
 
 export const revalidate = 3600; 
 
-/**
- * ✅ SEO Metadata: Optimized for Geo-Authority
- */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
-
-  const data = await client.fetch(
-    `*[_type == "location" && slug.current == $slug][0]{ 
-      nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn, image 
-    }`,
-    { slug }
-  );
-
+  const data = await client.fetch(`*[_type == "location" && slug.current == $slug][0]{ nameAr, nameEn, seoTitleAr, seoTitleEn, seoDescAr, seoDescEn, image }`, { slug });
   if (!data) return { title: 'Location Not Found' };
-
   const name = isAr ? getSafeText(data.nameAr) : getSafeText(data.nameEn);
   const title = isAr ? getSafeText(data.seoTitleAr || name) : getSafeText(data.seoTitleEn || name);
-  const description = isAr ? getSafeText(data.seoDescAr) : getSafeText(data.seoDescEn);
-
-  const ogImageUrl = data.image 
-    ? urlFor(data.image).width(1200).height(630).format('webp').url()
-    : `${BASE_URL}/og-image.jpg`;
-
-  const currentPath = `${BASE_URL}/${lang}/locations/${slug}/`;
-
+  const ogImageUrl = data.image ? urlFor(data.image).width(1200).height(630).format('webp').url() : `${BASE_URL}/og-image.jpg`;
   return {
     title: `${title} | Platform`,
-    description: description || (isAr ? `اكتشف أفضل العقارات والاستثمارات في ${name}` : `Discover elite properties and investments in ${name}`),
-    metadataBase: new URL(BASE_URL),
-    alternates: {
-      canonical: currentPath,
-    },
-    openGraph: {
-      title: `${name} | Platform Real Estate`,
-      url: currentPath,
-      images: [{ url: ogImageUrl }],
-      locale: isAr ? 'ar_EG' : 'en_US',
-      type: 'website',
-    }
+    alternates: { canonical: `${BASE_URL}/${lang}/locations/${slug}/` },
+    openGraph: { title: name, images: [{ url: ogImageUrl }], locale: isAr ? 'ar_EG' : 'en_US', type: 'website' }
   };
 }
 
@@ -96,246 +61,149 @@ export default async function LocationDetailPage({ params }) {
 
   const query = `{
     "locationData": *[_type == "location" && slug.current == $slug][0]{
-      _id, nameAr, nameEn, descriptionAr, descriptionEn, image
+      _id, nameAr, nameEn, descriptionAr, descriptionEn, image,
+      "relatedPosts": *[_type == "post" && language == $lang && (
+        references(^._id) || 
+        references(*[_type == "district" && location._ref == ^._id]._id)
+      )] | order(_createdAt desc)[0...6] {
+        title, "slug": slug.current, mainImage, overview, _createdAt
+      }
     },
     "districts": *[_type == "district" && location->slug.current == $slug] | order(order asc) {
       _id, nameAr, nameEn, "slug": slug.current, image,
       "projects": *[_type == "project" && references(^._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc, _createdAt desc) { 
-          _id, titleAr, titleEn, price, installments, downPayment, 
-          isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage, 
-          "developer": developer->{nameAr, nameEn},
-          "location": location->{nameAr, nameEn},
-          "districtData": district->{ nameAr, nameEn }
+          _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage, 
+          "developer": developer->{nameAr, nameEn}, "location": location->{nameAr, nameEn}, "districtData": district->{ nameAr, nameEn }
       }
     },
     "generalProjects": *[_type == "project" && location->slug.current == $slug && !defined(district) && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...6] {
-       _id, titleAr, titleEn, price, installments, downPayment, 
-       isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage,
-       "developer": developer->{nameAr, nameEn},
-       "location": location->{nameAr, nameEn},
-       "districtData": district->{ nameAr, nameEn }
+       _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage,
+       "developer": developer->{nameAr, nameEn}, "location": location->{nameAr, nameEn}, "districtData": district->{ nameAr, nameEn }
     }
   }`;
 
-  const data = await client.fetch(query, { slug });
+  const data = await client.fetch(query, { slug, lang });
   if (!data?.locationData) return notFound();
 
   const { locationData, districts, generalProjects } = data;
   const locName = isAr ? getSafeText(locationData.nameAr) : getSafeText(locationData.nameEn);
-
-  // ✅ SEO: بيانات منظمة للمناطق الجغرافية (Place & ItemList Schema)
-  const locationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Place",
-    "name": locName,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": locName,
-      "addressCountry": "EG"
-    }
-  };
-
-  const breadcrumbItems = [
-    { label: isAr ? 'المناطق' : 'Hotspots', href: `/${lang}/locations/` },
-    { label: locName }
-  ];
-
-  const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
-  const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في ${locName}` : `Inquiry about properties in ${locName}`)}`;
+  const breadcrumbItems = [{ label: isAr ? 'المناطق' : 'Hotspots', href: `/${lang}/locations/` }, { label: locName }];
+  const whatsappUrl = `https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في ${locName}` : `Inquiry about ${locName}`)}`;
 
   return (
     <main className={`min-h-screen bg-brand-gray-50 selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(locationSchema) }} />
-
-      {/* 1. HERO SECTION - Optimized LCP 2026 */}
-      <section className="relative h-[65vh] md:h-[80vh] flex items-center justify-center overflow-hidden bg-brand-dark pt-20">
-        {locationData.image && (
-        <Image 
-          src={urlFor(locationData.image).format('webp').quality(80).url()} 
-          alt={locName} 
-          fill 
-          sizes="100vw"
-          className="object-cover opacity-50 scale-105 animate-slow-zoom will-change-transform" 
-          priority
-        />
-        )}
+      
+      {/* 1. HERO SECTION - (Removed Call Button as requested) */}
+      <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-brand-dark pt-20">
+        {locationData.image && <Image src={urlFor(locationData.image).format('webp').quality(80).url()} alt={locName} fill sizes="100vw" className="object-cover opacity-50 scale-105 animate-slow-zoom" priority />}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-gray-50 via-brand-dark/20 to-brand-dark/60 z-10" />
-        
-        <div className="relative z-20 text-center text-white px-6 max-w-7xl animate-fade-in-up">
-          <nav className="mb-12 flex justify-center">
-            <Breadcrumbs items={breadcrumbItems} lang={lang} />
-          </nav>
+        <div className="relative z-30 text-center text-white px-6 max-w-7xl animate-fade-in-up">
+          <nav className="mb-12 flex justify-center"><Breadcrumbs items={breadcrumbItems} lang={lang} /></nav>
           <div className="inline-flex items-center gap-3 bg-brand-red text-white px-6 py-3 rounded-full mb-10 shadow-2xl border border-white/10">
-            <Sparkles size={16} className="animate-pulse" aria-hidden="true" />
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              {isAr ? 'فرص استثمارية حصرية 2026' : 'Exclusive 2026 Asset Guide'}
-            </span>
+            <Sparkles size={16} className="animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest">{isAr ? 'فرص استثمارية حصرية 2026' : 'Exclusive 2026 Asset Guide'}</span>
           </div>
-          <h1 className={`text-5xl md:text-[8rem] lg:text-[10rem] font-black mb-10 drop-shadow-2xl uppercase leading-none ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
-            {locName}
-          </h1>
-
-          {/* ✅ زرار الاتصال الجديد في قسم الـ Hero */}
-          <div className="flex justify-center mt-6">
-            <a 
-              href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-              className="flex items-center gap-4 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all duration-300 shadow-2xl active:scale-95 group relative z-50 cursor-pointer"
-            >
-              <Phone size={22} fill="currentColor" className="group-hover:animate-bounce transition-colors" />
-              <span>{isAr ? 'تواصل مع مستشار عقاري' : 'Call Area Expert'}</span>
-            </a>
-          </div>
+          <h1 className="text-5xl md:text-[8rem] lg:text-[10rem] font-black drop-shadow-2xl uppercase leading-none">{locName}</h1>
         </div>
       </section>
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-12 relative z-30">
         
-        {/* 2. DISTRICTS QUICK NAV - Visual Anchors */}
+        {/* 2. DISTRICTS NAV */}
         <div className="flex flex-wrap justify-center gap-6 md:gap-12 -mt-32 mb-32 relative z-40">
-          {districts.map((dist) => {
-            const distName = isAr ? getSafeText(dist.nameAr) : getSafeText(dist.nameEn);
-            return (
-              <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} 
-                    className="group flex flex-col items-center gap-5 transition-all duration-500 hover:-translate-y-2">
-                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-premium border border-slate-100 transition-all duration-700 group-hover:ring-4 group-hover:ring-brand-red overflow-hidden">
-                  <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
-                    {dist.image ? (
-                     <Image 
-  src={urlFor(dist.image).format('webp').url()} 
-  fill 
-  sizes="128px"
-  alt={distName} 
-  className="object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform" 
-/>
-                    ) : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300"><LayoutGrid size={32} aria-hidden="true" /></div>}
-                  </div>
+          {districts.map((dist) => (
+            <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex flex-col items-center gap-5 transition-all duration-500 hover:-translate-y-2">
+              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-premium border border-slate-100 group-hover:ring-4 group-hover:ring-brand-red overflow-hidden transition-all duration-700">
+                <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
+                  {dist.image ? <Image src={urlFor(dist.image).format('webp').url()} fill sizes="128px" alt="dist" className="object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><LayoutGrid size={32}/></div>}
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-brand-dark bg-white px-5 py-2.5 rounded-2xl shadow-xl group-hover:bg-brand-red group-hover:text-white transition-all">
-                  {distName}
-                </span>
-              </Link>
-            );
-          })}
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-brand-dark bg-white px-5 py-2.5 rounded-2xl shadow-xl group-hover:bg-brand-red group-hover:text-white transition-all">{isAr ? getSafeText(dist.nameAr) : getSafeText(dist.nameEn)}</span>
+            </Link>
+          ))}
         </div>
 
-        {/* 3. MAIN CONTENT LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          
           <div className="lg:col-span-8 space-y-32">
             
-            {/* Districts Projects Sections - The Meat of the Page */}
-            {districts.map((district, dIndex) => (
-              district.projects && district.projects.length > 0 && (
-                <section key={district._id} id={district.slug} className="scroll-mt-40">
-                  <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-s-[12px] border-brand-red ps-8 gap-6 text-start">
+            {districts.map((district) => (
+              district.projects?.length > 0 && (
+                <section key={district._id} id={district.slug} className="scroll-mt-40 text-start">
+                  <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-s-[12px] border-brand-red ps-8 gap-6">
                     <div>
-                      <h2 className={`text-3xl md:text-6xl font-black text-brand-dark uppercase tracking-tight leading-none ${isAr ? '' : 'italic'}`}>
-                        {isAr ? `مشاريع ${getSafeText(district.nameAr)}` : `${getSafeText(district.nameEn)} Legacy`}
-                      </h2>
-                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-4">
-                        {isAr ? `نخبة العقارات المختارة في حي ${getSafeText(district.nameAr)}` : `Curated Assets in ${getSafeText(district.nameEn)} District`}
-                      </p>
+                      <h2 className="text-3xl md:text-6xl font-black text-brand-dark uppercase tracking-tight leading-none">{isAr ? `مشاريع ${getSafeText(district.nameAr)}` : `${getSafeText(district.nameEn)} Legacy`}</h2>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-4">{isAr ? `نخبة العقارات المختارة في حي ${getSafeText(district.nameAr)}` : `Curated Assets in ${getSafeText(district.nameEn)} District`}</p>
                     </div>
-                    <Link href={`/${lang}/districts/${district.slug}/`} className="group inline-flex items-center gap-3 text-brand-red font-black text-xs uppercase tracking-widest hover:underline whitespace-nowrap">
-                      {isAr ? 'عرض الكل' : 'View Hub'} <ArrowRight size={18} className="transition-transform group-hover:translate-x-2 rtl:rotate-180 rtl:group-hover:-translate-x-2" />
+                    <Link href={`/${lang}/districts/${district.slug}/`} className="group inline-flex items-center gap-3 text-brand-red font-black text-xs uppercase tracking-widest hover:underline">
+                      {isAr ? 'عرض الكل' : 'View Hub'} <ArrowRight size={18} className="group-hover:translate-x-2 rtl:rotate-180" />
                     </Link>
                   </header>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
-                    {district.projects.map((project, pIndex) => (
-                      <ProjectCard key={project._id} data={project} lang={lang} isPriority={dIndex === 0 && pIndex < 2} />
-                    ))}
+                    {district.projects.map((project) => <ProjectCard key={project._id} data={project} lang={lang} />)}
                   </div>
                 </section>
               )
             ))}
 
-            {generalProjects.length > 0 && (
-              <section className="bg-white p-10 md:p-16 rounded-[4rem] border border-slate-100 shadow-sm">
-                <h2 className={`text-3xl md:text-5xl font-black mb-16 text-brand-dark uppercase tracking-tight leading-none text-start ${isAr ? '' : 'italic'}`}>
-                  {isAr ? `أحدث الفرص في ${locName}` : `Global Opportunities in ${locName}`}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  {generalProjects.map((project) => (
-                    <ProjectCard key={project._id} data={project} lang={lang} />
+            {/* 📰 قسم الأخبار */}
+            {locationData.relatedPosts?.length > 0 && (
+              <section className="pt-20 border-t border-slate-200 text-start">
+                <header className="mb-12 border-s-[12px] border-[#C02026] ps-8">
+                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase italic leading-none">{isAr ? `أخبار ${locName}` : `${locName} Intel`}</h2>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-4">{isAr ? 'تقارير حصرية وتطورات السوق في هذه المنطقة' : 'Exclusive area reports and market insights'}</p>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {locationData.relatedPosts.map((post) => (
+                    <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-red-50">
+                      <div className="aspect-video relative overflow-hidden">
+                        {post.mainImage && <Image src={urlFor(post.mainImage).width(400).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />}
+                      </div>
+                      <div className="p-8 flex flex-col flex-1">
+                        <span className="text-[10px] font-black text-[#C02026] uppercase mb-3 block">{new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}</span>
+                        <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-[#C02026] transition-colors line-clamp-2">{post.title}</h3>
+                        <p className="text-slate-500 text-sm font-medium line-clamp-2">{post.overview}</p>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Investment Guide Section - PortableText */}
             {(locationData.descriptionAr || locationData.descriptionEn) && (
               <article className="bg-white p-10 md:p-20 rounded-[4rem] shadow-premium border border-slate-50 text-start">
                 <div className="flex items-center gap-6 mb-12 text-brand-red">
-                    <div className="p-4 bg-red-50 rounded-[2rem] shadow-inner"><Info size={40} strokeWidth={1.5} aria-hidden="true" /></div>
-                    <h2 className={`text-3xl md:text-5xl font-black uppercase tracking-tight ${isAr ? '' : 'italic tracking-tighter'}`}>{isAr ? 'دليل الاستثمار' : 'Market Intel'}</h2>
+                    <div className="p-4 bg-red-50 rounded-[2rem] shadow-inner"><Info size={40} strokeWidth={1.5} /></div>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight italic">{isAr ? 'دليل الاستثمار' : 'Market Intel'}</h2>
                 </div>
-                <div className="prose prose-xl prose-slate max-w-none 
-                                prose-headings:text-brand-dark prose-headings:font-black
-                                prose-p:leading-relaxed prose-p:text-justify prose-p:font-medium">
-                  <PortableText 
-                    value={isAr ? locationData.descriptionAr : locationData.descriptionEn} 
-                    components={ptComponents} 
-                  />
+                <div className="prose prose-xl prose-slate max-w-none prose-p:leading-relaxed prose-p:text-justify prose-p:font-medium">
+                  <PortableText value={isAr ? locationData.descriptionAr : locationData.descriptionEn} components={ptComponents} />
                 </div>
               </article>
             )}
           </div>
 
-          {/* SIDEBAR - Sticky Conversion Hub */}
           <aside className="lg:col-span-4 h-full">
             <div className="lg:sticky lg:top-32 space-y-10">
-                
-                {/* Consultant Card - High Impact */}
                 <div className="bg-brand-dark text-white p-10 md:p-14 rounded-[4rem] shadow-2xl border-b-[16px] border-brand-red relative overflow-hidden group">
-                    <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none">
-                        <Building2 size={350} aria-hidden="true" />
-                    </div>
-                    
+                    <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none"><Building2 size={350} /></div>
                     <div className="relative z-10 text-start">
                         <div className="inline-flex items-center gap-3 bg-brand-red px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase mb-10 shadow-xl border border-white/10">
-                            <CheckCircle size={14} aria-hidden="true" /> {isAr ? 'مستشار عقاري معتمد' : 'Verified Partner'}
+                            <CheckCircle size={14} /> {isAr ? 'مستشار عقاري معتمد' : 'Verified Partner'}
                         </div>
-                        <h3 className={`text-3xl md:text-5xl font-black mb-8 leading-[0.95] uppercase ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
-                            {isAr ? `تحتاج مساعدة في ${locName}؟` : `Investment Help in ${locName}?`}
-                        </h3>
-                        <p className="text-slate-400 text-lg mb-12 font-medium leading-relaxed italic opacity-90">
-                            {isAr 
-                                ? `خبراؤنا يساعدونك في مقارنة الأسعار واختيار أفضل حي سكني أو تجاري في المنطقة مجاناً بالكامل.` 
-                                : `Our elite advisors help you compare ROI and districts within ${locName}, 100% complimentary.`}
-                        </p>
-
+                        <h3 className="text-3xl md:text-5xl font-black mb-8 leading-[0.95] uppercase italic">{isAr ? `تحتاج مساعدة في ${locName}؟` : `Investment Help in ${locName}?`}</h3>
+                        <p className="text-slate-400 text-lg mb-12 font-medium leading-relaxed italic opacity-90">{isAr ? `خبراؤنا يساعدونك في اختيار أفضل حي سكني أو تجاري في المنطقة مجاناً بالكامل.` : `Our elite advisors help you compare ROI and districts within ${locName}, 100% complimentary.`}</p>
                         <div className="space-y-4">
-                            <a href={whatsappUrl} 
-                                 target="_blank" rel="noopener noreferrer"
-                                 className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-green-500/30">
-                                <MessageCircle size={24} fill="currentColor" /> WhatsApp Expert
+                            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                                <MessageCircle size={24} fill="currentColor" /> {isAr ? 'تحدث مع خبير' : 'WhatsApp Expert'}
                             </a>
-                            {/* ✅ الزرار المصحح في الـ Sidebar: خلفية حمراء -> نص أبيض -> هوفر أبيض -> نص أسود */}
-                            <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none cursor-pointer">
-                                <Phone size={24} fill="currentColor" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
+                            <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all group">
+                                <Phone size={24} fill="currentColor" className="group-hover:animate-bounce" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
                             </a>
                         </div>
-                    </div>
-                </div>
-
-                {/* Browse by District Hub */}
-                <div className="bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-premium text-start group">
-                    <h5 className="text-[11px] font-black uppercase text-slate-400 mb-8 tracking-[0.4em] flex items-center gap-3">
-                      <MapPin size={16} className="text-brand-red" /> {isAr ? 'تصفح حسب الحي' : 'Browse Districts'}
-                    </h5>
-                    <div className="flex flex-wrap gap-3">
-                        {districts.map(d => (
-                            <Link key={d._id} href={`/${lang}/districts/${d.slug}/`} className="px-5 py-3 bg-brand-gray-50 hover:bg-brand-red hover:text-white rounded-2xl text-[11px] font-black text-slate-600 transition-all uppercase tracking-tight italic border border-slate-100 active:scale-90">
-                                {isAr ? getSafeText(d.nameAr) : getSafeText(d.nameEn)}
-                            </Link>
-                        ))}
                     </div>
                 </div>
             </div>
           </aside>
-
         </div>
       </div>
 
