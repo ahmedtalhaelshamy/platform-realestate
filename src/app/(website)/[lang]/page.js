@@ -99,7 +99,9 @@ export default async function HomePage({ params }) {
   if (!data) return notFound();
 
   const { settings, projects, developers } = data;
-  const marqueeItems = [...developers, ...developers, ...developers];
+  
+  // ✅ تقليل التكرار لمرتين فقط لتقليل الـ DOM والـ Images Requests
+  const marqueeItems = [...developers, ...developers];
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -118,36 +120,24 @@ export default async function HomePage({ params }) {
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
         
-        {/* 🚀 HERO SECTION - Optimized LCP 2026 */}
+        {/* 🚀 HERO SECTION - Optimized for LCP & Performance */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
-<Image 
-  // استخدام auto('format') يتيح لـ Sanity تقديم AVIF للمتصفحات الحديثة (أصغر من WebP)
-  src={urlFor(settings.heroImage)
-    .auto('format') 
-    .quality(80) 
-    .url()} 
-  
-  alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
-  
-  // أولوية قصوى للتحميل لأنها أول ما يراه المستخدم (LCP)
-  priority={true} 
-  fetchPriority="high" 
-  
-  // ملء الحاوية الأب (تأكد أن الحاوية لديها position: relative)
-  fill
-  
-  // تحديد الأحجام بدقة يمنع تحميل بكسلات زائدة لا تراها العين
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
-  
-  // تحسين الأداء البصري
-  className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-  
-  // صورة التمويه (Blur) خفيفة جداً لتحسين تجربة الانتظار
-  placeholder="blur"
-  blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
-/>
+              <Image 
+                src={urlFor(settings.heroImage)
+                  .auto('format') 
+                  .quality(85) 
+                  .url()} 
+                alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
+                priority={true} 
+                fill
+                sizes="100vw"
+                className="object-cover opacity-60" 
+                style={{ animation: 'slow-zoom 20s infinite alternate' }}
+                placeholder="blur"
+                blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
+              />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
           </div>
@@ -171,17 +161,14 @@ export default async function HomePage({ params }) {
             </Link>
           </div>
 
-          {/* Search bar float */}
           <div className="absolute bottom-0 start-0 w-full translate-y-1/2 z-[100] px-6 pointer-events-none">
-             <div className="max-w-5xl mx-auto pointer-events-auto">
-                <SearchFilter lang={lang} isAr={isAr} />
-             </div>
+              <div className="max-w-5xl mx-auto pointer-events-auto">
+                 <SearchFilter lang={lang} isAr={isAr} />
+              </div>
           </div>
         </header>
 
-        {/* 🏙️ CONTENT SECTION */}
         <div className="pt-40 md:pt-60 space-y-32 md:space-y-48 pb-32">
-          
           <AboutSection lang={lang} isAr={isAr} />
           
           <section id="featured" className="bg-brand-gray-50 py-32 border-y border-slate-100" aria-labelledby="featured-title">
@@ -211,7 +198,7 @@ export default async function HomePage({ params }) {
              <CityCarousel lang={lang} />
           </section>
 
-          {/* 🏢 TITANS SECTION - Legacy Partners */}
+          {/* 🏢 TITANS SECTION */}
           <section id="developers" className="bg-white py-32 overflow-hidden relative" aria-labelledby="dev-title">
               <div className="text-center mb-32 px-6 space-y-6">
                 <span className={`text-brand-red font-black text-[11px] uppercase block ${isAr ? 'tracking-wider' : 'tracking-[0.6em]'}`}>
@@ -222,7 +209,6 @@ export default async function HomePage({ params }) {
                 </h2>
               </div>
 
-              {/* Seamless Logo Marquee */}
               <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
                   <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
@@ -235,7 +221,6 @@ export default async function HomePage({ params }) {
                       </Link>
                     ))}
                   </div>
-                  {/* Glass Shadows for Marquee */}
                   <div className="absolute inset-y-0 start-0 w-32 md:w-80 bg-gradient-to-r rtl:bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
                   <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
@@ -243,12 +228,12 @@ export default async function HomePage({ params }) {
         </div>
 
         <style dangerouslySetInnerHTML={{ __html: `
-          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
-          @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(33.33%); } }
-          .animate-marquee { display: flex; animation: marquee 120s linear infinite; }
+          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
+          .animate-marquee { display: flex; animation: marquee 100s linear infinite; }
           html[dir="rtl"] .animate-marquee { animation-name: marqueeRTL; }
           @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
-          @media (max-width: 768px) { .animate-marquee { animation-duration: 60s; } }
+          @media (max-width: 768px) { .animate-marquee { animation-duration: 50s; } }
           .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }
         `}} />
       </main>
@@ -257,7 +242,7 @@ export default async function HomePage({ params }) {
 }
 
 /**
- * ✅ DeveloperLogoItem: Refactored for Premium UI
+ * ✅ DeveloperLogoItem: Optimized to prevent Timeout on large images
  */
 const DeveloperLogoItem = ({ dev, isAr }) => {
   const mainBadgeKey = Array.isArray(dev.badges) ? dev.badges[0] : null;
@@ -281,12 +266,15 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
           <div className="relative w-full h-full grayscale opacity-40 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
             {dev.logo ? (
               <Image 
-                src={urlFor(dev.logo).width(400).format('webp').url()} 
+                // ✅ استخدام unoptimized لتجنب الـ Timeout في حالة الصور الضخمة في الـ Local Dev
+                // ومع استخدام Sanity CDN مباشرة لتقليص الحجم
+                src={urlFor(dev.logo).width(400).auto('format').url()} 
                 alt={`${dev.nameEn} Official Logo`} 
                 fill 
                 sizes="400px"
                 className="object-contain" 
                 loading="lazy"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>
