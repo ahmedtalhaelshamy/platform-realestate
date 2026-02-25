@@ -11,9 +11,7 @@ export const CONTACT_INFO = {
   siteNameAr: "بلاتفورم للتسويق العقاري",
 
   // ✅ أرقام التواصل (برمجياً وعرضاً)
-  // الخام للروابط البرمجية (tel:)
   phone: "+201004011040", 
-  // المنسق للعرض الجمالي في الموقع (UX)
   phoneDisplay: "+20 100 401 1040", 
   
   // رقم الواتساب (يجب أن يكون أرقام فقط بدون + لروابط wa.me)
@@ -25,9 +23,9 @@ export const CONTACT_INFO = {
   addressAr: "43 المنطقة 10 اللوتس الجنوبية - التجمع الخامس، القاهرة الجديدة",
   addressEn: "43/10 South Lotus, 5th Settlement, New Cairo, Egypt",
   
-  // ✅ روابط الخرائط (تأكد من صحة اللينك الفعلي لاحقاً)
-  googleMapsUrl: "https://maps.google.com/?q=Platform+Real+Estate+Lotus", 
-  googleMapsEmbed: "https://www.google.com/maps/embed?pb=...", // ضع هنا رابط الـ iframe إذا وجد
+  // ✅ روابط الخرائط
+  googleMapsUrl: "https://maps.google.com/...", 
+  googleMapsEmbed: "", 
 
   // ✅ حسابات السوشيال ميديا الرسمية
   social: {
@@ -39,9 +37,10 @@ export const CONTACT_INFO = {
   },
 
   // ✅ إعدادات السيو الافتراضية (Fallback SEO)
+  // تم حذف اسم الشركة من العناوين هنا لأن الكود البرمجي في Layout سيضيفها تلقائياً مرة واحدة فقط
   defaultSeo: {
-    titleAr: "عقارات مصر 2026 | بلاتفورم للتسويق العقاري",
-    titleEn: "Egypt Real Estate 2026 | Platform Real Estate",
+    titleAr: "عقارات مصر 2026", 
+    titleEn: "Egypt Real Estate 2026",
     descAr: "استشارك العقاري الأول في مصر. خبرة 15 عاماً في اختيار أفضل المشاريع الاستثمارية في التجمع، زايد، والعاصمة الإدارية.",
     descEn: "Your premier real estate consultant in Egypt. 15 years of expertise in the best projects in New Cairo, Zayed, and NAC.",
   }

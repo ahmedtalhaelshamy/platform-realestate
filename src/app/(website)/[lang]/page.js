@@ -29,7 +29,7 @@ const getSafeText = (val) => {
 };
 
 /**
- * ✅ Metadata: Optimized for SEO & Social Sharing
+ * ✅ Metadata: تم التعديل لمنع تكرار اسم الموقع مع الـ Layout الجديد
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -37,7 +37,12 @@ export async function generateMetadata({ params }) {
   const data = await getPageData();
   const seo = data?.settings?.seo;
 
-  const title = getSafeText(isAr ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn));
+  // جلب العنوان الصافي فقط (بدون إضافة | Platform يدوياً هنا)
+  const title = getSafeText(isAr 
+    ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) 
+    : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn)
+  );
+
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
 
@@ -46,11 +51,12 @@ export async function generateMetadata({ params }) {
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    title: `${title} | Platform`,
+    // نرسل الـ title كما هو، والـ Layout template سيضيف "| بلاتفورم" بشكل ذكي ومرة واحدة فقط
+    title: title, 
     description,
     alternates: { 
-      canonical: `${baseUrl}/${lang}/`,
-      languages: { 'ar': `${baseUrl}/ar/`, 'en': `${baseUrl}/en/` }
+      canonical: `/${lang}`, // استخدام مسار نسبي ليتوافق مع إعدادات الـ Layout
+      languages: { 'ar': '/ar', 'en': '/en' }
     },
     openGraph: {
       title,
@@ -123,28 +129,17 @@ export default async function HomePage({ params }) {
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
 <Image 
-  // استخدام auto('format') يتيح لـ Sanity تقديم AVIF للمتصفحات الحديثة (أصغر من WebP)
   src={urlFor(settings.heroImage)
     .auto('format') 
     .quality(80) 
     .url()} 
   
   alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
-  
-  // أولوية قصوى للتحميل لأنها أول ما يراه المستخدم (LCP)
   priority={true} 
   fetchPriority="high" 
-  
-  // ملء الحاوية الأب (تأكد أن الحاوية لديها position: relative)
   fill
-  
-  // تحديد الأحجام بدقة يمنع تحميل بكسلات زائدة لا تراها العين
   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
-  
-  // تحسين الأداء البصري
   className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-  
-  // صورة التمويه (Blur) خفيفة جداً لتحسين تجربة الانتظار
   placeholder="blur"
   blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
 />
@@ -171,7 +166,6 @@ export default async function HomePage({ params }) {
             </Link>
           </div>
 
-          {/* Search bar float */}
           <div className="absolute bottom-0 start-0 w-full translate-y-1/2 z-[100] px-6 pointer-events-none">
              <div className="max-w-5xl mx-auto pointer-events-auto">
                 <SearchFilter lang={lang} isAr={isAr} />
@@ -179,7 +173,6 @@ export default async function HomePage({ params }) {
           </div>
         </header>
 
-        {/* 🏙️ CONTENT SECTION */}
         <div className="pt-40 md:pt-60 space-y-32 md:space-y-48 pb-32">
           
           <AboutSection lang={lang} isAr={isAr} />
@@ -211,7 +204,6 @@ export default async function HomePage({ params }) {
              <CityCarousel lang={lang} />
           </section>
 
-          {/* 🏢 TITANS SECTION - Legacy Partners */}
           <section id="developers" className="bg-white py-32 overflow-hidden relative" aria-labelledby="dev-title">
               <div className="text-center mb-32 px-6 space-y-6">
                 <span className={`text-brand-red font-black text-[11px] uppercase block ${isAr ? 'tracking-wider' : 'tracking-[0.6em]'}`}>
@@ -222,7 +214,6 @@ export default async function HomePage({ params }) {
                 </h2>
               </div>
 
-              {/* Seamless Logo Marquee */}
               <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
                   <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
@@ -235,7 +226,6 @@ export default async function HomePage({ params }) {
                       </Link>
                     ))}
                   </div>
-                  {/* Glass Shadows for Marquee */}
                   <div className="absolute inset-y-0 start-0 w-32 md:w-80 bg-gradient-to-r rtl:bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
                   <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
@@ -256,9 +246,6 @@ export default async function HomePage({ params }) {
   );
 }
 
-/**
- * ✅ DeveloperLogoItem: Refactored for Premium UI
- */
 const DeveloperLogoItem = ({ dev, isAr }) => {
   const mainBadgeKey = Array.isArray(dev.badges) ? dev.badges[0] : null;
   const badgeConfig = BADGE_MAP[mainBadgeKey] || BADGE_MAP.default;

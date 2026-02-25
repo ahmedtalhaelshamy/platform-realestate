@@ -1,24 +1,40 @@
 import { Users } from 'lucide-react'
 
-export default {
+// 1. تعريف الكائن وتعيينه لمتغير (Variable Assignment)
+const developersPageSchema = {
   name: 'developersPage',
   title: 'صفحة المطورين (الرئيسية)',
   type: 'document',
   icon: Users,
+
+  // تنظيم الحقول في مجموعات (Tabs) لتظهر في Sanity Studio
+  groups: [
+    { name: 'content', title: 'المحتوى الرئيسي', default: true },
+    { name: 'seo', title: 'SEO إعدادات البحث' },
+  ],
+
   fields: [
     { 
       name: 'titleAr', 
       title: 'عنوان الصفحة - عربي', 
       type: 'string',
-      initialValue: 'شركاء النجاح'
+      initialValue: 'شركاء النجاح',
+      group: 'content' 
     },
-    // ... الحقول القديمة ...
-    
-    // أضف هذا الحقل لرفع المطورين داخل الصفحة
+
+    // إضافة حقل السيو الذي كان مفقوداً في لقطة الشاشة
+    {
+      name: 'seo',
+      title: 'إعدادات الأرشفة والسيو',
+      type: 'seo', 
+      group: 'seo' 
+    },
+
     {
       name: 'developersList',
       title: 'قائمة المطورين',
       type: 'array',
+      group: 'content',
       of: [
         {
           type: 'object',
@@ -28,14 +44,24 @@ export default {
               name: 'logo', 
               title: 'اللوجو', 
               type: 'image',
-              options: { 
-                hotspot: true // ✅ هذا السطر يسمح لك بضبط مكان اللوجو لو اتقص
-              } 
+              options: { hotspot: true } 
             }
           ]
         }
       ]
     }
   ],
-  // ... الباقي كما هو
-}
+
+  preview: {
+    select: { title: 'titleAr' },
+    prepare({ title }) {
+      return {
+        title: title || 'صفحة المطورين',
+        media: Users
+      }
+    }
+  }
+};
+
+// 2. تصدير المتغير كـ default
+export default developersPageSchema;
