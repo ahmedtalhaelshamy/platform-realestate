@@ -14,7 +14,7 @@ export default defineType({
       validation: Rule => Rule.max(60).warning('العنوان طويل جداً'),
     }),
     defineField({
-      name: 'h1Ar', // 👈 تغيير هنا ليكون لغة عربية
+      name: 'h1Ar', 
       title: 'H1 العنوان الرئيسي (AR)',
       type: 'string',
     }),
@@ -41,7 +41,7 @@ export default defineType({
       type: 'string',
     }),
     defineField({
-      name: 'h1En', // 👈 تغيير هنا ليكون لغة إنجليزية
+      name: 'h1En', 
       title: 'H1 Main Heading (EN)',
       type: 'string',
     }),

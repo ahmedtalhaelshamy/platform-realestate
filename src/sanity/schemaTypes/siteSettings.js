@@ -7,7 +7,6 @@ export default defineType({
   type: 'document',
   icon: Cog,
   
-  // 1️⃣ تنظيم لوحة التحكم لمجموعات واضحة (تم حذف مجموعة contact)
   groups: [
     { name: 'hero', title: 'واجهة الصفحة الرئيسية', default: true },
     { name: 'social', title: 'السوشيال ميديا' },
@@ -15,7 +14,7 @@ export default defineType({
   ],
 
   fields: [
-    // --- 🏆 1. HERO SECTION (البيانات المرئية للرئيسية) ---
+    // --- 🏆 1. HERO SECTION ---
     defineField({
       name: 'titleAr',
       title: 'اسم الموقع / العنوان - عربي',
@@ -88,9 +87,40 @@ export default defineType({
     }),
 
     // --- 🔍 3. SEO SETTINGS ---
+    // ✅ إضافة الحقول الفردية لضمان عدم تكرار العناوين وحل مشاكل Semrush
     defineField({
-      name: 'seo', // السيو العام للموقع
-      title: 'SEO الإعدادات العامة (الرئيسية)',
+      name: 'metaTitleAr',
+      title: 'العنوان الأساسي للسيو (عربي)',
+      description: 'اكتب هنا عنوان الصفحة كما تريده أن يظهر في جوجل (بدون اسم الموقع)',
+      type: 'string',
+      group: 'seo',
+    }),
+    defineField({
+      name: 'metaTitleEn',
+      title: 'Meta Title (English)',
+      description: 'Page title as it appears in search engines (without site name)',
+      type: 'string',
+      group: 'seo',
+    }),
+    defineField({
+      name: 'metaDescAr',
+      title: 'وصف السيو (عربي)',
+      type: 'text',
+      rows: 2,
+      group: 'seo',
+    }),
+    defineField({
+      name: 'metaDescEn',
+      title: 'Meta Description (English)',
+      type: 'text',
+      rows: 2,
+      group: 'seo',
+    }),
+
+    // الحفاظ على الحقول القديمة كما هي لضمان عدم فقدان أي داتا
+    defineField({
+      name: 'seo', 
+      title: 'SEO الإعدادات العامة (القديمة)',
       type: 'seo', 
       group: 'seo',
     }),
@@ -100,7 +130,6 @@ export default defineType({
       type: 'seo',
       group: 'seo',
     }),
-    // ✅ تم حذف contactSeo من هنا
   ],
 
   preview: {

@@ -9,13 +9,13 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 1. إعداد الخطوط - تم تقليل الأوزان غير الضرورية لتقليل حجم الصفحة
+// 1. إعداد الخطوط
 const almarai = Almarai({
   subsets: ['arabic'],
   variable: '--font-almarai',
   display: 'swap',
-  adjustFontFallback: true, // يمنع الـ Layout Shift
-  weight: ['400', '700'], // تم حذف 800 لتقليل الحجم، استخدم 700 للـ Bold
+  adjustFontFallback: true,
+  weight: ['400', '700'],
 });
 
 const jakarta = Plus_Jakarta_Sans({
@@ -44,9 +44,11 @@ export async function generateMetadata({ params }) {
   const isAr = lang === 'ar';
   const settings = await getSiteSettings();
 
-  const title = isAr 
-    ? (settings?.seo?.metaTitleAr || CONTACT_INFO.siteNameAr) 
-    : (settings?.seo?.metaTitleEn || CONTACT_INFO.siteNameEn);
+  // محاولة جلب العنوان من Sanity (لو أضفت الحقل مستقبلاً)
+  const sanityTitle = isAr ? settings?.seo?.metaTitleAr : settings?.seo?.metaTitleEn;
+  
+  // القيمة الافتراضية في حال عدم وجود عنوان مخصص
+  const defaultSiteName = isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn;
 
   const description = isAr 
     ? (settings?.seo?.metaDescAr || "استشارك العقاري الأول في مصر") 
@@ -56,17 +58,20 @@ export async function generateMetadata({ params }) {
 
   return {
     title: {
-      default: title,
-      template: `%s | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+      // إذا وجد عنوان في Sanity نستخدمه، وإلا نستخدم اسم الموقع الافتراضي
+      default: sanityTitle || defaultSiteName,
+      // الـ template سيعمل فقط إذا كان هناك عنوان مخصص (لتجنب التكرار في الصفحة الرئيسية)
+      template: sanityTitle ? `%s | ${isAr ? 'بلاتفورم' : 'Platform'}` : `%s`, 
     },
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
-      canonical: `${baseUrl}/${lang}/`, 
+      // ✅ حل مشكلة الـ Canonical لتكون متوافقة مع الـ hreflang
+      canonical: `/${lang}`, 
       languages: {
-        'ar': `${baseUrl}/ar/`,
-        'en': `${baseUrl}/en/`,
-        'x-default': `${baseUrl}/ar/`, 
+        'ar': '/ar',
+        'en': '/en',
+        'x-default': '/ar', 
       },
     },
     icons: {
@@ -87,7 +92,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// تحسين إطار العرض - themeColor مهم جداً للموبايل
 export const viewport = {
   themeColor: '#C02026',
   width: 'device-width',
@@ -108,12 +112,10 @@ export default async function WebsiteLayout({ children, params }) {
       suppressHydrationWarning
     >
       <head>
-        {/* ✅ أولوية قصوى للاتصال بسيرفرات الصور لتقليل الـ LCP */}
         <link rel="preconnect" href="https://cdn.sanity.io" />
         <link rel="dns-prefetch" href="https://cdn.sanity.io" />
         <link rel="preconnect" href="https://0v9re5oc.api.sanity.io" crossOrigin="anonymous" />
         
-        {/* تحسينات الـ CSS Critical لسرعة الـ Paint الأولية */}
         <style dangerouslySetInnerHTML={{ __html: `
           body { 
             text-rendering: optimizeLegibility; 
@@ -135,7 +137,6 @@ export default async function WebsiteLayout({ children, params }) {
         `}
         suppressHydrationWarning
       >
-        {/* رابط التخطي (Accessibility) - محسن لمستخدمي الكيبورد */}
         <a 
           href="#main-content" 
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:z-[9999] focus:bg-brand-red focus:text-white focus:p-4 focus:rounded-lg"
