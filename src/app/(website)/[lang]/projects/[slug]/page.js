@@ -7,6 +7,8 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 // ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة لضمان سرعة الاستجابة
 export const revalidate = 3600; 
 
+
+
 // 🏁 الدومين الموحد المعتمد (بدون www)
 const BASE_URL = 'https://platformrealestate.co';
 
@@ -142,7 +144,7 @@ export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  // 🚀 استعلام GROQ المطور: جلب المشروع مع الأخبار المربوطة به بذكاء
+  // 🚀 استعلام GROQ المطور: تم تصحيح _id إلى _ref لجلب المشاريع المشابهة
   const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
     _id,
@@ -151,13 +153,19 @@ export default async function ProjectDetailPage({ params }) {
     "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
     "locationData": location->{ nameAr, nameEn, "slug": slug.current },
     "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn, _id },
-    "developerProjects": *[_type == "project" && references(^.developer._id) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
+    
+    // 💡 تم تصحيح (^.developer._id) إلى (^.developer._ref)
+    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
         _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
     },
+    
     "author": author->{ name, image, jobTitle },
-    "relatedProjects": *[_type == "project" && references(^.district._id) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
+    
+    // 💡 تم تصحيح (^.district._id) إلى (^.district._ref)
+    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
         _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
     },
+    
     // 📰 جلب الأخبار: يبحث عن أي مقال يشير لهذا المشروع تحديداً
     "relatedPosts": *[_type == "post" && language == $lang && references(^._id)] | order(_createdAt desc)[0...3] {
       title, "slug": slug.current, mainImage, overview, _createdAt

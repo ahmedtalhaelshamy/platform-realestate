@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@next/third-parties": "^16.1.6",
     "@portabletext/react": "^3.1.0",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^3.71.0",

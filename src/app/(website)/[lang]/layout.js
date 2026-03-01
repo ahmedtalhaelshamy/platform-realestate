@@ -9,6 +9,9 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
+// 🚀 1. استيراد جوجل أناليتكس هنا
+import { GoogleAnalytics } from '@next/third-parties/google';
+
 // 1. إعداد الخطوط
 const almarai = Almarai({
   subsets: ['arabic'],
@@ -158,6 +161,10 @@ export default async function WebsiteLayout({ children, params }) {
         />
         
         <Footer lang={lang} settings={settings} />
+
+        {/* 🚀 2. كود تتبع جوجل أناليتكس برقم التتبع الخاص بك */}
+        <GoogleAnalytics gaId="G-HPS1P5D224" />
+
       </body>
     </html>
   );

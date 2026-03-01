@@ -67,7 +67,7 @@ export default function DevelopersListClient({ initialDevelopers = [], initialPo
                 {isAr ? dev.nameAr : dev.nameEn}
               </h2>
               <div className="mt-3 text-[10px] font-black text-[#C02026] uppercase tracking-widest bg-red-50 px-4 py-1.5 rounded-full">
-                {dev.projectsCount || 0} {isAr ? 'مشروع' : 'Units'}
+                {dev.projectsCount || 0} {isAr ? 'مشروع' : 'Projects'}
               </div>
             </Link>
           ))}

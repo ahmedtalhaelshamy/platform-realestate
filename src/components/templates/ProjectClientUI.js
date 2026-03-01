@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
@@ -9,7 +9,8 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 import AutoProjectCarousel from '../AutoProjectsCarousel'; 
 import Breadcrumbs from '../Breadcrumbs'; 
 import ProjectGallery from '../ProjectGallery'; 
-import InstallmentCalculator from '@/components/InstallmentCalculator'; 
+import InstallmentCalculator from '@/components/InstallmentCalculator';
+import { sendGAEvent } from '@next/third-parties/google';
 
 import { 
   Phone, MessageCircle, MapPin, Calendar, Building2, ShoppingBag, Waves,
@@ -116,26 +117,49 @@ const ptComponents = {
 };
 
 // --- 3. SUB-COMPONENTS ---
-const CTABox = ({ isArabic, inquiries, whatsappLink, handleShare, copied }) => (
-  <div className="bg-white border border-gray-100 p-5 rounded-2xl sticky top-28 shadow-lg h-fit z-30 transition-shadow duration-300 hover:shadow-xl w-full mx-auto">
-      <div className="text-center mb-4 text-start">
+const CTABox = ({ isArabic, inquiries, whatsappLink, handleShare, copied, projectName, onContactClick }) => (
+  <div className="bg-white border border-gray-100 p-5 rounded-2xl sticky top-28 shadow-lg h-fit z-30 transition-shadow duration-300 hover:shadow-xl w-full mx-auto text-start">
+      <div className="mb-4 text-start">
           <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">{isArabic ? 'مهتم بالمشروع؟' : 'Interested?'}</p>
           <h3 className="text-lg font-black text-slate-900">{isArabic ? 'احجز وحدتك الآن' : 'Book Your Unit'}</h3>
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 w-full">
           <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
+             onClick={() => onContactClick?.('phone')}
+             aria-label={`Call us about ${projectName}`}
              className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#C02026] transition-all group shadow-sm text-xs md:text-sm border border-slate-800">
               <Phone size={16} /> {isArabic ? 'اتصل مباشر' : 'Call Now'}
           </a>
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer" 
+             onClick={() => onContactClick?.('whatsapp')}
+             aria-label={`WhatsApp us about ${projectName}`}
              className="w-full bg-[#25D366] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#128c7e] transition-all shadow-sm text-xs md:text-sm">
               <MessageCircle size={18} /> {isArabic ? 'واتساب' : 'WhatsApp'}
           </a>
+
+          {/* 🛠️ زرار "الهروب لليسار" - نسخة مقاومة للـ RTL والـ Flexbox */}
           <button onClick={handleShare} 
-                  className="w-full bg-slate-50 text-slate-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition-all shadow-sm text-xs md:text-sm border border-slate-200">
-              {copied ? <Check size={16} className="text-green-600"/> : <Share2 size={16} />} {copied ? (isArabic ? 'تم النسخ' : 'Copied!') : (isArabic ? 'مشاركة المشروع' : 'Share Project')}
+                  aria-label={`Share ${projectName}`}
+                  className="w-full bg-slate-50 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-100 transition-all shadow-sm text-xs md:text-sm border border-slate-200 block"
+                  style={{ 
+                    textAlign: 'left', // إجبار النص يروح شمال
+                    direction: 'ltr',  // إجبار الترتيب من الشمال لليمين
+                    paddingLeft: '15px', // مسافة من حافة الزرار
+                    display: 'block'    // تحويله لـ block عشان نلغي سنترة الـ flex
+                  }}>
+              
+              {/* أيقونة الشير */}
+              <div style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '10px' }}>
+                  {copied ? <Check size={16} className="text-green-600"/> : <Share2 size={16} />}
+              </div>
+
+              {/* نص الزرار */}
+              <span style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                  {copied ? (isArabic ? 'تم النسخ' : 'Copied!') : (isArabic ? 'مشاركة المشروع' : 'Share Project')}
+              </span>
           </button>
       </div>
+
       <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-center gap-2 text-[10px] font-bold text-green-600 bg-green-50 rounded-lg py-1.5">
           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/>
           {inquiries} {isArabic ? 'شخص يشاهدون الآن' : 'people viewing now'}
@@ -165,6 +189,7 @@ const ContentSection = ({ title, image, content, children, altBg = false, id }) 
                 src={urlFor(image).auto('format').url()} 
                 alt={safeTitle} 
                 fill 
+                loading="lazy"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1400px"
                 className="object-cover group-hover:scale-105 transition-transform duration-1000" 
               />
@@ -181,6 +206,19 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   
   const [inquiries, setInquiries] = useState(0);
   const [copied, setCopied] = useState(false); 
+
+  // 📈 دالة تتبع التحويلات (GA4 Event Tracking)
+  const trackLead = (method) => {
+    sendGAEvent('event', 'generate_lead', {
+      category: 'Lead Generation',
+      action: method === 'whatsapp' ? 'WhatsApp Click' : 'Phone Call Click',
+      label: officialName,
+      project_id: data?._id,
+      language: lang,
+      value: data?.price || 0,
+      currency: 'EGP'
+    });
+  };
 
   useEffect(() => { 
     setInquiries(15 + Math.floor(Math.random() * 10));
@@ -248,8 +286,9 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   ];
 
   return (
-    <main className="font-sans text-slate-900 bg-white selection:bg-red-50" dir={isArabic ? 'rtl' : 'ltr'}>
+    <main className={`font-sans text-slate-900 bg-white selection:bg-red-50 ${isArabic ? 'font-almarai' : 'font-jakarta'}`} dir={isArabic ? 'rtl' : 'ltr'}>
       
+{/* Hero Section */}
       <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">
         {data.mainImage && (
           <Image 
@@ -264,10 +303,11 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
         
+        {/* 🚀 التعديل هنا: استخدام left-4 بدلاً من start-4 ليبقى يساراً دائماً، و top-40 للهروب من Breadcrumbs */}
         <button 
           onClick={handleShare} 
           aria-label={isArabic ? "مشاركة" : "Share"}
-          className={`absolute top-28 ${isArabic ? 'left-4 md:left-8' : 'right-4 md:right-8'} z-20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20 transition-all duration-300 hover:scale-110 shadow-2xl ${copied ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-[#C02026]'}`}>
+          className="absolute top-40 left-4 md:left-8 z-50 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20 transition-all duration-300 hover:scale-110 shadow-2xl bg-white/10 text-white hover:bg-[#C02026]">
             {copied ? <Check size={20}/> : <Share2 size={20} />}
         </button>
 
@@ -293,8 +333,9 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
         </div>
       </section>
 
+      {/* Stats Section */}
       <section className="relative z-20 -mt-12 max-w-[1300px] mx-auto px-4" aria-label="Project Stats">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 grid grid-cols-2 lg:grid-cols-6 p-8 gap-y-8 lg:divide-x rtl:divide-x-reverse divide-slate-100">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 grid grid-cols-2 lg:grid-cols-6 p-8 gap-y-8 divide-slate-100 lg:divide-x lg:rtl:divide-x-reverse">
               {stats.map((x, i) => (
                 <div key={i} className="text-center px-4 group">
                     <div className="flex justify-center mb-2 text-slate-300 group-hover:text-[#C02026] transition-colors"><x.i size={22}/></div>
@@ -305,6 +346,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
           </div>
       </section>
 
+      {/* Gallery Section */}
       {data.gallery?.length > 0 && (
         <section className="max-w-[1440px] mx-auto px-4 md:px-8 mt-24 mb-12">
             <div className="mb-10 text-start">
@@ -314,6 +356,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
         </section>
       )}
 
+      {/* Main Content Area */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 pb-40 pt-10 grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-9 space-y-6">
             
@@ -391,7 +434,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                     <div className="absolute top-0 left-0 w-full h-full bg-[#C02026]/5 blur-3xl rounded-full" />
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-12 italic uppercase tracking-tighter relative z-10">{isArabic ? 'فيديو المشروع' : 'Official Trailer'}</h2>
                     <div className="relative aspect-video max-w-5xl mx-auto rounded-[2rem] overflow-hidden border-8 border-white/5 group z-10 shadow-2xl">
-                        <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&autoplay=0`} allowFullScreen title="Project Official Video" />
+                        <iframe loading="lazy" className="w-full h-full" src={`https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&autoplay=0`} allowFullScreen title="Project Official Video" />
                     </div>
                 </section>
             )}
@@ -451,23 +494,38 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
 
             {data.developer && (
                 <section className="bg-slate-950 p-10 md:p-16 rounded-[4rem] border border-white/5 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-[#C02026]/10 transition-all duration-1000" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -me-32 -mt-32 group-hover:bg-[#C02026]/10 transition-all duration-1000" />
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-12 relative z-10 text-start">
                         {data.developer.logo ? (
-                          <div className="w-32 h-32 md:w-48 md:h-48 bg-white rounded-[2.5rem] p-6 shadow-2xl flex items-center justify-center shrink-0 overflow-hidden">
-<Image 
-  src={urlFor(data.developer.logo).auto('format').url()} 
-  width={180} 
-  height={180} 
-  className="object-contain" 
-  alt="Developer Logo" 
-  sizes="180px" 
-/>                           </div>
+                          <div className="w-32 h-32 md:w-48 md:h-48 bg-white rounded-[2.5rem] p-6 shadow-2xl flex items-center justify-center shrink-0 overflow-hidden relative">
+                            <Image 
+                              src={urlFor(data.developer.logo).auto('format').url()} 
+                              fill 
+                              className="object-contain p-4" 
+                              alt={`${isArabic ? getSafeText(data.developer.nameAr) : getSafeText(data.developer.nameEn)} Logo`}
+                              sizes="(max-width: 768px) 128px, 192px" 
+                            /> 
+                          </div>
                         ) : <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 rounded-[2.5rem] flex items-center justify-center shrink-0"><Building2 size={60} className="text-white/20"/></div>}
                         <div className="flex-1">
                             <div className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.4em] mb-3">{isArabic ? 'المطور العقاري المعتمد' : 'Verified Partner'}</div>
                             <h3 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase mb-6 leading-none">{isArabic ? getSafeText(data.developer.nameAr) : getSafeText(data.developer.nameEn)}</h3>
-                            <p className="text-slate-400 text-base md:text-lg leading-relaxed line-clamp-6">{isArabic ? getSafeText(data.developer.descriptionAr) : getSafeText(data.developer.descriptionEn)}</p>
+                            <p className="text-slate-400 text-base md:text-lg leading-relaxed line-clamp-6 mb-6">{isArabic ? getSafeText(data.developer.descriptionAr) : getSafeText(data.developer.descriptionEn)}</p>
+                            
+                            {data.developerProjects?.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {data.developerProjects.map((p, i) => (
+                                        <Link 
+                                            key={`tag-${i}`} 
+                                            href={`/${lang}/projects/${p.slug}/`} 
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[#C02026] border border-white/10 hover:border-[#C02026] rounded-full text-xs font-bold text-white transition-all duration-300 shadow-sm"
+                                        >
+                                            <Building2 size={12} className="opacity-70" />
+                                            {isArabic ? getSafeText(p.titleAr) : getSafeText(p.titleEn)}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                     {data.developerProjects?.length > 0 && (
@@ -477,7 +535,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                                {data.developerProjects.map((p, i) => (
                                   <Link key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
                                     {p.mainImage && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
-                                      <Image src={urlFor(p.mainImage).width(200).auto('format').url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt="Proj" /></div>}
+                                      <Image src={urlFor(p.mainImage).width(200).auto('format').url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt={`${isArabic ? getSafeText(p.titleAr) : getSafeText(p.titleEn)} Image`} /></div>}
                                     <div className="overflow-hidden">
                                       <span className="font-black text-lg text-white group-hover:text-[#C02026] block truncate italic uppercase tracking-tighter">{isArabic ? getSafeText(p.titleAr) : getSafeText(p.titleEn)}</span>
                                       <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5 uppercase mt-1"><MapPin size={12} className="text-[#C02026]" /> {isArabic ? getSafeText(p.districtData?.nameAr) : getSafeText(p.districtData?.nameEn)}</span>
@@ -494,6 +552,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </section>
             )}
 
+            {/* 🚀 إضافة جزء الكاتب والتقييم هنا */}
             <ContentSection id="review" title={txt(data.opinionTitleAr, data.opinionTitleEn) || (isArabic ? 'رأي خبير بلاتفورم' : 'Expert Review')} content={isArabic ? data.opinionContentAr : data.opinionContentEn} altBg>
                 <div className="flex flex-col md:flex-row items-center gap-8 mt-10">
                   {data.editorRating && (
@@ -508,14 +567,14 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                   {data.author && (
                       <div className="flex items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm w-full md:w-fit text-start">
                           {data.author.image ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
-<Image 
-  src={urlFor(data.author.image).auto('format').url()} 
-  fill 
-  className="object-cover" 
-  alt={data.author.name || "Author"} 
-  sizes="64px" 
-/>                             </div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/>
-                             </div>}
+                            <Image 
+                              src={urlFor(data.author.image).auto('format').url()} 
+                              fill 
+                              className="object-cover" 
+                              alt={data.author.name || "Author"} 
+                              sizes="64px" 
+                            /> 
+                            </div> : <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"><User className="text-slate-300"/></div>}
                           <div>
                             <div className="text-[10px] text-[#C02026] uppercase font-black tracking-widest mb-1">{isArabic ? 'تحليل بواسطة' : 'Analyzed By'}</div>
                             <h3 className="text-lg font-black text-slate-950 italic uppercase tracking-tighter leading-none">{data.author.name}</h3>
@@ -526,21 +585,19 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </div>
             </ContentSection>
 
-            {data.faqs?.length > 0 && (
-                <section id="faqs" className="py-20 bg-white">
-                    <div className="text-center mb-16"><span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[11px] block mb-4">{isArabic ? 'معلومات تهمك' : 'Key Info'}</span><h2 className="text-4xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">{isArabic ? 'الأسئلة الشائعة' : 'Project FAQ'}</h2></div>
-                    <div className="grid gap-4 max-w-5xl mx-auto">
-                        {data.faqs.map((f, i) => (
-                            <details key={i} className="group bg-slate-50 rounded-[2rem] p-6 cursor-pointer open:bg-white border-2 border-transparent open:border-slate-100 transition-all duration-500">
-                                <summary className="font-black flex justify-between items-center list-none select-none text-base md:text-xl italic uppercase tracking-tight leading-none text-start pr-4"><span className="flex gap-5 items-center text-slate-900 group-open:text-[#C02026] transition-colors"><HelpCircle className="w-6 h-6 shrink-0 text-[#C02026] opacity-30 group-open:opacity-100"/> {getSafeText(isArabic ? f.questionAr : f.questionEn)}</span><ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-all"/></summary>
-                                <div className="px-11 pb-2 text-slate-500 leading-loose text-base md:text-lg font-medium border-t border-slate-100 pt-6 mt-6 animate-in fade-in duration-700 text-start">{getSafeText(isArabic ? f.answerAr : f.answerEn)}</div>
-                            </details>
-                        ))}
+            {similarProjects?.length > 0 && (
+                <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden text-start">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
+                    <div className="max-w-[1440px] mx-auto px-12 relative z-10">
+                        <div className="flex items-end justify-between mb-16">
+                           <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
+                           <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
+                        </div>
+                        <div className="w-full"><AutoProjectCarousel projects={similarProjects} lang={lang} isAr={isArabic} desktopSlides={3} /></div>
                     </div>
                 </section>
             )}
 
-            {/* 📰 ✅ قسم أخبار المنطقة (Related News) */}
             {relatedPosts && relatedPosts.length > 0 && (
               <section className="py-24 bg-slate-50 rounded-[4rem] border border-slate-100 my-16 text-start">
                 <header className="flex flex-col md:flex-row items-center justify-between mb-16 px-6 md:px-12 gap-8">
@@ -594,24 +651,20 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </div>
               </section>
             )}
-
-            {similarProjects?.length > 0 && (
-                <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden text-start">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
-                    <div className="max-w-[1440px] mx-auto px-12 relative z-10">
-                        <div className="flex items-end justify-between mb-16">
-                           <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
-                           <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
-                        </div>
-                        <div className="w-full"><AutoProjectCarousel projects={similarProjects} lang={lang} isAr={isArabic} desktopSlides={3} /></div>
-                    </div>
-                </section>
-            )}
         </div>
 
+        {/* Sidebar */}
         <aside className="lg:col-span-3 space-y-8 hidden lg:block h-full">
             <div className="sticky top-32 space-y-8">
-                <CTABox isArabic={isArabic} inquiries={inquiries} whatsappLink={whatsappLink} handleShare={handleShare} copied={copied} />
+                <CTABox 
+                  isArabic={isArabic} 
+                  inquiries={inquiries} 
+                  whatsappLink={whatsappLink} 
+                  handleShare={handleShare} 
+                  copied={copied} 
+                  projectName={officialName}
+                  onContactClick={trackLead}
+                />
                 <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex items-center gap-5 group hover:bg-white hover:shadow-xl transition-all">
                    <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-[#C02026] shadow-xl group-hover:bg-[#C02026] group-hover:text-white transition-all"><ShieldCheck size={32} /></div>
                    <div className="text-start">
@@ -623,20 +676,23 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
         </aside>
       </div>
 
-      <nav className="lg:hidden fixed bottom-24 left-4 right-4 z-[110] flex gap-3 h-16 animate-in slide-in-from-bottom-12 duration-1000">
+      {/* Mobile Sticky CTA */}
+      <nav className="lg:hidden fixed bottom-6 left-4 right-4 z-[110] flex gap-3 h-16 animate-in slide-in-from-bottom-12 duration-1000">
           <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-             aria-label={isArabic ? "اتصال" : "Call"}
+             onClick={() => trackLead('phone')}
+             aria-label={`Call us about ${officialName}`}
              className="w-20 bg-slate-950 text-white rounded-[1.5rem] flex flex-col items-center justify-center border border-white/5 shadow-2xl active:scale-90 transition-all group">
             <Phone size={20} className="text-[#C02026] mb-1 group-hover:animate-bounce" /> 
             <span className="text-[9px] font-black uppercase tracking-tighter leading-none">{isArabic ? 'اتصل' : 'Call'}</span>
           </a>
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer" 
-             aria-label={isArabic ? "واتساب" : "WhatsApp"}
+             onClick={() => trackLead('whatsapp')}
+             aria-label={`WhatsApp us about ${officialName}`}
              className="flex-1 bg-[#25D366] text-white rounded-[1.5rem] flex items-center justify-center gap-3 font-black shadow-2xl active:scale-95 transition-all text-sm border-b-4 border-black/10">
             <MessageCircle size={24} /> <span className="uppercase tracking-widest">{isArabic ? 'تحدث مع خبير' : 'WhatsApp'}</span>
           </a>
           <button onClick={handleShare} 
-                  aria-label={isArabic ? "مشاركة" : "Share"}
+                  aria-label={`Share ${officialName}`}
                   className="w-16 bg-white text-slate-950 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-2xl active:scale-90 transition-all">
             {copied ? <Check size={24} className="text-green-600"/> : <Share2 size={24} />}
           </button>
