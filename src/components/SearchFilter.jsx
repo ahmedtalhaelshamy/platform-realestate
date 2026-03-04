@@ -31,6 +31,15 @@ export default function SearchBar({ lang }) {
   const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // 🚀 دالة تتبع الـ Events الخاصة بالبحث (GA4)
+  const trackSearch = (searchTerm) => {
+    if (typeof window !== 'undefined' && window.gtag && searchTerm.trim()) {
+      window.gtag('event', 'search', {
+        search_term: searchTerm.trim()
+      });
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
     async function fetchSearchIntel() {
@@ -91,7 +100,13 @@ export default function SearchBar({ lang }) {
       
       {/* 🔍 Search Container */}
       <form 
-        onSubmit={(e) => { e.preventDefault(); if (query.trim()) router.push(`/${lang}/projects/?search=${query}`); }}
+        onSubmit={(e) => { 
+          e.preventDefault(); 
+          if (query.trim()) {
+            trackSearch(query); // 🚀 تتبع الكلمة المفتاحية قبل الانتقال
+            router.push(`/${lang}/projects/?search=${query}`); 
+          }
+        }}
         className={`
           bg-white/95 backdrop-blur-xl p-2 md:p-3 rounded-[3rem] transition-all duration-500 flex items-center 
           border-none outline-none ring-0 overflow-visible

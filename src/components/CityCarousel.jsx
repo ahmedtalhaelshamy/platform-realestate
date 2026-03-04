@@ -114,13 +114,18 @@ export default function CityCarousel({ lang }) {
               <div className="absolute inset-0 z-0">
                 {city.image ? (
                 <Image 
-    src={urlFor(city.image).quality(85).auto('format').url()} 
-    alt={isAr ? city.nameAr : city.nameEn} 
-    fill 
-    priority={index < 2}
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-    className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out opacity-90 group-hover:opacity-100" 
-/>
+                  // ✅ LCP Fix: تقليل الجودة لـ 60% لتصغير الحجم للنص
+                  src={urlFor(city.image).quality(60).auto('format').url()} 
+                  alt={isAr ? city.nameAr : city.nameEn} 
+                  fill 
+                  quality={60} 
+                  priority={index < 2}
+                  loading={index < 2 ? "eager" : "lazy"} // ✅ تحميل الصور المخفية ببطء
+                  decoding="async" // ✅ منع تجميد المتصفح
+                  fetchPriority={index < 2 ? "high" : "auto"}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out opacity-90 group-hover:opacity-100" 
+                />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-slate-100">
                     <Building2 size={64} className="text-slate-300" />
@@ -151,7 +156,8 @@ export default function CityCarousel({ lang }) {
                     
                     {/* زرار فرعي يظهر بشكل أوضح عند الهوفر */}
                     <div className="w-12 h-12 rounded-full bg-white text-slate-950 flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-500">
-                      <ArrowUpRight size={24} />
+                      {/* ✅ RTL Fix: قلب السهم في النسخة العربية */}
+                      <ArrowUpRight size={24} className="rtl:-scale-x-100" aria-hidden="true" />
                     </div>
                   </div>
                 </div>

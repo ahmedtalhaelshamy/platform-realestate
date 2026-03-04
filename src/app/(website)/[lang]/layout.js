@@ -9,8 +9,8 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// 🚀 1. استيراد جوجل أناليتكس هنا
-import { GoogleAnalytics } from '@next/third-parties/google';
+// 🚀 1. استيراد Script من Next.js بدلاً من مكتبة الطرف الثالث
+import Script from 'next/script';
 
 // 1. إعداد الخطوط
 const almarai = Almarai({
@@ -162,8 +162,19 @@ export default async function WebsiteLayout({ children, params }) {
         
         <Footer lang={lang} settings={settings} />
 
-        {/* 🚀 2. كود تتبع جوجل أناليتكس برقم التتبع الخاص بك */}
-        <GoogleAnalytics gaId="G-HPS1P5D224" />
+        {/* 🚀 2. كود تتبع جوجل أناليتكس بنظام Lazy Load لعدم التأثير على PageSpeed */}
+        <Script 
+          strategy="lazyOnload" 
+          src={`https://www.googletagmanager.com/gtag/js?id=G-HPS1P5D224`} 
+        />
+        <Script id="google-analytics" strategy="lazyOnload">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-HPS1P5D224');
+          `}
+        </Script>
 
       </body>
     </html>
