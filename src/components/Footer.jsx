@@ -108,22 +108,25 @@ export default async function Footer({ lang }) {
               {isAr ? 'خريطة الموقع' : 'Navigation'}
               <div className="h-px flex-1 bg-gradient-to-r from-brand-red to-transparent opacity-30"></div>
             </h2>
-            <ul className="space-y-4">
-              {[
-                { name: isAr ? 'من نحن' : 'About Platform', href: `/${lang}/about-us/` },
-                { name: isAr ? 'المطورون' : 'Developers', href: `/${lang}/developers/` },
-                { name: isAr ? 'المدونة' : 'Insights', href: `/${lang}/blog/` },
-                { name: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact/` },
-              ].map((link, i) => (
-                <li key={i}>
-                  <Link href={link.href} className="group flex items-center gap-2 text-[13px] text-gray-300 hover:text-white transition-all font-bold uppercase tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-lg py-1 px-2 -mx-2">
-                    {/* ✅ RTL Fix for Arrow */}
-                    <ChevronRight size={12} className={`text-brand-red transition-transform shrink-0 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`} aria-hidden="true" />
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* ✅ Semantic HTML Fix: Added <nav> for accessibility */}
+            <nav aria-label={isAr ? 'روابط التنقل الأساسية' : 'Main navigation links'}>
+              <ul className="space-y-4">
+                {[
+                  { name: isAr ? 'من نحن' : 'About Platform', href: `/${lang}/about-us/` },
+                  { name: isAr ? 'المطورون' : 'Developers', href: `/${lang}/developers/` },
+                  { name: isAr ? 'المدونة' : 'Insights', href: `/${lang}/blog/` },
+                  { name: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact/` },
+                ].map((link, i) => (
+                  <li key={i}>
+                    <Link href={link.href} className="group flex items-center gap-2 text-[13px] text-gray-300 hover:text-white transition-all font-bold uppercase tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-lg py-1 px-2 -mx-2">
+                      {/* ✅ RTL Fix: Native CSS handling for arrow animation */}
+                      <ChevronRight size={12} className="text-brand-red transition-transform shrink-0 rtl:rotate-180 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" aria-hidden="true" />
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
 
           {/* 3. Areas Section */}
@@ -132,16 +135,19 @@ export default async function Footer({ lang }) {
               {isAr ? 'أهم المناطق' : 'Hotspots'}
               <div className="h-px flex-1 bg-gradient-to-r from-brand-red to-transparent opacity-30"></div>
             </h2>
-            <div className="grid grid-cols-1 gap-3">
-              {locations?.map((loc) => (
-                <Link key={loc.slug} href={`/${lang}/locations/${loc.slug}/`} 
-                      className="group flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all outline-none focus-visible:ring-2 focus-visible:ring-brand-red">
-                  <span className="text-[12px] font-bold text-gray-300 group-hover:text-white line-clamp-1">{isAr ? loc.nameAr : loc.nameEn}</span>
-                  {/* ✅ RTL Fix for Arrow */}
-                  <ArrowUpRight size={14} className="text-brand-red opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 rtl:group-hover:-translate-x-1 group-hover:translate-y-0 group-hover:translate-x-1 shrink-0" aria-hidden="true" />
-                </Link>
-              ))}
-            </div>
+            {/* ✅ Semantic HTML Fix: Added <nav> for accessibility */}
+            <nav aria-label={isAr ? 'روابط أهم المناطق' : 'Hotspots links'}>
+              <div className="grid grid-cols-1 gap-3">
+                {locations?.map((loc) => (
+                  <Link key={loc.slug} href={`/${lang}/locations/${loc.slug}/`} 
+                        className="group flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all outline-none focus-visible:ring-2 focus-visible:ring-brand-red">
+                    <span className="text-[12px] font-bold text-gray-300 group-hover:text-white line-clamp-1">{isAr ? loc.nameAr : loc.nameEn}</span>
+                    {/* ✅ RTL Fix: Native CSS handling for arrow animation and flip */}
+                    <ArrowUpRight size={14} className="text-brand-red opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+            </nav>
           </div>
 
           {/* 4. Contact Section */}

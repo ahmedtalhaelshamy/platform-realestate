@@ -9,7 +9,7 @@ import { client } from '../sanity/client';
 
 /**
  * 🚀 Premium Navbar 2026 - Platform Real Estate
- * تم تحسينه للأداء العالي (LCP) والسيو التقني (SEO) وإمكانية الوصول (Accessibility)
+ * تم تحسينه للأداء العالي (LCP) والسيو التقني (SEO)
  */
 export default function Navbar({ lang }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function Navbar({ lang }) {
   // 🎨 الستايلات الديناميكية
   const navBackground = (isHomePage && !scrolled) 
     ? 'bg-transparent py-6' 
-    : 'bg-white/95 backdrop-blur-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] py-3 lg:py-4';
+    : 'bg-white/90 backdrop-blur-2xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] py-3 lg:py-4';
 
   const textColor = (isHomePage && !scrolled) 
     ? 'text-white hover:text-[#C02026]' 
@@ -96,14 +96,17 @@ export default function Navbar({ lang }) {
             
             {/* 🏗️ Logo Section - Optimized for LCP */}
             <div className="shrink-0">
-              <Link href={`/${currentLang}/`} className="block relative z-50 focus:outline-none focus:ring-2 focus:ring-[#C02026] rounded-lg" aria-label="Platform Real Estate Home">
+              <Link href={`/${currentLang}/`} className="block relative z-50">
                 <div className={`relative transition-all duration-500 ${scrolled || !isHomePage ? 'w-24 h-10' : 'w-32 h-14'}`}>
+                  {/* ✅ LCP Fix: Added fetchPriority and decoding="async" */}
                   <Image 
                     src="/logo.webp" 
                     fill 
-                    priority 
-                    sizes="(max-width: 768px) 120px, 150px"
-                    alt="Platform Real Estate Logo" 
+                    priority
+                    fetchPriority="high" 
+                    decoding="async"
+                    sizes="(max-width: 768px) 120px, 150px" 
+                    alt="Platform Real Estate" 
                     className={`object-contain transition-all duration-500 ${logoFilter}`} 
                   />
                 </div>
@@ -121,10 +124,7 @@ export default function Navbar({ lang }) {
               </Link>
               
               <div className="relative group h-10 flex items-center"> 
-                <button 
-                  aria-expanded="false"
-                  aria-haspopup="true"
-                  className={`flex items-center gap-2 text-[13px] font-black uppercase tracking-widest transition-all duration-300 ${textColor} ${pathname.includes('locations') ? '!text-[#C02026]' : ''}`}>
+                <button className={`flex items-center gap-2 text-[13px] font-black uppercase tracking-widest transition-all duration-300 ${textColor} ${pathname.includes('locations') ? '!text-[#C02026]' : ''}`}>
                   {isAr ? 'المشاريع' : 'Projects'} 
                   <ChevronDown size={14} className="group-hover:-rotate-180 transition-transform duration-500" />
                 </button>
@@ -160,10 +160,7 @@ export default function Navbar({ lang }) {
 
             {/* ⚡ Actions Section */}
             <div className="hidden lg:flex items-center justify-end gap-5 shrink-0">
-              <Link 
-                href={switchLangPath} 
-                aria-label={isAr ? "Switch to English" : "التحويل للعربية"}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all border border-transparent hover:border-[#C02026]/20 font-black text-[11px] uppercase tracking-widest ${textColor}`}>
+              <Link href={switchLangPath} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all border border-transparent hover:border-[#C02026]/20 font-black text-[11px] uppercase tracking-widest ${textColor}`}>
                 <Globe size={16} className="text-[#C02026]" />
                 <span>{isAr ? 'English' : 'العربية'}</span>
               </Link>
@@ -180,50 +177,41 @@ export default function Navbar({ lang }) {
 
             {/* 📱 Mobile Toggle */}
             <button 
-              aria-label={isOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isOpen}
-              onClick={() => setIsOpen(!isOpen)} 
-              className={`lg:hidden p-3 rounded-2xl transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-[#C02026] ${isOpen ? 'bg-slate-100 text-slate-900' : (isHomePage && !scrolled ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900')}`}
+                aria-label={isOpen ? "Close menu" : "Open menu"}
+                onClick={() => setIsOpen(!isOpen)} 
+                className={`lg:hidden p-3 rounded-2xl transition-all active:scale-90 ${isOpen ? 'bg-slate-100 text-slate-900' : (isHomePage && !scrolled ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900')}`}
             >
-              {isOpen ? <X size={26} /> : <Menu size={26} />}
+                {isOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </div>
       </nav>
 
       {/* 📱 Mobile Sidebar - Premium Experience */}
-      <div 
-        className={`fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[10000] lg:hidden transition-opacity duration-500 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} 
-        onClick={closeMenu} 
-        aria-hidden="true"
-      />
+      <div className={`fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[10000] lg:hidden transition-opacity duration-500 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} onClick={closeMenu} />
       
+      {/* ✅ Tailwind Logical Fix: تمت إزالة الـ inline styles واستبدالها بكلاسات Tailwind نظيفة */}
       <div 
-        className="fixed inset-y-0 z-[10001] w-[85%] max-w-[360px] bg-white flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[-20px_0_80px_rgba(0,0,0,0.3)]"
-        style={{ 
-          right: isAr ? 'auto' : '0', 
-          left: isAr ? '0' : 'auto',
-          transform: isOpen ? 'translateX(0)' : (isAr ? 'translateX(-110%)' : 'translateX(110%)') 
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile Navigation"
+        className={`fixed inset-y-0 z-[10001] w-[85%] max-w-[360px] bg-white flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[-20px_0_80px_rgba(0,0,0,0.3)] ltr:right-0 rtl:left-0 ${isOpen ? 'translate-x-0' : 'ltr:translate-x-[110%] rtl:-translate-x-[110%]'}`}
       >
         {/* Mobile Sidebar Header */}
         <div className="p-8 flex items-center justify-between border-b border-slate-50">
           <div className="relative w-28 h-10">
+            {/* ✅ Performance Fix: Added loading="lazy" & decoding="async" للمنيو المخفية */}
             <Image 
               src="/logo.webp" 
               alt="Platform Logo" 
               fill 
+              loading="lazy"
+              decoding="async"
               className="object-contain" 
-              sizes="112px"
-            />
+              sizes="112px" 
+            />  
           </div>
           <button 
             aria-label="Close menu" 
             onClick={closeMenu} 
-            className="p-3 bg-slate-50 rounded-2xl text-slate-600 hover:text-[#C02026] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C02026]"
+            className="p-3 bg-slate-50 rounded-2xl text-slate-500 hover:text-[#C02026] transition-colors"
           >
             <X size={22}/>
           </button>
@@ -237,18 +225,17 @@ export default function Navbar({ lang }) {
             {/* Dynamic Locations in Mobile */}
             <div className="space-y-2">
               <button 
-                aria-label={isAr ? "فتح قائمة المناطق" : "Open hotspots menu"}
                 onClick={() => setIsLocationsOpen(!isLocationsOpen)}
-                className={`flex items-center justify-between w-full p-4 rounded-2xl font-black text-sm uppercase transition-all focus:outline-none ${isLocationsOpen ? 'bg-slate-50 text-[#C02026]' : 'text-slate-700 hover:bg-slate-50'}`}
+                className={`flex items-center justify-between w-full p-4 rounded-2xl font-black text-sm uppercase transition-all ${isLocationsOpen ? 'bg-slate-50 text-[#C02026]' : 'text-slate-700 hover:bg-slate-50'}`}
               >
                 <div className="flex items-center gap-4"><MapPin size={20} /> {isAr ? 'المشاريع' : 'Hotspots'}</div>
                 <ChevronDown size={18} className={`transition-transform duration-500 ${isLocationsOpen ? 'rotate-180' : ''}`} />
               </button>
               
               <div className={`grid transition-all duration-500 ease-in-out ${isLocationsOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
-                <div className="overflow-hidden ps-10 space-y-1 border-s-2 border-slate-100 ms-6">
+                <div className="overflow-hidden ps-10 space-y-1 border-s-2 border-slate-50 ms-6">
                     {sanityLocations.map((loc) => (
-                        <Link key={loc.slug} href={`/${currentLang}/locations/${loc.slug}/`} onClick={closeMenu} className="block py-3 text-xs font-bold text-slate-600 hover:text-[#C02026] italic uppercase transition-colors">
+                        <Link key={loc.slug} href={`/${currentLang}/locations/${loc.slug}/`} onClick={closeMenu} className="block py-3 text-xs font-bold text-slate-500 hover:text-[#C02026] italic uppercase">
                           {isAr ? loc.nameAr : loc.nameEn}
                         </Link>
                     ))}
@@ -262,10 +249,10 @@ export default function Navbar({ lang }) {
 
         {/* Mobile Footer Area */}
         <div className="p-8 border-t border-slate-50 bg-slate-50/50 space-y-4">
-          <Link href={switchLangPath} aria-label={isAr ? "Switch to English Version" : "تحويل للنسخة العربية"} className="flex items-center justify-center gap-3 w-full py-5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-sm transition-transform active:scale-95">
+          <Link href={switchLangPath} className="flex items-center justify-center gap-3 w-full py-5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-sm">
             <Globe size={18} className="text-[#C02026]" /> {isAr ? 'English Version' : 'النسخة العربية'}
           </Link>
-          <Link href={`/${currentLang}/contact/`} onClick={closeMenu} className="flex items-center justify-center gap-3 w-full py-5 bg-[#C02026] text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-[#C02026]/20 transition-transform active:scale-95">
+          <Link href={`/${currentLang}/contact/`} onClick={closeMenu} className="flex items-center justify-center gap-3 w-full py-5 bg-[#C02026] text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-[#C02026]/20">
             <Phone size={18} /> {isAr ? 'تواصل معنا' : 'Get In Touch'}
           </Link>
         </div>
@@ -282,7 +269,7 @@ function MobileLink({ href, icon, label, active, onClick }) {
     <Link 
       href={href} 
       onClick={onClick} 
-      className={`flex items-center gap-4 p-4 rounded-2xl font-black text-sm uppercase tracking-tighter italic transition-all focus:outline-none focus:ring-2 focus:ring-[#C02026] ${active ? 'bg-[#C02026] text-white shadow-xl' : 'text-slate-700 hover:bg-slate-50'}`}
+      className={`flex items-center gap-4 p-4 rounded-2xl font-black text-sm uppercase tracking-tighter italic transition-all ${active ? 'bg-[#C02026] text-white shadow-xl' : 'text-slate-700 hover:bg-slate-50'}`}
     >
       {icon} {label}
     </Link>

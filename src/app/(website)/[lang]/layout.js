@@ -69,12 +69,12 @@ export async function generateMetadata({ params }) {
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
-      // ✅ حل مشكلة الـ Canonical لتكون متوافقة مع الـ hreflang
-      canonical: `/${lang}`, 
+      // ✅ التعديل هنا: استخدام الروابط الكاملة (Absolute URLs) لضمان عدم حدوث Duplicate Content في جوجل
+      canonical: `${baseUrl}/${lang}`, 
       languages: {
-        'ar': '/ar',
-        'en': '/en',
-        'x-default': '/ar', 
+        'ar': `${baseUrl}/ar`,
+        'en': `${baseUrl}/en`,
+        'x-default': `${baseUrl}/ar`, 
       },
     },
     icons: {

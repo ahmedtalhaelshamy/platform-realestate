@@ -128,21 +128,20 @@ export default async function HomePage({ params }) {
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
-<Image 
-  src={urlFor(settings.heroImage)
-    .auto('format') 
-    .quality(80) 
-    .url()} 
-  
-  alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
-  priority={true} 
-  fetchPriority="high" 
-  fill
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
-  className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-  placeholder="blur"
-  blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
-/>
+              <Image 
+                src={urlFor(settings.heroImage)
+                  .auto('format') 
+                  .quality(90) // ✅ تحسين جودة الصورة الأساسية لتكون أكثر وضوحاً
+                  .url()} 
+                alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
+                priority={true} 
+                fetchPriority="high" 
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
+                className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
+                placeholder="blur"
+                blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
+              />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
           </div>
@@ -271,12 +270,15 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
                 src={urlFor(dev.logo).width(400).format('webp').url()} 
                 alt={`${dev.nameEn} Official Logo`} 
                 fill 
-                sizes="400px"
+                // ✅ Performance Fix: تم تظبيط المقاسات للموبايل وإضافة decoding async
+                sizes="(max-width: 768px) 200px, 320px"
                 className="object-contain" 
                 loading="lazy"
+                decoding="async"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>
+              // ✅ Accessibility Fix: تغيير text-slate-400 لـ 500 لتباين أفضل
+              <div className="w-full h-full flex items-center justify-center text-slate-500 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>
             )}
           </div>
         </div>

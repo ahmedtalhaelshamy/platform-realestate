@@ -101,7 +101,8 @@ export default function SearchBar({ lang }) {
           }
         `}
       >
-        <div className={`flex items-center justify-center ps-4 md:ps-6 transition-colors ${isFocused ? 'text-[#C02026]' : 'text-slate-300'}`}>
+        {/* ✅ A11y Fix: تغيير text-slate-300 إلى 400 لتباين أفضل */}
+        <div className={`flex items-center justify-center ps-4 md:ps-6 transition-colors ${isFocused ? 'text-[#C02026]' : 'text-slate-400'}`}>
           {loading ? <Loader2 size={24} className="animate-spin opacity-30" /> : <Search size={28} strokeWidth={2.5} />}
         </div>
 
@@ -112,12 +113,13 @@ export default function SearchBar({ lang }) {
             onFocus={() => setIsFocused(true)}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={isAr ? 'ابحث عن منطقة، كمبوند، أو مطور...' : 'Search area, compound, or titan...'}
-            /* ✅ تم إضافة padding جانبي (px-4) وارتفاع سطر (leading-relaxed) لمنع تآكل الحروف */
+            aria-label={isAr ? 'مربع البحث' : 'Search input'} // ✅ A11y Fix: قارئ الشاشة
+            /* ✅ تم إضافة padding جانبي (px-4) وارتفاع سطر (leading-relaxed) لمنع تآكل الحروف وتعديل لون الـ placeholder للتباين */
             className="
               w-full bg-transparent border-none outline-none ring-0 
               focus:ring-0 focus:outline-none focus:border-none
               px-4 py-4 md:py-6 text-lg md:text-xl text-slate-900 font-extrabold 
-              placeholder:text-slate-300 placeholder:font-bold italic tracking-tight
+              placeholder:text-slate-400 placeholder:font-bold italic tracking-tight
               appearance-none leading-relaxed block
             "
             style={{ 
@@ -129,7 +131,12 @@ export default function SearchBar({ lang }) {
         </div>
 
         {query && (
-          <button type="button" onClick={() => setQuery('')} className="p-3 text-slate-300 hover:text-red-500 transition-colors shrink-0">
+          <button 
+            type="button" 
+            onClick={() => setQuery('')} 
+            className="p-3 text-slate-400 hover:text-red-500 transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full"
+            aria-label={isAr ? 'مسح البحث' : 'Clear search'} // ✅ A11y Fix
+          >
             <X size={22} />
           </button>
         )}
@@ -139,6 +146,7 @@ export default function SearchBar({ lang }) {
           className="
             hidden md:flex bg-[#C02026] text-white px-12 py-5 rounded-[2rem] font-black items-center gap-3 
             hover:bg-slate-950 transition-all shadow-xl uppercase italic tracking-widest active:scale-95 shrink-0
+            outline-none focus-visible:ring-4 focus-visible:ring-[#C02026]/30
           "
         >
           {isAr ? 'بحث' : 'Find'}
@@ -152,16 +160,16 @@ export default function SearchBar({ lang }) {
             
             <div className="space-y-6">
               <h4 className="text-[10px] font-black text-[#C02026] uppercase flex items-center gap-3 tracking-[0.5em] italic opacity-60">
-                <Target size={16} /> {query ? (isAr ? 'المشاريع المطابقة' : 'Top Matches') : (isAr ? 'مشاريع مقترحة' : 'Spotlight')}
+                <Target size={16} aria-hidden="true" /> {query ? (isAr ? 'المشاريع المطابقة' : 'Top Matches') : (isAr ? 'مشاريع مقترحة' : 'Spotlight')}
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(query ? suggestions.projects : data.projects.slice(0, 6)).map(p => {
                   const type = TYPE_CONFIG[p.projectType] || TYPE_CONFIG.default;
                   return (
-                    <Link key={p._id} href={`/${lang}/projects/${p.slug}/`} onClick={() => setIsFocused(false)} className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50/50 hover:bg-white hover:shadow-2xl border border-transparent hover:border-red-100 transition-all group">
+                    <Link key={p._id} href={`/${lang}/projects/${p.slug}/`} onClick={() => setIsFocused(false)} className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50/50 hover:bg-white hover:shadow-2xl border border-transparent hover:border-red-100 transition-all group outline-none focus-visible:ring-2 focus-visible:ring-brand-red">
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${type.bg} ${type.color} group-hover:scale-110 transition-transform`}>
-                        <type.icon size={24} />
+                        <type.icon size={24} aria-hidden="true" />
                       </div>
                       
                       {/* ✅ إضافة ps-1 لمنع تآكل أول حرف في النتائج المقترحة */}
@@ -170,11 +178,12 @@ export default function SearchBar({ lang }) {
                           {p.title}
                         </span>
                         <div className="flex items-center gap-2 ps-1">
-                            <MapPin size={12} className="text-slate-300" />
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate">{p.districtName}</span>
+                            <MapPin size={12} className="text-slate-400" aria-hidden="true" />
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{p.districtName}</span>
                         </div>
                       </div>
-                      <ArrowUpRight size={20} className="text-slate-200 group-hover:text-[#C02026] transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1 shrink-0" />
+                      {/* ✅ RTL Hover Fix: السهم بيتحرك يمين في الانجلش وشمال في العربي */}
+                      <ArrowUpRight size={20} className="text-slate-300 group-hover:text-[#C02026] transition-all transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 group-hover:-translate-y-1 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
                     </Link>
                   )
                 })}
@@ -183,24 +192,26 @@ export default function SearchBar({ lang }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-slate-50 pt-10 text-start">
                <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic flex items-center gap-3 ps-2">
-                    <Navigation size={14} /> {isAr ? 'أهم المناطق' : 'Prime Hubs'}
+                  {/* ✅ A11y Fix: text-slate-500 instead of 400 */}
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic flex items-center gap-3 ps-2">
+                    <Navigation size={14} aria-hidden="true" /> {isAr ? 'أهم المناطق' : 'Prime Hubs'}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.districts : data.districts.slice(0, 6)).map(d => (
-                      <Link key={d._id} href={`/${lang}/districts/${d.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-[#C02026] hover:text-white transition-all uppercase tracking-tighter italic border border-slate-100 shadow-sm">
+                      <Link key={d._id} href={`/${lang}/districts/${d.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-[#C02026] hover:text-white transition-all uppercase tracking-tighter italic border border-slate-100 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-red">
                         {d.name}
                       </Link>
                     ))}
                   </div>
                </div>
                <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic flex items-center gap-3 ps-2">
-                    <Building2 size={14} /> {isAr ? 'المطورون' : 'The Titans'}
+                  {/* ✅ A11y Fix: text-slate-500 instead of 400 */}
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic flex items-center gap-3 ps-2">
+                    <Building2 size={14} aria-hidden="true" /> {isAr ? 'المطورون' : 'The Titans'}
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.developers : data.developers.slice(0, 6)).map(dev => (
-                      <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-white border-2 border-slate-50 rounded-2xl text-[11px] font-black text-slate-900 hover:border-[#C02026] hover:text-[#C02026] transition-all italic shadow-sm">
+                      <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-white border-2 border-slate-50 rounded-2xl text-[11px] font-black text-slate-900 hover:border-[#C02026] hover:text-[#C02026] transition-all italic shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-red">
                         {dev.name}
                       </Link>
                     ))}
@@ -211,7 +222,7 @@ export default function SearchBar({ lang }) {
           </div>
           
           <div className="p-6 bg-slate-950 text-center">
-             <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] hover:text-[#C02026] transition-colors">
+             <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/50 hover:text-white uppercase tracking-[0.5em] transition-colors outline-none focus-visible:text-brand-red">
                 {isAr ? 'استكشف كافة العقارات المتاحة' : 'Discover full market portfolio'}
              </Link>
           </div>
