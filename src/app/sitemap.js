@@ -1,6 +1,7 @@
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
+// ✅ الحفاظ على الكاش لضمان الأداء
 export const revalidate = 3600;
 
 export default async function sitemap() {
@@ -23,27 +24,53 @@ export default async function sitemap() {
 
   const { projects, locations, districts, developers } = data;
 
-  // 1. الروابط الثابتة (Static)
+  // 1. الروابط الثابتة (Static) مع إضافة الأولوية واللغات البديلة
   const staticRoutes = ['', 'about-us', 'contact', 'projects', 'locations', 'developers', 'sitemap'];
-  const staticUrls = staticRoutes.flatMap((route) =>
-    languages.map((lang) => ({
-      url: `${baseUrl}/${lang}/${route}${route ? '/' : ''}`,
+  const staticUrls = staticRoutes.flatMap((route) => {
+    // ✅ ضبط المسار ليتوافق مع trailingSlash: true
+    const routePath = route ? `${route}/` : ''; 
+    
+    return languages.map((lang) => ({
+      url: `${baseUrl}/${lang}/${routePath}`,
       lastModified: new Date(),
-    }))
-  );
+      // 🚀 إخبار محرك البحث بمعدل التحديث والأولوية
+      changeFrequency: route === '' ? 'daily' : 'weekly',
+      priority: route === '' ? 1.0 : 0.8,
+      // 🚀 ربط اللغات ببعضها داخل الـ Sitemap (SEO Supercharge)
+      alternates: {
+        languages: {
+          'ar': `${baseUrl}/ar/${routePath}`,
+          'en': `${baseUrl}/en/${routePath}`,
+        },
+      },
+    }));
+  });
 
-  // 2. الروابط الديناميكية (Dynamic)
-  const createUrls = (items, path) => 
-    items.flatMap(item => languages.map(lang => ({
-      url: `${baseUrl}/${lang}/${path}/${item.slug}/`,
-      lastModified: new Date(item._updatedAt),
-    })));
+  // 2. الروابط الديناميكية (Dynamic) مع دعم اللغات البديلة
+  const createUrls = (items, path, priority = 0.7) => 
+    items.flatMap(item => {
+      const itemPath = `${path}/${item.slug}/`;
+
+      return languages.map(lang => ({
+        url: `${baseUrl}/${lang}/${itemPath}`,
+        lastModified: new Date(item._updatedAt),
+        changeFrequency: 'weekly',
+        priority: priority,
+        // 🚀 ربط اللغات ببعضها للمشاريع والمناطق
+        alternates: {
+          languages: {
+            'ar': `${baseUrl}/ar/${itemPath}`,
+            'en': `${baseUrl}/en/${itemPath}`,
+          },
+        },
+      }));
+    });
 
   return [
     ...staticUrls,
-    ...createUrls(projects, 'projects'),
-    ...createUrls(locations, 'locations'),
-    ...createUrls(developers, 'developers'),
-    ...createUrls(districts, 'districts'),
+    ...createUrls(projects, 'projects', 0.9),     // المشاريع لها أولوية عالية
+    ...createUrls(locations, 'locations', 0.8),   // المناطق أولوية متوسطة
+    ...createUrls(districts, 'districts', 0.8), 
+    ...createUrls(developers, 'developers', 0.7), // المطورين أولوية عادية
   ];
 }
