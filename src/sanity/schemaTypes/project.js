@@ -65,7 +65,7 @@ export default defineType({
   ],
 
   fields: [
-    // --- 0. SEO & CONFIG (Updated with ProjectListing Schema) ---
+    // --- 0. SEO & CONFIG ---
     defineField({ name: 'customH1Ar', title: 'H1 مخصص (Ar)', type: 'string', fieldset: 'meta' }),
     defineField({ name: 'customH1En', title: 'H1 Custom (En)', type: 'string', fieldset: 'meta' }),
     defineField({ name: 'seoKeywordAr', title: 'الكلمة المفتاحية (Ar)', type: 'string', fieldset: 'meta' }),
@@ -99,12 +99,13 @@ export default defineType({
             ]
           }
         },
+        // ✅ إضافة حقل الـ No Index المطلوب هنا (داخل كائن seo ليبقى منظماً)
         {
           name: 'noIndex',
           title: 'منع الأرشفة (No Index)',
           type: 'boolean',
           initialValue: false,
-          description: 'فعل هذا الخيار لمنع جوجل من أرشفة الصفحة حالياً'
+          description: 'عند التفعيل، سيتم إضافة وسم noindex للصفحة وحذفها تماماً من الـ Sitemap'
         }
       ]
     }),
@@ -169,6 +170,7 @@ export default defineType({
           { title: 'إداري (Admin)', value: 'Admin' },
           { title: 'طبي (Medical)', value: 'Medical' },
           { title: 'فندقي (Hotel)', value: 'Hotel' }
+        ,
         ],
         layout: 'grid' 
       }
@@ -201,7 +203,6 @@ export default defineType({
     defineField({ name: 'locationTitleAr', title: 'عنوان الموقع (Ar)', type: 'string', fieldset: 'locationSec' }),
     defineField({ name: 'locationTitleEn', title: 'Location Title (En)', type: 'string', fieldset: 'locationSec' }),
     defineField({ name: 'locationImage', title: 'صورة الموقع/الخريطة', type: 'image', options: { hotspot: true }, fields: imageFields, fieldset: 'locationSec' }),
-    // حقل الإحداثيات مهم جداً للـ Schema لكي يظهر المشروع على خرائط جوجل
     defineField({ name: 'geoPoint', title: 'إحداثيات المشروع (GPS)', type: 'geopoint', fieldset: 'locationSec' }),
     defineField({ name: 'locationContentAr', title: 'مقال الموقع (Ar)', type: 'array', of: richTextConfig, fieldset: 'locationSec' }),
     defineField({ name: 'locationContentEn', title: 'Location Content (En)', type: 'array', of: richTextConfig, fieldset: 'locationSec' }),
@@ -276,7 +277,6 @@ export default defineType({
     defineField({ name: 'pricesImage', title: 'صورة الأسعار', type: 'image', options: { hotspot: true }, fields: imageFields, fieldset: 'pricesSec' }),
     defineField({ name: 'pricesContentAr', title: 'مقال الأسعار (Ar)', type: 'array', of: richTextConfig, fieldset: 'pricesSec' }),
     defineField({ name: 'pricesContentEn', title: 'Prices Content (En)', type: 'array', of: richTextConfig, fieldset: 'pricesSec' }),
-    // حقل العملة مهم للبيانات المنظمة (Schema)
     defineField({ name: 'currency', title: 'العملة', type: 'string', initialValue: 'EGP', options: { list: ['EGP', 'USD', 'AED'] }, fieldset: 'pricesSec' }),
 
     // --- 10. PAYMENT ---
@@ -318,7 +318,6 @@ export default defineType({
     defineField({ name: 'author', title: 'كاتب الصفحة', type: 'reference', to: [{type: 'author'}], fieldset: 'analysis' }),
   ],
 
-  // إضافة معاينة (Preview) للمحرر داخل Sanity Studio
   preview: {
     select: {
       title: 'titleAr',

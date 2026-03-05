@@ -1,7 +1,6 @@
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الحفاظ على الكاش لضمان الأداء
 export const revalidate = 3600;
 
 export default async function sitemap() {
@@ -11,11 +10,12 @@ export default async function sitemap() {
   let data = { projects: [], locations: [], districts: [], developers: [] };
 
   try {
+    // 💡 التعديل هنا: استخدمنا [seo.noIndex != true] للوصول للحقل داخل كائن الـ SEO
     const query = `{
-      "projects": *[_type == "project" && defined(slug.current) && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
-      "locations": *[_type == "location" && defined(slug.current) && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
-      "districts": *[_type == "district" && defined(slug.current) && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
-      "developers": *[_type == "developer" && defined(slug.current) && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt }
+      "projects": *[_type == "project" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
+      "locations": *[_type == "location" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
+      "districts": *[_type == "district" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt },
+      "developers": *[_type == "developer" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))] { "slug": slug.current, _updatedAt }
     }`;
     data = await client.fetch(query);
   } catch (error) {
@@ -24,19 +24,16 @@ export default async function sitemap() {
 
   const { projects, locations, districts, developers } = data;
 
-  // 1. الروابط الثابتة (Static) مع إضافة الأولوية واللغات البديلة
-  const staticRoutes = ['', 'about-us', 'contact', 'projects', 'locations', 'developers', 'sitemap'];
+  // 1. الروابط الثابتة (Static)
+  const staticRoutes = ['', 'about-us', 'contact', 'projects', 'locations', 'developers'];
+  
   const staticUrls = staticRoutes.flatMap((route) => {
-    // ✅ ضبط المسار ليتوافق مع trailingSlash: true
     const routePath = route ? `${route}/` : ''; 
-    
     return languages.map((lang) => ({
       url: `${baseUrl}/${lang}/${routePath}`,
       lastModified: new Date(),
-      // 🚀 إخبار محرك البحث بمعدل التحديث والأولوية
       changeFrequency: route === '' ? 'daily' : 'weekly',
       priority: route === '' ? 1.0 : 0.8,
-      // 🚀 ربط اللغات ببعضها داخل الـ Sitemap (SEO Supercharge)
       alternates: {
         languages: {
           'ar': `${baseUrl}/ar/${routePath}`,
@@ -46,17 +43,15 @@ export default async function sitemap() {
     }));
   });
 
-  // 2. الروابط الديناميكية (Dynamic) مع دعم اللغات البديلة
+  // 2. الروابط الديناميكية (Dynamic)
   const createUrls = (items, path, priority = 0.7) => 
     items.flatMap(item => {
       const itemPath = `${path}/${item.slug}/`;
-
       return languages.map(lang => ({
         url: `${baseUrl}/${lang}/${itemPath}`,
         lastModified: new Date(item._updatedAt),
         changeFrequency: 'weekly',
         priority: priority,
-        // 🚀 ربط اللغات ببعضها للمشاريع والمناطق
         alternates: {
           languages: {
             'ar': `${baseUrl}/ar/${itemPath}`,
@@ -68,9 +63,9 @@ export default async function sitemap() {
 
   return [
     ...staticUrls,
-    ...createUrls(projects, 'projects', 0.9),     // المشاريع لها أولوية عالية
-    ...createUrls(locations, 'locations', 0.8),   // المناطق أولوية متوسطة
+    ...createUrls(projects, 'projects', 0.9),
+    ...createUrls(locations, 'locations', 0.8),
     ...createUrls(districts, 'districts', 0.8), 
-    ...createUrls(developers, 'developers', 0.7), // المطورين أولوية عادية
+    ...createUrls(developers, 'developers', 0.7),
   ];
 }
