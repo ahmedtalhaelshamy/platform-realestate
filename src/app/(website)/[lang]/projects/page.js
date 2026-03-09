@@ -7,7 +7,7 @@ import { Search, Sparkles, Building2 } from 'lucide-react';
 import { Suspense } from 'react';
 import { urlFor } from '@/sanity/image';
 
-// ✅ 1. PERFORMANCE & CACHING - 2026 Standard
+// ✅ 1. PERFORMANCE & CACHING
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
@@ -28,7 +28,7 @@ const getSafeText = (val) => {
 };
 
 /**
- * 🔍 SEO Metadata: Optimized for Rich Snippets
+ * 🔍 SEO Metadata: السيطرة اليدوية المطلقة
  */
 export async function generateMetadata({ params, searchParams }) {
   const { lang } = await params;
@@ -45,27 +45,39 @@ export async function generateMetadata({ params, searchParams }) {
     title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
   }
 
+  // توجيه صورة الـ SEO لـ Bunny
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url()
+    ? urlFor(seo.openGraphImage).url()
     : `${CONTACT_INFO.domain}/og-image.jpg`;
 
   return {
-    title: `${title} | Platform`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
+    title: {
+      absolute: title,
+    },
     description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
     metadataBase: new URL(CONTACT_INFO.domain),
     alternates: { 
       canonical: `${CONTACT_INFO.domain}/${lang}/projects/`,
+      languages: {
+        'ar': `${CONTACT_INFO.domain}/ar/projects/`,
+        'en': `${CONTACT_INFO.domain}/en/projects/`,
+        'x-default': `${CONTACT_INFO.domain}/ar/projects/`,
+      }
     },
     openGraph: {
       title,
+      description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
+      url: `${CONTACT_INFO.domain}/${lang}/projects/`,
       images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+      locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
   };
 }
 
 /**
- * 🛰️ Data Fetching Engine (Server-Side)
+ * 🛰️ Data Fetching Engine
  */
 async function getProjects(filters) {
   const { search, location, developer, type } = filters; 
@@ -117,10 +129,9 @@ export default async function ProjectsPage({ params, searchParams }) {
   return (
     <main className={`min-h-screen bg-white selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🚀 1. PREMIUM HERO SECTION - Fixed CLS & LCP */}
+      {/* 🚀 1. PREMIUM HERO SECTION */}
       <header className="relative bg-brand-dark pt-32 md:pt-52 pb-32 md:pb-48 px-6 overflow-hidden">
-        {/* Glow Effect using logical "end" */}
-        <div className="absolute top-0 end-0 w-[600px] h-[600px] bg-brand-red/10 rounded-full blur-[150px] animate-pulse pointer-events-none" />
+        <div className="absolute top-0 end-0 w-[600px] h-[600px] bg-brand-red/10 rounded-full blur-[150px] animate-pulse pointer-events-none" aria-hidden="true" />
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#C02026_1px,transparent_1px)] [background-size:32px_32px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto relative z-10 text-center">
@@ -146,7 +157,6 @@ export default async function ProjectsPage({ params, searchParams }) {
             </h1>
           </div>
 
-          {/* Floating Search Hub */}
           <div className="max-w-5xl mx-auto mt-24">
              <div className="bg-white/5 backdrop-blur-3xl p-3 md:p-5 rounded-[3rem] border border-white/10 shadow-premium">
                 <SearchFilter lang={lang} isAr={isAr} />
@@ -155,7 +165,7 @@ export default async function ProjectsPage({ params, searchParams }) {
         </div>
       </header>
 
-      {/* 🏙️ 2. PROJECTS GRID - Accessibility & Performance */}
+      {/* 🏙️ 2. PROJECTS GRID */}
       <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-24 md:py-32" aria-live="polite">
         <Suspense key={JSON.stringify(filters)} fallback={<ProjectsLoading />}>
             <ProjectsGrid filters={filters} lang={lang} />
@@ -172,7 +182,7 @@ export default async function ProjectsPage({ params, searchParams }) {
 }
 
 /**
- * 🛰️ Results Content Component
+ * 🛰️ Results Content
  */
 async function ProjectsGrid({ filters, lang }) {
     const isAr = lang === 'ar';
@@ -206,7 +216,7 @@ async function ProjectsGrid({ filters, lang }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 lg:gap-16">
             {projects.map((project, index) => (
                 <div key={project._id} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                  {/* تمرير خاصية priority لأول 3 مشاريع فقط لتحسين الـ LCP */}
+                  {/* تمرير unoptimized={true} داخلياً في ProjectCard لضمان عمل Bunny */}
                   <ProjectCard lang={lang} data={project} isPriority={index < 3} />
                 </div>
             ))}

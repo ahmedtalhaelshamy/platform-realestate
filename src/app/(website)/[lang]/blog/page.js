@@ -28,11 +28,10 @@ const getSafeText = (val) => {
 
 export const revalidate = 3600;
 
-// 🏁 الدومين الموحد المعتمد من الثوابت
 const BASE_URL = CONTACT_INFO.domain.replace(/\/$/, '');
 
 /**
- * 🔍 SEO Metadata: تم تحسين Alternates لضمان أرشفة عالمية صحيحة
+ * 🔍 SEO Metadata: السيطرة اليدوية المطلقة وتوجيه الصور لـ Bunny
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -51,12 +50,15 @@ export async function generateMetadata({ params }) {
 
   const desc = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
 
+  // توجيه صورة الـ OG لـ Bunny للمساهمة في سرعة الأرشفة
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url()
+    ? urlFor(seo.openGraphImage).url() 
     : `${BASE_URL}/og-blog.jpg`;
 
   return {
-    title: `${title} | Platform`,
+    title: {
+      absolute: title, // 🚀 سيطرة يدوية كاملة من سانتي
+    },
     description: desc,
     alternates: { 
       canonical: `${BASE_URL}/${lang}/blog/`, 
@@ -80,7 +82,6 @@ export default async function BlogPage({ params }) {
   const { lang } = await params;
   const isAr = lang === "ar";
 
-  // جلب المقالات مع حساب وقت القراءة تقريبياً بناءً على عدد الكلمات
   const query = `*[_type == "post"] | order(select(language == $lang => 1, 0) desc, _createdAt desc) {
       _id, title, overview, language,
       "slug": slug.current,
@@ -97,7 +98,6 @@ export default async function BlogPage({ params }) {
     { label: isAr ? "المدونة العقارية" : "Insights Hub", href: `/${lang}/blog/` }
   ];
 
-  // 🏆 [SEO] Blog Schema Markup لرفع سلطة الموقع في جوجل
   const blogSchema = {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -120,7 +120,6 @@ export default async function BlogPage({ params }) {
 
   return (
     <main className={`min-h-screen bg-white pb-32 ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? "rtl" : "ltr"}>
-      {/* سكريبت السكيما لتعزيز الأرشفة */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
@@ -153,11 +152,11 @@ export default async function BlogPage({ params }) {
       </header>
 
       {/* 📰 2. BLOG GRID */}
-      <section className="max-w-[1440px] mx-auto px-6 -mt-24 md:-mt-32 relative z-30" aria-labelledby="blog-heading">
-        <h2 id="blog-heading" className="sr-only">{isAr ? "أحدث المقالات" : "Latest Articles"}</h2>
+      <section className="max-w-[1440px] mx-auto px-6 -mt-24 md:-mt-32 relative z-30">
+        <h2 className="sr-only">{isAr ? "أحدث المقالات" : "Latest Articles"}</h2>
         
         {posts.length > 0 ? (
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3" role="list">
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post, index) => {
               const postTitle = getSafeText(post.title);
               const postOverview = getSafeText(post.overview);
@@ -167,7 +166,6 @@ export default async function BlogPage({ params }) {
               return (
                 <article 
                   key={post._id} 
-                  role="listitem"
                   className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden shadow-premium border border-slate-50 hover:shadow-hover transition-all duration-700 hover:-translate-y-2 animate-fade-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -175,7 +173,7 @@ export default async function BlogPage({ params }) {
                   <div className="relative aspect-[16/10] overflow-hidden">
                     {post.mainImage ? (
                       <Image 
-                        src={urlFor(post.mainImage).width(800).height(500).auto('format').fit('crop').url()} 
+                        src={urlFor(post.mainImage).url()} 
                         fill 
                         className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
                         alt={post.imageAlt || postTitle}

@@ -6,16 +6,15 @@ import { useEffect, useState } from 'react';
 
 /**
  * 🛠️ Sanity Studio Page - Platform Real Estate 2026
- * Optimized for React 19 & Next.js 16 (Elite Standard)
+ * نظام إدارة المحتوى المعزول كلياً لضمان الأداء الفائق.
  */
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // نضمن أن الرندر يحدث فقط في المتصفح
     setMounted(true);
     
-    // منع السكرول في الخلفية أثناء وجود الاستوديو
+    // منع السكرول في الخلفية لضمان تجربة Native App
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'auto';
@@ -42,7 +41,10 @@ export default function StudioPage() {
           zIndex: 999999
         }} 
       >
-        {/* Spinner بألوان البراند */}
+        {/* السيطرة اليدوية على العنوان قبل تحميل الاستوديو */}
+        <title>Platform Studio | Control Center</title>
+
+        {/* Spinner بألوان البراند (Red & White) */}
         <div style={{
           width: '40px',
           height: '40px',
@@ -85,7 +87,7 @@ export default function StudioPage() {
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
           .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
           @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-          body { margin: 0 !important; padding: 0 !important; background-color: #080A0D !important; }
+          body { margin: 0 !important; padding: 0 !important; background-color: #080A0D !important; overflow: hidden !important; }
         `}} />
       </div>
     );
@@ -106,6 +108,9 @@ export default function StudioPage() {
         backgroundColor: '#ffffff'
       }}
     >
+      {/* حقن التايتل يدوياً لضمان عدم ظهور رابط الـ URL في التابة */}
+      <title>Platform Real Estate Admin</title>
+      
       <NextStudio 
         config={config} 
         unstable_noOverscroll={true}

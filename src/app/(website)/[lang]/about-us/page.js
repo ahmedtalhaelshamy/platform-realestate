@@ -37,7 +37,7 @@ async function getAboutData() {
 }
 
 /**
- * ✅ SEO Metadata: تحسين الروابط البديلة (Alternates)
+ * ✅ SEO Metadata: تحسين الروابط والسيطرة اليدوية المطلقة
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -50,7 +50,10 @@ export async function generateMetadata({ params }) {
   const currentPath = `${BASE_URL}/${lang}/about-us/`;
 
   return {
-    title: `${title} | Platform`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية من سانتي فقط
+    title: {
+      absolute: title,
+    },
     description: desc,
     alternates: { 
       canonical: currentPath,
@@ -129,13 +132,13 @@ export default async function AboutPage({ params }) {
         {data.heroImage && (
           <div className="absolute inset-0">
            <Image
-  src={urlFor(data.heroImage).format('webp').quality(90).url()}
-  alt={t.heroTitle}
-  fill
-  className="object-cover opacity-40 animate-slow-zoom"
-  priority
-  sizes="100vw"
-/>
+              src={urlFor(data.heroImage).url()}
+              alt={t.heroTitle}
+              fill
+              className="object-cover opacity-40 animate-slow-zoom"
+              priority
+              sizes="100vw"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-white" />
           </div>
         )}
@@ -164,7 +167,7 @@ export default async function AboutPage({ params }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
           <div className="space-y-12 text-start">
             <div className="border-s-[12px] border-[#C02026] ps-10">
-               <h2 className="text-6xl md:text-[7rem] font-black text-slate-950 leading-none italic uppercase tracking-tighter">{t.storyTitle}</h2>
+                <h2 className="text-6xl md:text-[7rem] font-black text-slate-950 leading-none italic uppercase tracking-tighter">{t.storyTitle}</h2>
             </div>
             <div className="prose prose-2xl text-slate-600 italic leading-relaxed font-medium">
               <PortableText value={isAr ? data.storyContentAr : data.storyContentEn} />
@@ -174,7 +177,7 @@ export default async function AboutPage({ params }) {
             <div className="relative h-[600px] md:h-[850px] rounded-[5rem] overflow-hidden border-[20px] border-white shadow-premium transition-transform duration-1000 group-hover:scale-[1.02]">
               {data.storyImage && (
                 <Image 
-                  src={urlFor(data.storyImage).width(1200).format('webp').url()} 
+                  src={urlFor(data.storyImage).url()} 
                   alt="Platform Official Story" 
                   fill 
                   className="object-cover"

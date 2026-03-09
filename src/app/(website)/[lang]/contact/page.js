@@ -27,7 +27,7 @@ export async function generateStaticParams() {
   return [{ lang: 'ar' }, { lang: 'en' }];
 }
 
-// 1. جلب البيانات بذكاء (مع فلترة المسودات)
+// 1. جلب البيانات بذكاء
 async function getPageData() {
   const query = `*[_type == "siteSettings"][0]{ 
     contactSeo,
@@ -45,7 +45,7 @@ async function getPageData() {
   }
 }
 
-// 2. Metadata: تم تحسين صورة المشاركة لتكون WebP تلقائياً
+// 2. Metadata: السيطرة اليدوية المطلقة
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
@@ -64,13 +64,16 @@ export async function generateMetadata({ params }) {
   const enPath = `${BASE_URL}/en/contact/`;
   const currentPath = isAr ? arPath : enPath;
 
-  // تحسين: إضافة .auto('format') لضمان أن صورة المشاركة خفيفة جداً (WebP)
+  // توجيه صورة الـ OG لـ Bunny لضمان جودة وسرعة المعاينة
   const ogImage = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).auto('format').url() 
+    ? urlFor(seo.openGraphImage).url() 
     : `${BASE_URL}/og-contact.jpg`;
 
   return {
-    title: `${title}`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
+    title: {
+      absolute: title,
+    },
     description: desc,
     keywords: isAr ? seo?.keywordsAr : seo?.keywordsEn,
     metadataBase: new URL(BASE_URL),
@@ -101,7 +104,7 @@ export default async function ContactPage({ params }) {
   const isAr = lang === 'ar';
   const data = await getPageData();
 
-  // 3. دمج البيانات (Normalization) مع التأكد من نظافة النصوص
+  // 3. دمج البيانات (Normalization)
   const finalSettings = {
     phone: data?.phone || data?.socialLinks?.phone || CONTACT_INFO.phone,
     whatsapp: data?.whatsapp || data?.socialLinks?.whatsapp || CONTACT_INFO.whatsapp,
@@ -121,7 +124,7 @@ export default async function ContactPage({ params }) {
     { label: isAr ? 'تواصل معنا' : 'Contact Us', href: `/${lang}/contact/` }
   ];
 
-  // 🏆 [SEO] Schema Markup - ContactPage & Organization
+  // 🏆 [SEO] Schema Markup
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
@@ -155,7 +158,6 @@ export default async function ContactPage({ params }) {
          </nav>
       </div>
 
-      {/* الـ UI Component سيستقبل الإعدادات الجاهزة والمحسنة */}
       <ContactClientUI 
         settings={finalSettings} 
         lang={lang} 

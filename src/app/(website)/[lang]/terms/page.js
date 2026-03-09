@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { CONTACT_INFO } from '@/components/constants/contact';
+import Breadcrumbs from '@/components/Breadcrumbs'; 
 
 /**
  * 🛠️ دالة الأمان لمنع خطأ الـ Objects
@@ -19,13 +20,20 @@ const getSafeText = (val) => {
   return String(val);
 };
 
+export async function generateStaticParams() {
+  return [{ lang: 'ar' }, { lang: 'en' }];
+}
+
+export const revalidate = 3600;
+
 /**
- * ✅ SEO Metadata: Optimized for 2026 Search Standards
+ * ✅ SEO Metadata: السيطرة اليدوية المطلقة وتوجيه الصور لـ Bunny
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const baseUrl = 'https://platformrealestate.co';
+  const currentUrl = `${baseUrl}/${lang}/terms/`;
 
   const query = `*[_type == "termsPage"][0].seo`;
   const seo = await client.fetch(query);
@@ -38,20 +46,30 @@ export async function generateMetadata({ params }) {
     ? getSafeText(seo?.metaDescAr || 'تعرف على شروط استخدام منصة بلاتفورم العقارية لضمان تجربة استثمارية آمنة.') 
     : getSafeText(seo?.metaDescEn || 'Learn about the terms of use for Platform Real Estate to ensure a secure investment experience.');
 
+  // توجيه صورة الـ OG لـ Bunny لضمان سرعة المعاينة
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url() 
+    ? urlFor(seo.openGraphImage).url() 
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    title: title,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
+    title: {
+      absolute: title,
+    },
     description: description,
+    metadataBase: new URL(baseUrl),
     alternates: { 
-      canonical: `${baseUrl}/${lang}/terms/` 
+      canonical: currentUrl,
+      languages: {
+        'ar': `${baseUrl}/ar/terms/`,
+        'en': `${baseUrl}/en/terms/`,
+        'x-default': `${baseUrl}/ar/terms/`,
+      }
     },
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/${lang}/terms/`,
+      url: currentUrl,
       images: [{ 
         url: ogImageUrl,
         width: 1200,
@@ -71,7 +89,7 @@ export default async function TermsPage({ params }) {
   const seoData = await client.fetch(`*[_type == "termsPage"][0].seo`);
   const h1Text = isAr ? seoData?.h1Ar : seoData?.h1En;
 
-  // إعداد بيانات السكيما (Schema.org)
+  // ✅ SEO: بيانات منظمة لتعزيز الموثوقية
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -112,15 +130,15 @@ export default async function TermsPage({ params }) {
       className={`min-h-screen pt-32 pb-20 bg-white selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
       dir={isAr ? 'rtl' : 'ltr'}
     >
-      {/* 🤖 بيانات السكيما القانونية */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       
-      {/* 🔴 Hero Section */}
       <section className="relative py-24 overflow-hidden bg-brand-gray-50 border-b border-slate-100" aria-labelledby="main-heading">
-        {/* استخدام Logical Property: end-0 */}
         <div className="absolute top-0 end-0 w-[500px] h-[500px] bg-brand-red/5 rounded-full blur-[120px] pointer-events-none" aria-hidden="true" />
         
         <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
+          <div className="flex justify-center mb-10">
+             <Breadcrumbs items={[{ label: isAr ? 'الشروط والأحكام' : 'Terms' }]} lang={lang} />
+          </div>
           <div className="inline-flex p-5 bg-white text-brand-red rounded-[2rem] mb-10 shadow-premium border border-red-50 animate-bounce" aria-hidden="true">
             <ShieldCheck size={48} strokeWidth={1.5} />
           </div>
@@ -141,7 +159,6 @@ export default async function TermsPage({ params }) {
         </div>
       </section>
 
-      {/* 🔴 Terms Content Grid */}
       <section className="max-w-7xl mx-auto px-6 py-24" aria-label={isAr ? "بنود الاستخدام" : "Usage Terms"}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12" role="list">
           {terms.map((item, index) => {
@@ -165,9 +182,7 @@ export default async function TermsPage({ params }) {
           })}
         </div>
 
-        {/* 🔴 CTA Section - The Trust Closure */}
         <div className="mt-32 p-10 md:p-20 bg-brand-dark rounded-[4rem] text-white relative overflow-hidden group shadow-2xl">
-          {/* Logical placement: end-0 */}
           <div className="absolute top-0 end-0 w-96 h-96 bg-brand-red/10 rounded-full blur-[100px] -me-32 -mt-32 group-hover:scale-125 transition-transform duration-1000" aria-hidden="true" />
           
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12 text-start">
@@ -199,8 +214,4 @@ export default async function TermsPage({ params }) {
       `}} />
     </main>
   );
-}
-
-export async function generateStaticParams() {
-  return [{ lang: 'ar' }, { lang: 'en' }];
 }

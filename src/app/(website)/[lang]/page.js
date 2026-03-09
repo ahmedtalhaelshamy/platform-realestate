@@ -29,7 +29,7 @@ const getSafeText = (val) => {
 };
 
 /**
- * ✅ Metadata: تم التعديل لمنع تكرار اسم الموقع مع الـ Layout الجديد
+ * ✅ Metadata: السيطرة اليدوية المطلقة وتوجيه الصور لـ Bunny
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -37,32 +37,37 @@ export async function generateMetadata({ params }) {
   const data = await getPageData();
   const seo = data?.settings?.seo;
 
-  // جلب العنوان الصافي فقط (بدون إضافة | Platform يدوياً هنا)
   const title = getSafeText(isAr 
     ? (seo?.metaTitleAr || CONTACT_INFO.siteNameAr) 
     : (seo?.metaTitleEn || CONTACT_INFO.siteNameEn)
   );
 
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const baseUrl = 'https://platformrealestate.co';
 
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url()
+    ? urlFor(seo.openGraphImage).url()
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    // نرسل الـ title كما هو، والـ Layout template سيضيف "| بلاتفورم" بشكل ذكي ومرة واحدة فقط
-    title: title, 
-    description,
+    // 🚀 استخدام absolute لمنع Next.js من دمج العنوان مع الـ Layout Template
+    title: {
+      absolute: title,
+    },
+    description: description.substring(0, 160),
     alternates: { 
-      canonical: `/${lang}`, // استخدام مسار نسبي ليتوافق مع إعدادات الـ Layout
-      languages: { 'ar': '/ar', 'en': '/en' }
+      canonical: `${baseUrl}/${lang}/`,
+      languages: { 
+        'ar': `${baseUrl}/ar/`, 
+        'en': `${baseUrl}/en/`,
+        'x-default': `${baseUrl}/ar/`
+      }
     },
     openGraph: {
       title,
       description,
       url: `${baseUrl}/${lang}/`,
-      images: [{ url: ogImageUrl }],
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     },
@@ -111,8 +116,8 @@ export default async function HomePage({ params }) {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
-    "url": `${CONTACT_INFO.domain}/${lang}/`,
-    "logo": `${CONTACT_INFO.domain}/logo.webp`,
+    "url": `https://platformrealestate.co/${lang}/`,
+    "logo": `https://platformrealestate.co/logo.png`,
     "telephone": CONTACT_INFO.phone,
     "sameAs": Object.values(CONTACT_INFO.social),
     "address": { "@type": "PostalAddress", "addressLocality": "New Cairo", "addressCountry": "EG" }
@@ -124,23 +129,19 @@ export default async function HomePage({ params }) {
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
         
-        {/* 🚀 HERO SECTION - Optimized LCP 2026 */}
+        {/* 🚀 HERO SECTION */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
             {settings?.heroImage && (
               <Image 
-                src={urlFor(settings.heroImage)
-                  .auto('format') 
-                  .quality(90) // ✅ تحسين جودة الصورة الأساسية لتكون أكثر وضوحاً
-                  .url()} 
+                src={urlFor(settings.heroImage).url()} 
                 alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
                 priority={true} 
                 fetchPriority="high" 
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
+                sizes="100vw"
                 className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-                placeholder="blur"
-                blurDataURL="data:image/webp;base64,UklGRmAAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSDIAAAABJ0AgGQAABAAAEDIAAABWUDggGAAAADABAJ0BKggACAACQDglsAJ0AAfAAf7/4AAA"
+             
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
@@ -267,17 +268,14 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
           <div className="relative w-full h-full grayscale opacity-40 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
             {dev.logo ? (
               <Image 
-                src={urlFor(dev.logo).width(400).format('webp').url()} 
-                alt={`${dev.nameEn} Official Logo`} 
+                src={urlFor(dev.logo).url()} 
+                alt={`${dev.nameEn} Logo`} 
                 fill 
-                // ✅ Performance Fix: تم تظبيط المقاسات للموبايل وإضافة decoding async
                 sizes="(max-width: 768px) 200px, 320px"
                 className="object-contain" 
-                loading="lazy"
-                decoding="async"
+                
               />
             ) : (
-              // ✅ Accessibility Fix: تغيير text-slate-400 لـ 500 لتباين أفضل
               <div className="w-full h-full flex items-center justify-center text-slate-500 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>
             )}
           </div>

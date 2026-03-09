@@ -2,7 +2,7 @@ import CompareClient from './CompareClient';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { ShieldCheck, GitCompare, Info } from 'lucide-react';
 
-// 🏁 الدومين الموحد المعتمد للسيو (يُفضل سحبه من env مستقبلاً)
+// 🏁 الدومين الموحد المعتمد للسيو
 const BASE_URL = 'https://platformrealestate.co';
 
 /**
@@ -14,7 +14,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ 2. الـ SEO Metadata (الأرشفة المتبادلة)
+ * ✅ 2. الـ SEO Metadata (السيطرة اليدوية المطلقة)
  * متوافقة مع معايير جوجل 2026 للهواتف المحمولة
  */
 export async function generateMetadata({ params }) {
@@ -31,7 +31,10 @@ export async function generateMetadata({ params }) {
   const currentPath = isAr ? arPath : enPath;
 
   return {
-    title: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
+    title: {
+      absolute: `${title} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+    },
     description,
     metadataBase: new URL(BASE_URL),
     alternates: {
@@ -60,7 +63,6 @@ export async function generateMetadata({ params }) {
 
 /**
  * 🏗️ المكون الرئيسي لصفحة المقارنة
- * تم تحويله ليكون أكثر تنظيماً ودعماً للـ UX
  */
 export default async function ComparePage({ params }) {
   const { lang } = await params;
@@ -88,7 +90,7 @@ export default async function ComparePage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* 2. Header Section (UX/UI Enhancement) */}
+      {/* 2. Header Section */}
       <header className="bg-slate-50 border-b border-slate-100 py-16 md:py-24 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#C02026]/[0.02] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
@@ -122,15 +124,13 @@ export default async function ComparePage({ params }) {
         <CompareClient lang={lang} />
       </section>
 
-      {/* 4. Global Styles for Performance & Custom UX */}
+      {/* 4. Global Styles */}
       <style dangerouslySetInnerHTML={{ __html: `
-        /* 🎨 Custom Scrollbar for Luxury Look */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #C02026; }
 
-        /* 📱 Mobile Experience Optimization */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         

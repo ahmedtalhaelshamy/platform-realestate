@@ -7,7 +7,6 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 
 /**
  * 🛠️ ProjectsClient - 2026 Interactive Catalog
- * تم دمج منطق البحث الفوري مع حماية البيانات لضمان عدم حدوث Objects Error
  */
 const getSafeText = (val) => {
   if (!val) return "";
@@ -25,11 +24,11 @@ export default function ProjectsClient({ initialProjects = [], lang }) {
   const [searchQuery, setSearchQuery] = useState("");
   const isAr = lang === 'ar';
 
-  // ✅ منطق الفلترة الفائق السرعة باستخدام useMemo
+  // ✅ منطق الفلترة الفائق السرعة
   const filteredProjects = useMemo(() => {
     return initialProjects.filter((project) => {
       const title = getSafeText(isAr ? project.titleAr : project.titleEn).toLowerCase();
-      const search = searchQuery.toLowerCase();
+      const search = searchQuery.toLowerCase().trim();
       return title.includes(search);
     });
   }, [searchQuery, initialProjects, isAr]);
@@ -87,10 +86,16 @@ export default function ProjectsClient({ initialProjects = [], lang }) {
       <section className="max-w-[1440px] mx-auto px-6 pt-64 pb-32">
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14">
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, index) => (
               <article key={project._id} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* هنا الـ ProjectCard سيستلم بيانات الصورة كاملة ليعالجها بـ WebP */}
-                <ProjectCard lang={lang} data={project} />
+                {/* ✅ تمرير unoptimized={true} داخلياً في ProjectCard لضمان استخدام Bunny Loader 
+                   ✅ تمرير priority لأول صف من النتائج لتحسين سرعة التحميل (LCP)
+                */}
+                <ProjectCard 
+                  lang={lang} 
+                  data={project} 
+                  isPriority={index < 6}
+                />
               </article>
             ))}
           </div>

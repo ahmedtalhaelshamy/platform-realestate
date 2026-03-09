@@ -2,24 +2,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { urlFor } from '@/sanity/client'; // تأكدت من مسار الاستيراد الصحيح
+import { urlFor } from '@/sanity/client'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Maximize2, ImageIcon } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 
 /**
  * 🎨 ProjectGallery - 2026 Ultra-Responsive Edition
- * تم تحسينه ليكون "صديقاً لمحركات البحث" وأسرع في التحميل ومتوافق 100% مع A11y
+ * تم إزالة unoptimized لضمان عمل Bunny.net CDN Loader
  */
 export default function ProjectGallery({ images = [], projectName = "Property", lang = 'ar' }) {
   const [index, setIndex] = useState(null);
-  
-  // ✅ تعريف محلي للغة لضمان الأمان وقت الـ Build
   const isArabic = lang === 'ar';
 
-  // إدارة قفل السكرول ودعم الكيبورد
   useEffect(() => {
     if (index !== null) {
-      // حفظ قيمة التمرير الأصلية لمنع القفز
       const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
@@ -27,7 +23,6 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
 
       const handleKeyDown = (e) => {
         if (e.key === 'Escape') setIndex(null);
-        // التوافق مع الـ RTL في استخدام الكيبورد
         if (e.key === 'ArrowRight') isArabic ? prev() : next();
         if (e.key === 'ArrowLeft') isArabic ? next() : prev();
       };
@@ -41,7 +36,7 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
         window.scrollTo(0, scrollY);
       };
     }
-  }, [index, isArabic]); // إضافة isArabic لتبعيات الـ Hook
+  }, [index, isArabic]);
 
   const next = useCallback((e) => { 
     e?.stopPropagation(); 
@@ -58,7 +53,6 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
   const handleDragEnd = (event, info) => {
     const threshold = 70;
     if (info.offset.y > 100) setIndex(null);
-    // عكس منطق السحب (Drag) إذا كانت اللغة عربية ليتناسب مع حركة الإصبع
     else if (info.offset.x < -threshold) isArabic ? prev() : next();
     else if (info.offset.x > threshold) isArabic ? next() : prev();
   };
@@ -67,7 +61,6 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
     <section className="w-full bg-white py-12 px-4 md:px-8 select-none" aria-label={isArabic ? 'معرض صور المشروع' : 'Project Visual Gallery'}>
       <div className="max-w-7xl mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
         
-        {/* 📐 Grid Layout - Premium Bento Style */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 auto-rows-[160px] md:auto-rows-[240px]">
           {images.map((img, i) => (
             <motion.div 
@@ -81,30 +74,23 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
               transition={{ delay: i * 0.05 }}
               onClick={() => setIndex(i)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIndex(i); } }}
-              // ✅ A11y Fix: إضافة focus-visible
               className={`relative rounded-3xl md:rounded-[3rem] overflow-hidden cursor-pointer bg-slate-100 shadow-sm hover:shadow-premium transition-all duration-500 group outline-none focus-visible:ring-4 focus-visible:ring-brand-red focus-visible:ring-offset-2
                 ${i === 0 ? 'col-span-2 row-span-2' : ''} 
                 ${i === 1 ? 'md:col-span-2 md:row-span-1' : ''}`}
             >
-              {/* 🚀 Image Optimization Engine */}
-       <Image 
-  src={urlFor(img)
-    .auto('format')
-    .quality(80) 
-    .url()} 
-  alt={`${projectName} architectural detail ${i + 1}`} 
-  fill 
-  // الـ sizes هنا بقت بتفهم لو هي أول صورة تاخد مساحة أكبر، والـ Next.js هيطلب المقاس الصح
-  sizes={i === 0 
-    ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
-    : "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 400px"
-  }
-  priority={i < 2} 
-  loading={i < 2 ? "eager" : "lazy"} 
-  className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out will-change-transform"
-/>
+              {/* 🚀 تم إزالة unoptimized ليعمل الـ Bunny Loader */}
+              <Image 
+                src={urlFor(img).url()} 
+                alt={`${projectName} architectural detail ${i + 1}`} 
+                fill 
+                sizes={i === 0 
+                  ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
+                  : "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 400px"
+                }
+                priority={i < 2} 
+                className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out will-change-transform"
+              />
               
-              {/* Overlay on Hover */}
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] pointer-events-none">
                   <div className="bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/30">
                     <Maximize2 className="text-white" size={24} />
@@ -115,7 +101,6 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
         </div>
       </div>
 
-      {/* 🌌 Premium Lightbox */}
       <AnimatePresence>
         {index !== null && (
           <motion.div
@@ -125,11 +110,9 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
             role="dialog"
             aria-modal="true"
             aria-label={isArabic ? 'مستعرض الصور المكبرة' : 'Image Lightbox'}
-            // إجبار الـ Lightbox على LTR لتجنب مشاكل السحب (Drag) المعقدة، مع عكس التحكمات برمجياً كما فعلنا أعلاه
             dir="ltr" 
             className="fixed inset-0 z-[1000000] bg-black/95 flex flex-col items-center justify-center touch-none backdrop-blur-xl"
           >
-            {/* Lightbox Header */}
             <div className="absolute top-0 w-full p-6 md:p-10 flex justify-between items-center z-[100]">
               <div className="flex items-center gap-4">
                   <div className="bg-white/10 px-4 py-2 rounded-full border border-white/10">
@@ -139,14 +122,12 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
               </div>
               <button 
                 onClick={() => setIndex(null)} 
-                aria-label={isArabic ? 'إغلاق' : 'Close gallery'}
-                className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:bg-brand-red hover:text-white transition-all duration-300 shadow-2xl active:scale-90 outline-none focus-visible:ring-4 focus-visible:ring-brand-red"
+                className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:bg-brand-red hover:text-white transition-all duration-300 shadow-2xl active:scale-90 outline-none"
               >
                 <X size={28} />
               </button>
             </div>
 
-            {/* Main Full Image */}
             <motion.div
               drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
@@ -161,24 +142,22 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
                 transition={{ duration: 0.3 }}
                 className="relative w-full h-full flex items-center justify-center"
               >
-             <Image 
-  // جودة عالية جداً للعرض الكامل (WebP) مع ترك التباين لـ Next.js
-  src={urlFor(images[index]).auto('format').quality(90).url()}
-  alt={`${projectName} full view ${index + 1}`}
-  fill
-  className="object-contain pointer-events-none drop-shadow-2xl select-none"
-  sizes="100vw"
-  priority
-/>
+                {/* 🚀 Lightbox Image Optimized with Bunny */}
+                <Image 
+                  src={urlFor(images[index]).url()}
+                  alt={`${projectName} full view ${index + 1}`}
+                  fill
+                  className="object-contain pointer-events-none drop-shadow-2xl select-none"
+                  sizes="100vw"
+                  priority
+                />
               </motion.div>
             </motion.div>
 
-            {/* Desktop Navigation Arrows - ✅ A11y Fix */}
             <div className="absolute inset-x-0 bottom-12 flex justify-center items-center gap-12 z-[100]">
               <button 
                 onClick={isArabic ? next : prev} 
-                aria-label={isArabic ? 'الصورة السابقة' : 'Previous image'}
-                className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none focus-visible:ring-4 focus-visible:ring-brand-red active:scale-90"
+                className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none"
               >
                 <ChevronLeft size={32} />
               </button>
@@ -194,14 +173,12 @@ export default function ProjectGallery({ images = [], projectName = "Property", 
 
               <button 
                 onClick={isArabic ? prev : next} 
-                aria-label={isArabic ? 'الصورة التالية' : 'Next image'}
-                className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none focus-visible:ring-4 focus-visible:ring-brand-red active:scale-90"
+                className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none"
               >
                 <ChevronRight size={32} />
               </button>
             </div>
             
-            {/* Mobile Swipe Indicator */}
             <div className="md:hidden absolute bottom-10 text-white/20 flex flex-col items-center gap-2">
                 <div className="w-8 h-1 bg-white/20 rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-widest">{isArabic ? 'اسحب للإغلاق' : 'Swipe to close'}</span>

@@ -6,7 +6,6 @@ import { useState } from 'react';
 /**
  * 🛠️ PostActions - 2026 Engagement Standard
  * تم تحسينه ليكون متوافقاً مع تجربة المستخدم السريعة في Platform Real Estate
- * الدالة getSafeText تضمن عدم توقف الكود إذا كانت البيانات قادمة من Sanity Objects
  */
 const getSafeText = (val) => {
   if (!val) return "";
@@ -26,31 +25,37 @@ export default function PostActions({ url, title, lang }) {
   
   // تأمين العنوان والرابط لضمان عدم حدوث Runtime Errors
   const cleanTitle = getSafeText(title);
-  const cleanUrl = typeof url === 'string' ? url : typeof window !== 'undefined' ? window.location.href : '';
+  
+  // ✅ تحسين: التأكد من أن الرابط كامل (Absolute) لضمان عمل المشاركة بشكل صحيح في السوشيال ميديا
+  const baseUrl = 'https://platformrealestate.co';
+  const cleanUrl = typeof url === 'string' 
+    ? (url.startsWith('http') ? url : `${baseUrl}${url}`)
+    : typeof window !== 'undefined' ? window.location.href : baseUrl;
 
   const handleShare = async (e) => {
     e.preventDefault(); // منع الانتقال لصفحة المقال لو الزرار جوه كارت (Card)
     e.stopPropagation(); // منع التأثير على العناصر الأب (Event Bubbling)
     
     // 📱 محاولة استخدام نظام المشاركة الأصلي للموبايل (Native Share)
-    // ده بيسمح للمستخدم يشارك مباشرة على الواتساب أو انستجرام بسهولة
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: cleanTitle,
-          text: isAr ? `اكتشف هذا العقار المميز: ${cleanTitle}` : `Check out this property: ${cleanTitle}`,
+          text: isAr ? `اكتشف هذا العقار المميز من بلاتفورم: ${cleanTitle}` : `Check out this property from Platform: ${cleanTitle}`,
           url: cleanUrl,
         });
       } catch (err) {
         console.log('Share interaction ended');
       }
     } 
-    // 💻 في حالة الديسكتوب: نسخ الرابط للمحافظة على سرعة الحركة
+    // 💻 في حالة الديسكتوب: نسخ الرابط
     else {
       try {
-        await navigator.clipboard.writeText(cleanUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(cleanUrl);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 3000);
+        }
       } catch (err) {
         console.error('Failed to copy link', err);
       }

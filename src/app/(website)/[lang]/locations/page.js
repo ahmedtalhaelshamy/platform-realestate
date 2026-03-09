@@ -29,7 +29,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * 🔍 SEO Metadata: Optimized for Geo-Search
+ * 🔍 SEO Metadata: السيطرة اليدوية المطلقة
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
@@ -54,15 +54,23 @@ export async function generateMetadata({ params }) {
     : (seo?.metaDescEn || 'Your comprehensive guide to top investment locations including New Cairo, NAC, and North Coast.'));
 
   const ogImageUrl = seo?.openGraphImage 
-    ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url()
+    ? urlFor(seo.openGraphImage).url()
     : `${BASE_URL}/og-image.jpg`;
 
   return {
-    title: `${title} | Platform`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية من سانتي فقط
+    title: {
+      absolute: title,
+    },
     description: description.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: `${BASE_URL}/${lang}/locations/`,
+      languages: {
+        'ar': `${BASE_URL}/ar/locations/`,
+        'en': `${BASE_URL}/en/locations/`,
+        'x-default': `${BASE_URL}/ar/locations/`,
+      },
     },
     openGraph: {
       title,
@@ -79,7 +87,6 @@ export default async function LocationsIndexPage({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
 
-  // 🚀 تطوير الـ Query لجلب المناطق + أحدث المقالات العقارية
   const query = `{
     "locations": *[_type == "location"] | order(order asc) {
       _id, nameAr, nameEn,
@@ -122,7 +129,6 @@ export default async function LocationsIndexPage({ params }) {
 
       {/* ================= HERO SECTION ================= */}
       <section className="relative h-[85vh] md:h-[90vh] flex items-center justify-center bg-brand-dark overflow-hidden pt-24">
-        {/* Gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent z-10" />
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-red via-transparent to-transparent animate-pulse pointer-events-none z-10" />
         
@@ -139,7 +145,6 @@ export default async function LocationsIndexPage({ params }) {
                   : 'Discover handpicked destinations where elite luxury meets the highest ROI in Egypt.'}
             </p>
 
-            {/* ✅ زرار الاتصال المطور والمصحح 100% */}
             <div className="flex justify-center mt-10 relative z-50">
               <a 
                 href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
@@ -166,7 +171,7 @@ export default async function LocationsIndexPage({ params }) {
                 >
                   {loc.image ? (
                     <Image 
-                      src={urlFor(loc.image).format('webp').quality(80).url()} 
+                      src={urlFor(loc.image).url()} 
                       alt={locName} 
                       fill 
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -214,7 +219,7 @@ export default async function LocationsIndexPage({ params }) {
         )}
       </section>
 
-      {/* 📰 ✅ قسم أحدث التقارير والمقالات العقارية (سيو ذهبي) */}
+      {/* 📰 Market Intel Section */}
       {latestPosts && latestPosts.length > 0 && (
         <section className="bg-slate-950 py-32 md:py-48 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C02026]/10 rounded-full blur-[150px] -mr-64 -mt-64" />
@@ -247,7 +252,7 @@ export default async function LocationsIndexPage({ params }) {
                   <div className="aspect-[16/10] overflow-hidden relative">
                     {post.mainImage && (
                       <Image 
-                        src={urlFor(post.mainImage).width(600).auto('format').url()} 
+                        src={urlFor(post.mainImage).url()} 
                         alt={post.title}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100"

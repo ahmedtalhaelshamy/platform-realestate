@@ -12,14 +12,12 @@ import { urlFor } from '@/sanity/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import Link from 'next/link';
 
-// ✅ 1. PERFORMANCE: ISR كل ساعة لضمان التحديث التلقائي
+// ✅ 1. PERFORMANCE: ISR كل ساعة
 export const dynamic = 'force-static';
 export const revalidate = 3600; 
 
-// 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
 
-// ✅ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -51,9 +49,6 @@ const devPortableTextComponents = {
   }
 };
 
-/**
- * ✅ 2. توليد المسارات SSG
- */
 export async function generateStaticParams() {
   try {
     const query = `*[_type == "developer" && defined(slug.current) && !(_id in path("drafts.**"))]{ "slug": slug.current }`;
@@ -68,7 +63,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ 3. الـ SEO Metadata
+ * ✅ 3. الـ SEO Metadata: السيطرة اليدوية المطلقة
  */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
@@ -79,26 +74,33 @@ export async function generateMetadata({ params }) {
     { slug }
   );
   
-  if (!data) return { title: 'Titan Not Found' };
+  if (!data) return { title: { absolute: isAr ? 'المطور غير موجود' : 'Titan Not Found' } };
   
   const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
   const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
   const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
 
   const ogImage = data.logo 
-    ? urlFor(data.logo).width(1200).height(630).auto('format').url()
+    ? urlFor(data.logo).url()
     : `${BASE_URL}/og-image.jpg`;
 
   return { 
-    title: `${title} | Platform`, 
+    title: {
+      absolute: title, // 🚀 سيطرة يدوية كاملة
+    },
     description: description.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: `${BASE_URL}/${lang}/developers/${slug}/`,
-      languages: { 'ar': `${BASE_URL}/ar/developers/${slug}/`, 'en': `${BASE_URL}/en/developers/${slug}/` },
+      languages: { 
+        'ar': `${BASE_URL}/ar/developers/${slug}/`, 
+        'en': `${BASE_URL}/en/developers/${slug}/` 
+      },
     },
     openGraph: {
         title: `${devName} | Platform Real Estate`,
+        description: description,
+        url: `${BASE_URL}/${lang}/developers/${slug}/`,
         images: [{ url: ogImage }],
         locale: isAr ? 'ar_EG' : 'en_US',
         type: 'website',
@@ -106,7 +108,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// 🚀 تحديث الاستعلام ليشمل الأخبار المربوطة بالمطور
 async function getDeveloperData(slug, lang) {
   const query = `{
     "developer": *[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
@@ -116,7 +117,6 @@ async function getDeveloperData(slug, lang) {
       _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, mainImage, "slug": slug.current,
       "location": location->{ nameAr, nameEn }
     },
-    // 📰 استعلام الأخبار المربوطة بالمطور
     "relatedPosts": *[_type == "post" && language == $lang && references(*[_type == "developer" && slug.current == $slug][0]._id)] | order(_createdAt desc)[0...3] {
       title, "slug": slug.current, mainImage, overview, _createdAt
     }
@@ -158,7 +158,7 @@ export default async function DeveloperDetailPage({ params }) {
             <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex items-center justify-center p-8 shrink-0 relative group">
                 {developer.logo ? (
                  <Image 
-                  src={urlFor(developer.logo).auto('format').quality(90).url()} 
+                  src={urlFor(developer.logo).url()} 
                   alt={devName} 
                   width={250} height={250} 
                   className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" 
@@ -199,7 +199,7 @@ export default async function DeveloperDetailPage({ params }) {
                   </div>
               </section>
 
-              {/* 📰 ✅ قسم أخبار المطور (تمت إضافته هنا) */}
+              {/* 📰 RELATED NEWS */}
               {relatedPosts && relatedPosts.length > 0 && (
                 <section className="pt-20 border-t border-slate-100 text-start">
                   <header className="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
@@ -221,7 +221,14 @@ export default async function DeveloperDetailPage({ params }) {
                     {relatedPosts.map((post) => (
                       <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
                         <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
-                          {post.mainImage && <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />}
+                          {post.mainImage && (
+                            <Image 
+                              src={urlFor(post.mainImage).url()} 
+                              alt={post.title} 
+                              fill 
+                              className="object-cover group-hover:scale-110 transition-transform duration-[2s]" 
+                            />
+                          )}
                         </div>
                         <div className="p-8 flex flex-col flex-1">
                           <span className="text-[10px] font-black text-[#C02026] uppercase mb-3 block">
@@ -252,8 +259,8 @@ export default async function DeveloperDetailPage({ params }) {
               {developer.faqs?.length > 0 && (
                 <section className="space-y-12">
                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 flex items-center gap-5 italic uppercase tracking-tighter leading-none text-start">
-                      <div className="p-4 bg-red-50 rounded-3xl text-[#C02026]"><HelpCircle size={40} strokeWidth={1.5} /></div>
-                      {isAr ? 'الأسئلة الشائعة' : 'Titan FAQs'}
+                     <div className="p-4 bg-red-50 rounded-3xl text-[#C02026]"><HelpCircle size={40} strokeWidth={1.5} /></div>
+                     {isAr ? 'الأسئلة الشائعة' : 'Titan FAQs'}
                    </h2>
                    <div className="grid grid-cols-1 gap-6">
                       {developer.faqs.map((faq, idx) => (

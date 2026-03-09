@@ -4,13 +4,12 @@ import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الأداء: تحديث دوري ذكي (ISR) كل ساعة لضمان سرعة الاستجابة
+// ✅ الأداء: ISR كل ساعة لضمان سرعة الاستجابة
 export const revalidate = 3600; 
 
-
-
-// 🏁 الدومين الموحد المعتمد (بدون www)
+// 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
+const BUNNY_DOMAIN = 'https://platform-images.b-cdn.net';
 
 /**
  * 🛠️ دالة تطهير النصوص الشاملة
@@ -18,7 +17,6 @@ const BASE_URL = 'https://platformrealestate.co';
 function getSafeText(input) {
   if (!input) return "";
   if (typeof input === 'string') return input;
-  
   if (Array.isArray(input)) {
     return input
       .map(block => {
@@ -29,29 +27,23 @@ function getSafeText(input) {
       .replace(/\s+/g, ' ')
       .trim();
   }
-
   if (typeof input === 'object' && input.children) {
     return input.children.map(child => child.text).join('');
   }
-  
   return String(input);
 }
 
 /**
- * 🖼️ حارس الصور المطور - Optimized for Social Media Sharing (OG Images)
+ * 🖼️ حارس الصور المطور - تحويل يدوي لـ Bunny لضمان سرعة الـ OG والـ Schema
  */
 const getSafeImageUrl = (source) => {
-  if (!source || !source.asset || !source.asset._ref) {
+  if (!source || !source.asset) {
     return `${BASE_URL}/og-image.jpg`; 
   }
   try {
-    return urlFor(source)
-      .width(1200)
-      .height(630)
-      .quality(80) 
-      .auto('format') 
-      .fit('crop')
-      .url();
+    const sanityUrl = urlFor(source).url();
+    // ✅ تحويل يدوي هنا لأن الـ Metadata لا تمر عبر Next Image Loader
+    return sanityUrl.replace('https://cdn.sanity.io', BUNNY_DOMAIN);
   } catch (error) {
     return `${BASE_URL}/og-image.jpg`;
   }
@@ -68,12 +60,8 @@ export async function generateStaticParams() {
   try {
     const projects = await client.fetch(query);
     const languages = ['ar', 'en'];
-    
     return projects.flatMap((project) =>
-      languages.map((lang) => ({ 
-        lang: lang, 
-        slug: project.slug 
-      }))
+      languages.map((lang) => ({ lang, slug: project.slug }))
     );
   } catch (error) {
     return [];
@@ -81,7 +69,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * 2️⃣ [SEO] الميتا داتا المحدثة
+ * 2️⃣ [SEO] الميتا داتا: السيطرة اليدوية المطلقة
  */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
@@ -92,7 +80,7 @@ export async function generateMetadata({ params }) {
   }`;
   
   const data = await client.fetch(query, { slug });
-  if (!data) return { title: 'Project Not Found' };
+  if (!data) return { title: { absolute: 'Project Not Found' } };
 
   const seo = data.seo;
   const cleanTitle = getSafeText(isAr ? (seo?.metaTitleAr || data.titleAr) : (seo?.metaTitleEn || data.titleEn));
@@ -102,11 +90,12 @@ export async function generateMetadata({ params }) {
   const enUrl = `${BASE_URL}/en/projects/${slug}/`;
   const currentPath = isAr ? arUrl : enUrl;
 
+  const shareImage = getSafeImageUrl(seo?.ogImage || data.mainImage);
+
   return {
-    title: `${cleanTitle} | ${isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn}`,
+    title: { absolute: cleanTitle },
     description: cleanDesc.substring(0, 160),
     metadataBase: new URL(BASE_URL),
-    
     alternates: {
       canonical: currentPath,
       languages: {
@@ -115,36 +104,39 @@ export async function generateMetadata({ params }) {
         'x-default': arUrl
       },
     },
-    
     robots: {
       index: !seo?.noIndex,
       follow: !seo?.noIndex,
     },
-    
     openGraph: {
       title: cleanTitle,
       description: cleanDesc,
       url: currentPath,
       images: [{ 
-        url: getSafeImageUrl(seo?.ogImage || data.mainImage),
-        width: 1200,
+        url: shareImage, 
+        width: 1200, 
         height: 630,
-        type: 'image/webp' 
+        alt: cleanTitle
       }],
       locale: isAr ? 'ar_EG' : 'en_US',
-      type: 'website',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: cleanTitle,
+      description: cleanDesc,
+      images: [shareImage],
     }
   };
 }
 
 /**
- * 3️⃣ المكون الرئيسي لمعالجة البيانات وتمريرها للـ UI
+ * 3️⃣ المكون الرئيسي
  */
 export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  // 🚀 استعلام GROQ المطور: تم تصحيح _id إلى _ref لجلب المشاريع المشابهة
   const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
     _id,
@@ -153,31 +145,21 @@ export default async function ProjectDetailPage({ params }) {
     "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
     "locationData": location->{ nameAr, nameEn, "slug": slug.current },
     "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn, _id },
-    
-    // 💡 تم تصحيح (^.developer._id) إلى (^.developer._ref)
     "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
         _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
     },
-    
     "author": author->{ name, image, jobTitle },
-    
-    // 💡 تم تصحيح (^.district._id) إلى (^.district._ref)
     "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
         _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
     },
-    
-    // 📰 جلب الأخبار: يبحث عن أي مقال يشير لهذا المشروع تحديداً
     "relatedPosts": *[_type == "post" && language == $lang && references(^._id)] | order(_createdAt desc)[0...3] {
       title, "slug": slug.current, mainImage, overview, _createdAt
     }
   }`;
 
-  // تأكد من تمرير slug و lang كباراميترز للاستعلام
   const data = await client.fetch(query, { slug, lang });
-  
   if (!data) return notFound();
 
-  // 🛡️ معالجة البيانات قبل إرسالها للـ Client Component
   const sanitizedData = {
     ...data,
     titleAr: getSafeText(data.titleAr),
@@ -204,6 +186,10 @@ export default async function ProjectDetailPage({ params }) {
     'description': getSafeText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
     'image': getSafeImageUrl(data.mainImage),
     'url': `${BASE_URL}/${lang}/projects/${slug}/`,
+    'brand': {
+      '@type': 'Brand',
+      'name': sanitizedData.developerName
+    },
     'address': {
       '@type': 'PostalAddress',
       'addressLocality': sanitizedData.districtName,
@@ -219,7 +205,6 @@ export default async function ProjectDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
       />
       
-      {/* 🚀 تمرير البيانات كاملة بما فيها relatedPosts لمكون الـ UI */}
       <ProjectClientUI 
           data={sanitizedData} 
           lang={lang} 

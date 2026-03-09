@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, ArrowRight, AlertTriangle, MessageCircle, LayoutGrid } from 'lucide-react';
+import { Home, AlertTriangle, MessageCircle, LayoutGrid } from 'lucide-react';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
 /**
@@ -17,6 +17,8 @@ export default function NotFound() {
       className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center font-sans selection:bg-brand-red selection:text-white relative overflow-hidden"
       role="main"
     >
+      {/* 🚀 السيطرة اليدوية على عنوان التابة في حالة عدم وجود الصفحة */}
+      <title>الصفحة غير موجودة | بلاتفورم العقارية</title>
       
       {/* Background Decor - Logical Placement (start/end) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40" aria-hidden="true">
@@ -33,17 +35,17 @@ export default function NotFound() {
              </p>
         </div>
 
-        {/* 404 Visual Impact - Using Italic for Premium Look */}
+        {/* 404 Visual Impact */}
         <div className="mb-14 relative">
-           <p className="text-[9rem] md:text-[13rem] font-black text-slate-100 leading-none select-none tracking-tighter italic opacity-80">404</p>
-           <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-[9rem] md:text-[13rem] font-black text-slate-100 leading-none select-none tracking-tighter italic opacity-80">404</p>
+            <div className="absolute inset-0 flex items-center justify-center">
               <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-premium border border-slate-50 animate-bounce-slow">
                  <AlertTriangle size={60} className="text-brand-red" aria-hidden="true" />
               </div>
-           </div>
+            </div>
         </div>
 
-        {/* Message Content - Bilingual Balance */}
+        {/* Message Content */}
         <div className="space-y-10 mb-14">
            <div className="space-y-4 text-center">
               <h1 className="text-3xl md:text-5xl font-black text-brand-dark leading-tight uppercase tracking-tight">
@@ -64,7 +66,6 @@ export default function NotFound() {
 
         {/* Actions - The Retention Hub */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-           {/* الرئيسية */}
            <Link 
              href="/ar/" 
              className="flex-1 flex items-center justify-center gap-3 bg-brand-dark text-white px-8 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-brand-red transition-all shadow-xl active:scale-95 group outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20"
@@ -72,7 +73,6 @@ export default function NotFound() {
               <Home size={18} className="group-hover:scale-110 transition-transform" /> الرئيسية
            </Link>
 
-           {/* المشاريع - لإبقاء العميل في الموقع */}
            <Link 
              href="/ar/projects/" 
              className="flex-1 flex items-center justify-center gap-3 bg-slate-100 text-brand-dark px-8 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-brand-dark hover:text-white transition-all active:scale-95 group outline-none focus-visible:ring-4 focus-visible:ring-brand-dark/20"
@@ -80,7 +80,6 @@ export default function NotFound() {
               <LayoutGrid size={18} /> استكشف المشاريع
            </Link>
 
-           {/* الدعم الفوري */}
            <a 
              href={`https://wa.me/${whatsappPhone}`}
              target="_blank"

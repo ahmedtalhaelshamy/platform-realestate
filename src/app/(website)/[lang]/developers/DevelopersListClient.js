@@ -60,7 +60,7 @@ export default function DevelopersListClient({ initialDevelopers = [], initialPo
             <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex flex-col items-center text-center">
               <div className="aspect-square w-full relative mb-6 bg-slate-50 rounded-[2rem] md:rounded-[3rem] p-6 border border-slate-100 group-hover:border-[#C02026]/30 transition-all">
                 {dev.logo ? (
-                  <Image src={urlFor(dev.logo).width(400).url()} alt="logo" fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" />
+                  <Image src={urlFor(dev.logo).width(400).url()} alt="logo" fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" unoptimized={true} />
                 ) : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} className="text-slate-200" /></div>}
               </div>
               <h2 className="text-base md:text-xl font-black text-slate-900 px-2 leading-tight uppercase italic overflow-visible w-full break-words">
@@ -95,7 +95,7 @@ export default function DevelopersListClient({ initialDevelopers = [], initialPo
               <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
                 <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
                   {post.mainImage && (
-                    <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />
+                    <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s] " unoptimized={true} />
                   )}
                   <div className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'}`}>
                     <span className="bg-white/90 backdrop-blur-md text-slate-900 px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg">

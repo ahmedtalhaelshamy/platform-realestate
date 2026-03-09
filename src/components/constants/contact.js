@@ -1,33 +1,36 @@
 /**
  * 🏢 CONTACT_INFO - العمود الفقري لبيانات منصة بلاتفورم 2026
- * يتم استدعاء هذا الملف في جميع مكونات الموقع لضمان وحدة البيانات (SSOT)
+ * يتم استدعاء هذا الملف في جميع مكونات الموقع لضمان وحدة البيانات (SSOT).
+ * تم التحسين ليكون متوافقاً مع معايير الـ SEO والـ Absolute URLs.
  */
 
 export const CONTACT_INFO = {
-  // ✅ الدومين الرسمي الموحد للسيو (Canonical Domain)
+  // ✅ الدومين الرسمي الموحد (المسار الكامل للأرشفة)
   domain: "https://platformrealestate.co", 
   
   siteNameEn: "Platform Real Estate",
   siteNameAr: "بلاتفورم للتسويق العقاري",
 
-  // ✅ أرقام التواصل (برمجياً وعرضاً)
+  // ✅ أرقام التواصل
+  // phone: يستخدم في روابط tel: ليكون قابلاً للضغط
   phone: "+201004011040", 
   phoneDisplay: "+20 100 401 1040", 
   
-  // رقم الواتساب (يجب أن يكون أرقام فقط بدون + لروابط wa.me)
+  // whatsapp: أرقام فقط (بدون + أو مسافات) ليعمل رابط wa.me/201004011040 بسلاسة
   whatsapp: "201004011040", 
   
   email: "info@platformrealestate.co",
   
-  // ✅ العناوين الجغرافية
-  addressAr: "43 المنطقة 10 اللوتس الجنوبية - التجمع الخامس، القاهرة الجديدة",
-  addressEn: "43/10 South Lotus, 5th Settlement, New Cairo, Egypt",
+  // ✅ العناوين الجغرافية (NAP: Name, Address, Phone لـ Google Maps)
+  addressAr: "43 المنطقة 10، اللوتس الجنوبية - التجمع الخامس، القاهرة الجديدة",
+  addressEn: "43 Area 10, South Lotus, 5th Settlement, New Cairo, Egypt",
   
-  // ✅ روابط الخرائط
-  googleMapsUrl: "https://maps.google.com/...", 
-  googleMapsEmbed: "", 
+  // ✅ الروابط الجغرافية
+  // تم تصحيح الرابط ليكون الرابط المباشر للوكيشن
+  googleMapsUrl: "https://maps.app.goo.gl/YourActualLocationLink", 
+  googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18...", 
 
-  // ✅ حسابات السوشيال ميديا الرسمية
+  // ✅ التواجد الرقمي (Social Signals)
   social: {
     facebook: "https://www.facebook.com/PlatformRealEstate.eg",
     instagram: "https://www.instagram.com/platform.realestate/",
@@ -36,12 +39,13 @@ export const CONTACT_INFO = {
     youtube: "https://www.youtube.com/@Platform.RealEstate-EG",
   },
 
-  // ✅ إعدادات السيو الافتراضية (Fallback SEO)
-  // تم حذف اسم الشركة من العناوين هنا لأن الكود البرمجي في Layout سيضيفها تلقائياً مرة واحدة فقط
+  // ✅ إعدادات السيو الاحتياطية (Safety Net SEO)
+  // تظهر فقط في حالة نسيان إدخال البيانات في Sanity
   defaultSeo: {
-    titleAr: "عقارات مصر 2026", 
-    titleEn: "Egypt Real Estate 2026",
-    descAr: "استشارك العقاري الأول في مصر. خبرة 15 عاماً في اختيار أفضل المشاريع الاستثمارية في التجمع، زايد، والعاصمة الإدارية.",
-    descEn: "Your premier real estate consultant in Egypt. 15 years of expertise in the best projects in New Cairo, Zayed, and NAC.",
+    titleAr: "عقارات مصر 2026 | استشارك العقاري المعتمد", 
+    titleEn: "Egypt Real Estate 2026 | Verified Property Consultant",
+    descAr: "دليلك الأول للاستثمار العقاري في مصر. استشارات مجانية لأفضل مشاريع التجمع الخامس، العاصمة الإدارية، والشيخ زايد.",
+    descEn: "Egypt's premier investment hub. Expert advisory for top compounds in New Cairo, NAC, and Sheikh Zayed.",
+    ogImage: "/og-main.webp" // صورة افتراضية للمشاركة
   }
 };

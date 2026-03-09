@@ -12,9 +12,12 @@ export default function Error({ error, reset, params }) {
   const isAr = params?.lang === 'ar';
 
   useEffect(() => {
-    // تسجيل الخطأ في السيرفر أو خدمات التتبع (مثل Sentry)
+    // تسجيل الخطأ في السيرفر أو خدمات التتبع
     console.error('SYSTEM_CRITICAL_LOG:', error);
   }, [error]);
+
+  // ملاحظة: ملفات error.tsx لا تدعم generateMetadata لأنها تعمل في Client-side فقط عند الانهيار.
+  // تم ضبط العنوان والوصف عبر الوسوم التقليدية لضمان السيطرة اليدوية.
 
   return (
     <main 
@@ -24,8 +27,10 @@ export default function Error({ error, reset, params }) {
       aria-live="assertive"
       aria-labelledby="error-heading"
     >
+      {/* السيطرة اليدوية على عنوان التابة في حالة الخطأ */}
+      <title>{isAr ? 'خطأ في النظام | بلاتفورم' : 'System Error | Platform'}</title>
       
-      {/* 🎨 Premium Background Accents - Logical Properties (start/end) */}
+      {/* 🎨 Premium Background Accents */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-50" aria-hidden="true">
         <div className="absolute top-[-5%] start-[-10%] w-[50vw] h-[50vw] bg-brand-red/5 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-5%] end-[-10%] w-[40vw] h-[40vw] bg-brand-dark/5 rounded-full blur-[100px]" />
@@ -47,7 +52,7 @@ export default function Error({ error, reset, params }) {
            <div className="absolute inset-0 rounded-[2.5rem] border-2 border-brand-red animate-ping opacity-20" />
         </div>
 
-        {/* Textual Content - Optimized Leading for Arabic */}
+        {/* Textual Content */}
         <div className="space-y-8 mb-14">
             <div className="space-y-4">
               <h1 id="error-heading" className={`text-3xl md:text-5xl font-black text-brand-dark leading-tight uppercase ${isAr ? 'tracking-normal px-2' : 'italic tracking-tighter'}`}>
@@ -68,7 +73,7 @@ export default function Error({ error, reset, params }) {
             </div>
         </div>
 
-        {/* Action Hub - High Conversion Focus */}
+        {/* Action Hub */}
         <div className="flex flex-col gap-4">
           <button
             onClick={() => reset()}

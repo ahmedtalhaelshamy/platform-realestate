@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next';
-import { CONTACT_INFO } from '@/components/constants/contact';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const baseUrl = 'https://platformrealestate.co';
 
   return {
     rules: [
@@ -11,40 +10,55 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/_next/static/', 
+          // ✅ تم الإبقاء عليه للاحتياط ولكن Bunny هو الأساس الآن
           '/_next/image/',  
-          '/api/og/',      
+          '/api/og/',       
         ],
         disallow: [
-          '/studio/',      
+          '/studio/',       // لوحة تحكم سانتي
           '/admin/',        
-          '/api/',          
+          '/api/',          // حماية الـ endpoints
           '/private/',      
-          '/*?*',           // منع الفلاتر وروابط البحث المكررة
-          '/*_type=*',      // منع أرشفة روابط استعلامات Sanity المباشرة إن وجدت
+          '/*?*',           // منع أرشفة الفلاتر (Query Params) لمنع المحتوى المكرر
+          '/*_type=*',      
+          '/*_id=*',        
         ],
       },
       {
         /**
-         * 🤖 AI Bots (GPT, Common Crawl, etc.)
-         * نمنعهم من سحب الداتا الثقيلة للحفاظ على أداء السيرفر وحماية المحتوى
+         * 🤖 AI Intelligence Protection
+         * منع بوتات الذكاء الاصطناعي من سرقة مجهودك التحليلي
          */
-        userAgent: ['GPTBot', 'CCBot', 'ChatGPT-User'],
-        disallow: ['/projects/', '/developers/'], 
+        userAgent: ['GPTBot', 'CCBot', 'ChatGPT-User', 'anthropic-ai', 'Claude-Web', 'Google-Extended'],
+        disallow: [
+          '/ar/projects/', 
+          '/en/projects/', 
+          '/ar/developers/', 
+          '/en/developers/',
+          '/ar/locations/',
+          '/en/locations/'
+        ], 
       },
       {
+        /**
+         * 📱 Social Media & Search Bots
+         * السماح الكامل لهذه البوتات لضمان ظهور الـ OG Tags والـ Rich Snippets
+         */
         userAgent: [
+          'Googlebot', // تأكيد السماح لجوجل بالزحف الكامل
           'AdsBot-Google', 
           'Twitterbot', 
           'facebookexternalhit', 
           'LinkedInBot', 
           'WhatsApp', 
-          'Applebot'
+          'Applebot',
+          'Bingbot'
         ], 
         allow: '/',
         disallow: ['/studio/', '/private/'],
       }
     ],
-    // ✅ وضع الرابط في مكان واضح لمحركات البحث
+    // ✅ الرابط الموحد لضمان التزامن مع ملف sitemap.ts
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

@@ -5,7 +5,9 @@ import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { PortableText } from '@portabletext/react';
 
-// ✅ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+/**
+ * 🛠️ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+ */
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -15,10 +17,6 @@ const getSafeText = (val) => {
   return String(val);
 };
 
-/**
- * 🏢 AboutSection Component - Optimized for SEO & 2026 Performance
- * يدعم اللغتين تلقائياً وبأداء LCP فائق السرعة
- */
 async function getAboutData() {
   const query = `*[_type == "aboutPage" && _id == "aboutPage"][0]{
     _id,
@@ -96,7 +94,6 @@ export default async function AboutSection({ lang }) {
               </h2>
             </header>
 
-            {/* ✅ تحسين الـ Prose: دعم الخطوط والمسافات البينية للمحتوى الديناميكي */}
             <div className="space-y-6 text-slate-600 text-lg md:text-xl leading-relaxed">
               {content ? (
                 <div className="prose prose-lg md:prose-xl prose-slate max-w-none 
@@ -112,7 +109,7 @@ export default async function AboutSection({ lang }) {
             <div className="pt-4">
               <Link 
                 href={`/${lang}/contact/`} 
-                className="group inline-flex items-center gap-5 bg-brand-dark text-white px-8 md:px-10 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-brand-red transition-all duration-500 shadow-premium active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
+                className="group inline-flex items-center gap-5 bg-brand-dark text-white px-8 md:px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-red transition-all duration-500 shadow-premium active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
               >
                 <span>{isAr ? 'تواصل مع مستشارك الآن' : 'Contact Your Consultant'}</span>
                 <ArrowRight size={20} className={`transition-transform duration-500 ${isAr ? 'rotate-180 group-hover:-translate-x-2' : 'group-hover:translate-x-2'}`} />
@@ -124,22 +121,21 @@ export default async function AboutSection({ lang }) {
           <div className="flex-1 w-full relative">
             <div className="relative h-[450px] md:h-[650px] w-full rounded-[3.5rem] overflow-hidden shadow-premium border-[12px] border-brand-gray-50 group">
               {data?.storyImage ? (
-             <Image
-  // ✅ تحسين: ترك تحديد الأبعاد لـ Next.js بناءً على الـ sizes
-  src={urlFor(data.storyImage).format('webp').quality(80).url()}
-  alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
-  fill
-  priority={true} // أهم تعديل للأداء: تحميل فوري للصورة الرئيسية
-  sizes="(max-width: 768px) 100vw, 50vw"
-  className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
-/>
+                <Image
+                  src={urlFor(data.storyImage).url()}
+                  alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
+                  fill
+                  priority={true} // أهم تعديل للأداء: تحميل فوري للصورة الرئيسية
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
+                />
               ) : (
                 <div className="absolute inset-0 bg-slate-100 animate-pulse" />
               )}
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
-              {/* 🏆 بطاقة الإحصائيات الفاخرة - Logical Property (end-10) */}
+              {/* 🏆 بطاقة الإحصائيات الفاخرة */}
               <div className={`absolute bottom-10 end-10 bg-white/90 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] shadow-2xl border border-white flex items-center gap-6 group-hover:-translate-y-2 transition-transform duration-700`}>
                 <div className="bg-brand-red p-4 rounded-2xl text-white shadow-lg">
                     <Star size={28} fill="currentColor" className="animate-pulse" aria-hidden="true" />
@@ -148,7 +144,7 @@ export default async function AboutSection({ lang }) {
                   <span className="block text-3xl md:text-5xl font-black text-slate-900 leading-none tracking-tighter">
                     {statValue}
                   </span>
-                  <span className="text-[10px] font-bold text-brand-red uppercase tracking-widest mt-2 block">
+                  <span className="text-[10px] font-black text-brand-red uppercase tracking-widest mt-2 block">
                     {statLabel}
                   </span>
                 </div>

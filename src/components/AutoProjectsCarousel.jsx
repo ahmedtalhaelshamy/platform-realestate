@@ -18,7 +18,9 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/free-mode';
 
-// ✅ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+/**
+ * 🛠️ دالة الأمان لمنع خطأ الـ Objects كأبناء لـ React
+ */
 const getSafeText = (val) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -30,7 +32,7 @@ const getSafeText = (val) => {
 
 /**
  * 🏆 AutoProjectCarousel - Premium Auto-Slider 2026
- * مُحسن للأداء العالي (LCP) ودعم كامل للغات (RTL/LTR)
+ * مُحسن للأداء العالي ودعم كامل لنظام Bunny.net
  */
 export default function AutoProjectCarousel({ projects, lang, desktopSlides = 4 }) {
   const isArabic = lang === 'ar';
@@ -40,32 +42,34 @@ export default function AutoProjectCarousel({ projects, lang, desktopSlides = 4 
   return (
     <section 
       className="relative group/swiper px-2 md:px-6" 
-      dir={isArabic ? "rtl" : "ltr"} // ضروري للـ Swiper لكي يعمل السحب بشكل صحيح
+      dir={isArabic ? "rtl" : "ltr"}
       aria-label={isArabic ? "معرض المشاريع المميزة" : "Featured Projects Carousel"}
     >
       
-      {/* 🧭 أزرار التنقل المخصصة - باستخدام Logical Properties (start/end) */}
+      {/* 🧭 أزرار التنقل المخصصة */}
       <div className="absolute top-1/2 -translate-y-1/2 start-1 z-30 opacity-0 group-hover/swiper:opacity-100 transition-all duration-500 hidden lg:block">
         <button 
-          className="swiper-button-prev-custom bg-white/95 backdrop-blur-md text-slate-900 p-4 rounded-2xl shadow-premium hover:bg-brand-red hover:text-white transition-all border border-white/20 active:scale-90 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
+          className="swiper-button-prev-custom bg-white/95 backdrop-blur-md text-slate-900 p-4 rounded-2xl shadow-premium hover:bg-brand-red hover:text-white transition-all border border-white/20 active:scale-90 outline-none"
           aria-label={isArabic ? "المشروع السابق" : "Previous project"}
         >
-           <ArrowLeft size={24} className="rtl:-scale-x-100" />
+           <ArrowLeft size={24} className="rtl:rotate-180" />
         </button>
       </div>
 
       <div className="absolute top-1/2 -translate-y-1/2 end-1 z-30 opacity-0 group-hover/swiper:opacity-100 transition-all duration-500 hidden lg:block">
         <button 
-          className="swiper-button-next-custom bg-white/95 backdrop-blur-md text-slate-900 p-4 rounded-2xl shadow-premium hover:bg-brand-red hover:text-white transition-all border border-white/20 active:scale-90 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
+          className="swiper-button-next-custom bg-white/95 backdrop-blur-md text-slate-900 p-4 rounded-2xl shadow-premium hover:bg-brand-red hover:text-white transition-all border border-white/20 active:scale-90 outline-none"
           aria-label={isArabic ? "المشروع التالي" : "Next project"}
         >
-           <ArrowRight size={24} className="rtl:-scale-x-100" />
+           <ArrowRight size={24} className="rtl:rotate-180" />
         </button>
       </div>
 
       <Swiper
+        // ✅ الحل الجذري لمشاكل السحب في اللغات المختلفة
+        key={lang}
         modules={[Autoplay, Navigation, Pagination, FreeMode]}
-        dir={isArabic ? "rtl" : "ltr"} // إخبار السلايدر باتجاه الصفحة
+        dir={isArabic ? "rtl" : "ltr"}
         spaceBetween={24}
         slidesPerView={1.1}
         freeMode={true}
@@ -94,7 +98,7 @@ export default function AutoProjectCarousel({ projects, lang, desktopSlides = 4 
         {projects.map((project, index) => (
           <SwiperSlide key={project._id || index} className="h-auto">
             <div className="h-full py-4">
-               {/* تمرير خاصية الأولوية لأول كارتين فقط لتحسين الـ LCP */}
+               {/* ✅ تحسين الـ LCP: أول كارتين يحملوا صورهم فوراً من Bunny */}
                <CarouselProjectCard project={project} lang={lang} isPriority={index < 2} />
             </div>
           </SwiperSlide>
@@ -104,6 +108,7 @@ export default function AutoProjectCarousel({ projects, lang, desktopSlides = 4 
       <style dangerouslySetInnerHTML={{ __html: `
         .swiper-pagination-bullet-active { background: #C02026 !important; }
         .swiper-pagination { bottom: 0 !important; }
+        .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.1); }
       `}} />
     </section>
   );
@@ -131,7 +136,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
   const phoneNum = (CONTACT_INFO?.phone || "").toString().replace(/\D/g,'');
 
   const whatsappLink = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(
-    isArabic ? `مهتم بمشروع: ${getSafeText(project?.titleAr)}` : `Inquiry about: ${getSafeText(project?.titleEn)}`
+    isArabic ? `استفسار عن مشروع: ${getSafeText(project?.titleAr)}` : `Inquiry about: ${getSafeText(project?.titleEn)}`
   )}`;
 
   const locationName = isArabic 
@@ -139,20 +144,20 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
     : getSafeText(project?.location?.nameEn || project?.districtData?.nameEn || project?.district?.nameEn || "Prime Location");
 
   return (
-    <div className="group relative bg-white rounded-3xl p-3.5 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-premium hover:-translate-y-1.5 overflow-hidden">
+    <div className="group relative bg-white rounded-[2.5rem] p-4 border border-slate-100 transition-all duration-500 flex flex-col h-full shadow-sm hover:shadow-premium hover:-translate-y-1.5 overflow-hidden">
       
-      {/* 🖼️ Optimized Image Section */}
-      <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden mb-5 bg-slate-100 shrink-0">
+      {/* 🖼️ Image Section - Bunny.net Optimized */}
+      <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
         <Link href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
           {project?.mainImage ? (
-          <Image 
-  src={urlFor(project.mainImage).format('webp').quality(80).url()} 
-  alt={isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
-  fill
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-  priority={isPriority}
-  className="object-cover transition-transform duration-[2s] group-hover:scale-110 will-change-transform"
-/>
+            <Image 
+              src={urlFor(project.mainImage).url()} 
+              alt={isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
+              fill
+              sizes="(max-width: 768px) 100vw, 400px"
+              priority={isPriority}
+              className="object-cover transition-transform duration-[2s] group-hover:scale-110 will-change-transform"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-200">
               <Building2 size={48} aria-hidden="true" />
@@ -161,8 +166,8 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
         </Link>
 
         {project?.isNewLaunch && (
-          <div className={`absolute top-4 start-4 z-10 pointer-events-none`}>
-            <span className="bg-brand-red text-white text-[9px] font-bold px-3 py-1.5 rounded-full uppercase shadow-lg tracking-wider animate-pulse">
+          <div className="absolute top-4 start-4 z-10 pointer-events-none">
+            <span className="bg-brand-red text-white text-[9px] font-black px-4 py-2 rounded-full uppercase shadow-lg tracking-widest animate-pulse">
               {isArabic ? 'إطلاق حديث' : 'New Launch'}
             </span>
           </div>
@@ -171,42 +176,42 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
 
       <div className="px-1 flex flex-col flex-grow text-start">
         {/* Developer Tag */}
-        <div className="flex items-center gap-2 mb-2">
-           <div className="bg-brand-red/5 p-1 rounded-md">
+        <div className="flex items-center gap-2 mb-3">
+           <div className="bg-brand-red/5 p-1.5 rounded-lg">
               <Building2 size={12} className="text-brand-red" aria-hidden="true" />
            </div>
-           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">
+           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate">
              {isArabic ? getSafeText(project?.developer?.nameAr) : getSafeText(project?.developer?.nameEn)}
            </span>
         </div>
 
         {/* Project Title */}
-        <h3 className={`text-lg font-black text-slate-900 mb-2 leading-tight line-clamp-1 hover:text-brand-red transition-colors ${isArabic ? 'tracking-normal' : 'italic tracking-tight'}`}>
-            <Link href={projectUrl} className="outline-none focus-visible:underline">
+        <h3 className={`text-xl font-black text-slate-900 mb-3 leading-tight line-clamp-1 hover:text-brand-red transition-colors ${isArabic ? 'tracking-normal' : 'italic tracking-tighter uppercase'}`}>
+            <Link href={projectUrl} className="outline-none">
               {isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
             </Link>
         </h3>
 
         {/* Location Info */}
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-6">
           <MapPin size={14} className="text-brand-red" aria-hidden="true" /> 
-          <span className="text-xs font-bold text-slate-500 truncate">{locationName}</span>
+          <span className="text-xs font-bold text-slate-500 truncate italic">{locationName}</span>
         </div>
 
-        {/* 📊 Key Stats Grid */}
+        {/* 📊 Key Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center transition-colors group-hover:bg-white group-hover:border-red-50">
+          <div className="bg-brand-gray-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center transition-colors group-hover:bg-white group-hover:border-red-50">
              <span className="text-sm font-black text-slate-900 leading-none mb-1">{project?.installments || '0'}</span>
              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{isArabic ? 'سنة تقسيط' : 'Years Plan'}</span>
           </div>
-          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center transition-colors group-hover:bg-white group-hover:border-red-50">
+          <div className="bg-brand-gray-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center transition-colors group-hover:bg-white group-hover:border-red-50">
              <span className="text-sm font-black text-slate-900 leading-none mb-1">{project?.downPayment || '0'}%</span>
              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{isArabic ? 'مقدم حجز' : 'Down Pay'}</span>
           </div>
         </div>
 
         {/* 💰 Price Container */}
-        <div className="bg-slate-950 p-4 rounded-2xl flex items-center justify-between mb-5 mt-auto shadow-lg">
+        <div className="bg-brand-dark p-4 rounded-2xl flex items-center justify-between mb-6 mt-auto shadow-xl">
             <div className="flex flex-col text-start">
               <span className="text-lg font-black text-white tracking-tighter">
                 {formattedPrice} <span className="text-[10px] text-brand-red">{isArabic ? 'ج.م' : 'EGP'}</span>
@@ -215,8 +220,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
             </div>
             <Link 
               href={projectUrl} 
-              aria-label={isArabic ? "عرض تفاصيل المشروع" : "View project details"}
-              className="bg-white/10 hover:bg-brand-red text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center group/arrow outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="bg-white/10 hover:bg-brand-red text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center group/arrow outline-none"
             >
               <ArrowUpRight size={20} className="group-hover/arrow:rotate-45 transition-transform" />
             </Link>
@@ -226,17 +230,15 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
         <div className="grid grid-cols-2 gap-3 mt-auto">
           <a 
             href={`tel:${phoneNum}`} 
-            aria-label={isArabic ? "اتصال بمبيعات المشروع" : "Call sales"}
-            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-100 text-slate-900 hover:bg-slate-950 hover:text-white transition-all font-bold text-xs active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-100 text-brand-dark hover:bg-brand-dark hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <Phone size={16} aria-hidden="true" /> {isArabic ? 'اتصال' : 'Call'}
+            <Phone size={14} aria-hidden="true" /> {isArabic ? 'اتصال' : 'Call'}
           </a>
           <a 
             href={whatsappLink} 
             target="_blank" 
             rel="noopener noreferrer" 
-            aria-label={isArabic ? "استفسار عبر واتساب" : "Inquiry via WhatsApp"}
-            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all font-bold text-xs active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+            className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
           >
             <MessageCircle size={16} aria-hidden="true" /> {isArabic ? 'واتساب' : 'WhatsApp'}
           </a>

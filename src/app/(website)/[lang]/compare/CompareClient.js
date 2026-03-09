@@ -33,7 +33,7 @@ export default function CompareClient({ lang }) {
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 🛡️ حل مشكلة الـ Hydration: ننتظر حتى يعمل المكون فعلياً على المتصفح
+  // 🛡️ حل مشكلة الـ Hydration
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -63,7 +63,6 @@ export default function CompareClient({ lang }) {
 
         const fullData = await client.fetch(query, { ids });
         
-        // الحفاظ على نفس ترتيب الإضافة في الـ Matrix
         const sortedData = ids.map(id => fullData.find(f => f._id === id)).filter(Boolean);
         setProjects(sortedData);
       } catch (error) {
@@ -79,7 +78,6 @@ export default function CompareClient({ lang }) {
     const updated = projects.filter(p => p._id !== id);
     setProjects(updated);
     localStorage.setItem('compare_projects', JSON.stringify(updated.map(p => ({ _id: p._id }))));
-    // تنبيه باقي المكونات (مثل الهيدر) بتحديث العدد
     window.dispatchEvent(new Event('storage'));
   };
 
@@ -98,7 +96,6 @@ export default function CompareClient({ lang }) {
     }).format(val) + (isAr ? ' ج.م' : ' EGP');
   };
 
-  // حماية الـ First Render لمنع تعارض السيرفر مع المتصفح
   if (!isMounted) return <div className="min-h-screen bg-white" />;
 
   if (loading) return (
@@ -154,7 +151,7 @@ export default function CompareClient({ lang }) {
           </button>
         </header>
 
-        {/* ✅ Comparison Table Container */}
+        {/* ✅ Comparison Table */}
         <div className="bg-white rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden relative">
           <div className="overflow-x-auto hide-scrollbar snap-x">
             <table className="w-full border-collapse">
@@ -172,19 +169,19 @@ export default function CompareClient({ lang }) {
                         </button>
                         <div className="relative aspect-[16/10] rounded-[3rem] overflow-hidden mb-10 shadow-2xl group">
                           {p.mainImage && (
-                           <Image 
-  src={urlFor(p.mainImage).auto('format').url()} 
-  alt={title} 
-  fill 
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-  className="object-cover transition-transform duration-1000 group-hover:scale-110" 
-  priority={idx < 2}
-/>
+                            <Image 
+                              src={urlFor(p.mainImage).url()} 
+                              alt={title} 
+                              fill 
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110" 
+                              priority={idx < 2}
+                            />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-80" />
                           <div className="absolute bottom-6 start-8 text-white text-start">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-[#C02026] mb-2">{getSafeText(isAr ? p.location?.nameAr : p.location?.nameEn)}</p>
-                             <h3 className="text-xl md:text-2xl font-black leading-tight italic uppercase tracking-tighter line-clamp-1">{title}</h3>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-[#C02026] mb-2">{getSafeText(isAr ? p.location?.nameAr : p.location?.nameEn)}</p>
+                              <h3 className="text-xl md:text-2xl font-black leading-tight italic uppercase tracking-tighter line-clamp-1">{title}</h3>
                           </div>
                         </div>
                         <Link href={`/${lang}/projects/${p.slug}/`} className="inline-flex items-center gap-4 bg-slate-50 text-slate-950 px-8 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-950 hover:text-white transition-all w-full justify-center shadow-sm">
@@ -206,7 +203,6 @@ export default function CompareClient({ lang }) {
                 <CompareRow icon={<Paintbrush size={20}/>} label={isAr ? 'التشطيب' : 'Finish'} projects={projects} field="finishingType" isAr={isAr} />
                 <CompareRow icon={<Star size={20} className="text-amber-500 fill-amber-500" />} label={isAr ? 'التقييم' : 'Rating'} projects={projects} field="editorRating" suffix="/10" isScore isAr={isAr} />
 
-                {/* Sticky Contact Footer Row */}
                 <tr className="bg-slate-50/50">
                    <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-10 border-e border-slate-50">
                       <div className="flex items-center gap-4 text-slate-950 font-black text-[11px] uppercase tracking-[0.3em]">
@@ -239,9 +235,8 @@ export default function CompareClient({ lang }) {
   );
 }
 
-// ✅ مكون الصف الذكي (Smart Compare Row)
+// ✅ مكون الصف الذكي
 function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "", isPrice, isBold, isScore, isAr }) {
-  
   const getValue = (obj, path) => {
     if (!obj || !path) return null;
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);

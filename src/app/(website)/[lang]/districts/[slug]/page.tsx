@@ -4,7 +4,7 @@ import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
-import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, ArrowRight, CheckCircle } from 'lucide-react';
+import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -15,9 +15,6 @@ export const revalidate = 3600;
 
 const BASE_URL = 'https://platformrealestate.co';
 
-/**
- * 🛠️ دالة الأمان لمنع خطأ الـ Objects
- */
 const getSafeText = (val: any) => {
   if (!val) return "";
   if (typeof val === 'string') return val;
@@ -45,9 +42,6 @@ export async function generateStaticParams() {
   }
 }
 
-/**
- * 🔍 SEO Metadata: Optimized for Local Neighborhood Search
- */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string, lang: string }> }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
@@ -59,32 +53,38 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     { slug }
   );
   
-  if (!district) return { title: 'District Not Found' };
+  if (!district) return { title: { absolute: isAr ? 'الحي غير موجود' : 'District Not Found' } };
   
   const name = isAr ? getSafeText(district.nameAr) : getSafeText(district.nameEn);
   const title = getSafeText(isAr ? (district.seoTitleAr || name) : (district.seoTitleEn || name));
   const description = getSafeText(isAr ? district.seoDescAr : district.seoDescEn);
 
   const ogImage = district.image 
-    ? urlFor(district.image).width(1200).height(630).format('webp').url()
+    ? urlFor(district.image).url()
     : `${BASE_URL}/og-image.jpg`;
 
   const currentPath = `${BASE_URL}/${lang}/districts/${slug}/`;
 
   return {
-    title: `${title} | Platform`,
+    title: {
+      absolute: title, // 🚀 سيطرة يدوية كاملة
+    },
     description: description.substring(0, 160) || (isAr 
       ? `استكشف أفضل العقارات والمشاريع في ${name}. مقارنة أسعار وأنظمة سداد.` 
       : `Explore top projects in ${name}. Compare prices and plans.`),
-    metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: currentPath,
+      languages: {
+        'ar': `${BASE_URL}/ar/districts/${slug}/`,
+        'en': `${BASE_URL}/en/districts/${slug}/`,
+        'x-default': `${BASE_URL}/ar/districts/${slug}/`
+      }
     },
     openGraph: {
       title,
       description,
       url: currentPath,
-      images: [{ url: ogImage }],
+      images: [{ url: ogImage, width: 1200, height: 630 }],
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
     }
@@ -103,7 +103,6 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  // 🚀 تطوير الـ Query لجلب المقالات المربوطة بالحي (relatedPosts)
   const query = `{
     "district": *[_type == "district" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
       _id, nameAr, nameEn, descriptionAr, descriptionEn, image,
@@ -116,11 +115,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         "locationData": location->{ nameAr, nameEn }
       },
       "relatedPosts": *[_type == "post" && language == $lang && (references(^._id) || references(string::split(^._id, "drafts.")[1]))] | order(_createdAt desc)[0...3] {
-  title,
-  "slug": slug.current,
-  mainImage,
-  overview,
-  _createdAt
+        title, "slug": slug.current, mainImage, overview, _createdAt
       }
     }
   }`;
@@ -132,7 +127,6 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const distName = isAr ? getSafeText(district.nameAr) : getSafeText(district.nameEn);
   const parentLocName = isAr ? getSafeText(district.location.nameAr) : getSafeText(district.location.nameEn);
 
-  // مشاريع في نفس المنطقة الكبرى (Cross-selling logic)
   const locationProjectsQuery = `*[_type == "project" && location._ref == $locationId && !references($districtId) && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...6] {
     _id, titleAr, titleEn, price, installments, downPayment, 
     isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage, 
@@ -153,9 +147,8 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   ];
 
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
-  const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في ${distName}` : `Property inquiry in ${distName} District`)}`;
+  const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في حي ${distName}` : `Property inquiry in ${distName} District`)}`;
 
-  // ✅ SEO: بيانات منظمة متقدمة (Place)
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "Place",
@@ -181,7 +174,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">
         {district.image ? (
         <Image 
-          src={urlFor(district.image).format('webp').quality(80).url()} 
+          src={urlFor(district.image).url()} 
           alt={distName} 
           fill 
           sizes="100vw"
@@ -193,9 +186,9 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-brand-dark/20 to-brand-dark/60 z-10" />
         
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-6 text-center z-20 max-w-7xl mx-auto animate-fade-in-up">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-6 text-center z-20 max-w-7xl mx-auto">
             <nav className="mb-12 flex justify-center"><Breadcrumbs items={breadcrumbItems} lang={lang} /></nav>
-            <h1 className={`text-5xl md:text-[8rem] lg:text-[10rem] font-black mb-8 uppercase leading-[1.1] md:leading-[0.9] drop-shadow-2xl ${isAr ? 'tracking-normal px-4' : 'italic tracking-tighter'}`}>{distName}</h1>
+            <h1 className={`text-5xl md:text-[8rem] lg:text-[10rem] font-black mb-8 uppercase leading-[1.1] md:leading-[0.9] drop-shadow-2xl ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>{distName}</h1>
             <div className="inline-flex items-center gap-3 bg-brand-red text-white px-6 py-3 rounded-2xl shadow-xl border border-white/10">
                 <MapPin size={18} aria-hidden="true" />
                 <span className="text-xs font-black uppercase tracking-widest">{parentLocName}</span>
@@ -205,12 +198,12 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-24 space-y-32">
         
-        {/* 2. SPECIFIC DISTRICT PROJECTS GRID */}
-        <section id="projects-grid" aria-labelledby="grid-heading">
+        {/* 2. DISTRICT PROJECTS GRID */}
+        <section id="projects-grid">
           <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8 border-s-[12px] border-brand-red ps-8 text-start">
               <div>
                 <span className="text-brand-red font-black text-[10px] uppercase tracking-[0.5em] mb-4 block">{isAr ? 'نتائج البحث في الحي' : 'District Inventory'}</span>
-                <h2 id="grid-heading" className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
+                <h2 className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
                     {isAr ? `مشاريع ${distName}` : `${distName} Portfolio`}
                 </h2>
               </div>
@@ -220,25 +213,24 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
           </header>
           
           {district.projects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12" role="list">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12">
               {district.projects.map((proj: any, index: number) => (
-                <div key={proj._id} role="listitem" className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <ProjectCard data={proj} lang={lang} priority={index < 3} />
+                <div key={proj._id} className="animate-fade-in-up">
+                  {/* ✅ الإصلاح: تغيير priority إلى isPriority */}
+                  <ProjectCard data={proj} lang={lang} isPriority={index < 3} />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-40 bg-brand-gray-50 rounded-[4rem] border-2 border-dashed border-slate-200" role="status">
-                <Building2 size={64} className="mx-auto text-slate-300 mb-8 animate-pulse" aria-hidden="true" />
+            <div className="text-center py-40 bg-brand-gray-50 rounded-[4rem] border-2 border-dashed border-slate-200">
+                <Building2 size={64} className="mx-auto text-slate-300 mb-8 animate-pulse" />
                 <p className="text-slate-500 font-black text-xl uppercase tracking-widest">{isAr ? 'جاري إضافة مشاريع جديدة لهذا الحي' : 'Inventory coming soon.'}</p>
             </div>
           )}
         </section>
 
-        {/* 3. CONTENT & SIDEBAR CONVERSION HUB */}
+        {/* 3. CONTENT & SIDEBAR */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-            
-            {/* SEO Analytical Content Section */}
             <article className="lg:col-span-8 order-2 lg:order-1 text-start">
                 {(district.descriptionAr || district.descriptionEn) && (
                   <section className="bg-white p-10 md:p-20 rounded-[4rem] shadow-premium border border-slate-50 relative overflow-hidden">
@@ -249,19 +241,16 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                             {isAr ? `دليل الاستثمار في ${distName}` : `${distName} Intel`}
                         </h3>
                     </div>
-                    <div className="prose prose-xl prose-slate max-w-none 
-                                    prose-headings:text-brand-dark prose-headings:font-black
-                                    prose-p:leading-relaxed prose-p:text-justify prose-p:font-medium">
+                    <div className="prose prose-xl prose-slate max-w-none prose-p:leading-relaxed prose-p:text-justify prose-p:font-medium">
                       <PortableText value={isAr ? district.descriptionAr : district.descriptionEn} components={ptComponents} />
                     </div>
                   </section>
                 )}
             </article>
 
-            {/* Sticky Sidebar CTA */}
             <aside className="lg:col-span-4 lg:sticky lg:top-32 order-1 lg:order-2">
                 <section className="bg-brand-dark rounded-[4rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border-b-[16px] border-brand-red group">
-                    <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none" aria-hidden="true">
+                    <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none">
                         <Building2 size={350} />
                     </div>
                     
@@ -277,15 +266,13 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                         </p>
                         
                         <div className="space-y-4">
-                            <a href={whatsappUrl} 
-                               target="_blank" rel="noopener noreferrer"
-                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-green-500/30">
-                                <MessageCircle size={24} fill="currentColor" aria-hidden="true" /> WhatsApp Advisor
+                            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#25D366] hover:bg-[#1eb954] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95">
+                                 <MessageCircle size={24} fill="currentColor" /> WhatsApp Advisor
                             </a>
-                            {/* ✅ زرار الاتصال الجديد: أحمر، هوفر أبيض، نص أسود عند الهوفر */}
                             <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20">
-                                <Phone size={24} fill="currentColor" aria-hidden="true" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
+                               className="flex items-center justify-center gap-4 w-full py-6 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl active:scale-95">
+                                 <Phone size={24} fill="currentColor" /> {isAr ? 'اتصل الآن' : 'Call Sales'}
                             </a>
                         </div>
                     </div>
@@ -294,92 +281,78 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
         </div>
 
 
-        {/* 5. CROSS-SELLING: Regional Hotshots */}
+        {/* 4. REGIONAL CROSS-SELLING */}
         {locationProjects.length > 0 && (
-          <section className="pt-32 border-t border-slate-100" aria-labelledby="related-heading">
+          <section className="pt-32 border-t border-slate-100">
             <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-slate-200 ps-8 gap-8 text-start">
                 <div className="space-y-4">
-                    <h2 id="related-heading" className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
+                    <h2 className={`text-4xl md:text-7xl font-black text-brand-dark uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
                         {isAr ? `أبرز مشاريع ${parentLocName}` : `More in ${parentLocName}`}
                     </h2>
                     <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-widest italic">
                         {isAr ? `فرص إضافية استثمارية مختارة في ${parentLocName} بالكامل` : `Regional investment picks across the entire ${parentLocName} area`}
                     </p>
                 </div>
-                <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-premium group shrink-0 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20">
-                    {isAr ? 'كل المشاريع' : 'All Listings'} <ArrowUpRight size={18} className="inline-block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" aria-hidden="true" />
+                <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-widest shadow-premium group shrink-0">
+                    {isAr ? 'كل المشاريع' : 'All Listings'} <ArrowUpRight size={18} className="inline-block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </Link>
             </header>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14" role="list">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14">
               {locationProjects.map((proj: any) => (
-                <div key={proj._id} role="listitem">
-                  <ProjectCard data={proj} lang={lang} />
+                <div key={proj._id}>
+                  {/* ✅ الإصلاح: تغيير priority إلى isPriority */}
+                  <ProjectCard data={proj} lang={lang} isPriority={false} />
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        
-        {/* 📰 ✅ 4. AREA INSIGHTS (Related News Section) */}
+        {/* 5. AREA INSIGHTS */}
         {district.relatedPosts && district.relatedPosts.length > 0 && (
           <section className="pt-32 border-t border-slate-100">
             <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 border-s-[12px] border-[#C02026] ps-8 gap-8 text-start">
-               <div>
+                <div>
                   <h2 className={`text-4xl md:text-7xl font-black text-slate-950 uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
                     {isAr ? `أخبار ${distName}` : `${distName} Reports`}
                   </h2>
                   <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mt-4">
                     {isAr ? 'آخر التطورات والتحليلات العقارية في المنطقة' : 'Latest updates and market analysis for this area'}
                   </p>
-               </div>
-               <Link 
-                href={`/${lang}/blog/`}
-                className="bg-brand-dark text-white hover:bg-[#C02026] px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-premium group shrink-0"
-               >
-                 {isAr ? 'كل المقالات' : 'All Reports'} <ArrowRight size={18} className="inline-block group-hover:translate-x-2 transition-transform rtl:rotate-180" />
-               </Link>
+                </div>
+                <Link href={`/${lang}/blog/`} className="bg-brand-dark text-white hover:bg-[#C02026] px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-widest shadow-premium group shrink-0">
+                  {isAr ? 'كل المقالات' : 'All Reports'} <ArrowRight size={18} className="inline-block group-hover:translate-x-2 transition-transform rtl:rotate-180" />
+                </Link>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
               {district.relatedPosts.map((post: any) => (
-                <Link 
-                  key={post.slug} 
-                  href={`/${lang}/blog/${post.slug}/`}
-                  className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500"
-                >
+                <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500">
                   <div className="aspect-[16/10] overflow-hidden relative">
                     <Image 
-                      src={urlFor(post.mainImage).width(600).auto('format').url()} 
+                      src={urlFor(post.mainImage).url()} 
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  
                     />
                   </div>
                   <div className="p-10 flex flex-col flex-1 text-start">
-                    <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.3em] mb-4 block">
+                    <span className="text-[10px] font-black text-[#C02026] uppercase tracking-widest mb-4 block">
                       {new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}
                     </span>
                     <h3 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors leading-tight italic uppercase">
                       {post.title}
                     </h3>
-                    <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">
-                      {post.overview}
-                    </p>
                   </div>
                 </Link>
               ))}
             </div>
           </section>
         )}
-
       </div>
 
-      
-
       <style dangerouslySetInnerHTML={{ __html: `
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
         .animate-slow-zoom { animation: slow-zoom 40s linear infinite alternate; }
         .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }

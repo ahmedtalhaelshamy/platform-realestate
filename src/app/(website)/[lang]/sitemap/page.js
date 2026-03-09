@@ -12,23 +12,30 @@ export async function generateStaticParams() {
 }
 
 /**
- * ✅ SEO Metadata: حل مشكلة الـ Canonical و Hreflang لـ Semrush
+ * ✅ SEO Metadata: السيطرة اليدوية المطلقة وتوحيد الروابط
  */
 export async function generateMetadata({ params }) {
   const { lang } = await params;
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const baseUrl = 'https://platformrealestate.co';
   const currentUrl = `${baseUrl}/${lang}/sitemap/`;
 
+  const title = lang === 'ar' 
+    ? `خريطة الموقع | ${CONTACT_INFO.siteNameAr}` 
+    : `Visual Sitemap | ${CONTACT_INFO.siteNameEn}`;
+
   return {
-    title: lang === 'ar' ? `خريطة الموقع | ${CONTACT_INFO.siteNameAr}` : `Visual Sitemap | ${CONTACT_INFO.siteNameEn}`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
+    title: {
+      absolute: title,
+    },
     description: lang === 'ar' 
       ? "تصفح الفهرس الشامل لكافة مشاريعنا العقارية، المناطق، وأبرز المطورين في مصر." 
       : "Browse our complete index of real estate projects, prime locations, and industry titans.",
     alternates: {
       canonical: currentUrl,
       languages: {
-        'ar-EG': `${baseUrl}/ar/sitemap/`,
-        'en-US': `${baseUrl}/en/sitemap/`,
+        'ar': `${baseUrl}/ar/sitemap/`,
+        'en': `${baseUrl}/en/sitemap/`,
         'x-default': `${baseUrl}/ar/sitemap/`,
       },
     },
@@ -48,9 +55,8 @@ export default async function VisualSitemapPage({ params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
   const data = await getSitemapData();
-  const baseUrl = CONTACT_INFO.domain.replace(/\/$/, '');
+  const baseUrl = 'https://platformrealestate.co';
 
-  // ✅ سكيما ItemList لإصلاح أخطاء الـ Carousel في Semrush
   const allItems = [
     ...data.projects.map(i => ({ ...i, path: 'projects' })),
     ...data.developers.map(i => ({ ...i, path: 'developers' })),
@@ -75,7 +81,6 @@ export default async function VisualSitemapPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <header className="mb-20 border-s-8 border-[#C02026] ps-6 text-start">
           <h1 className="text-5xl md:text-8xl font-black text-slate-950 uppercase italic tracking-tighter overflow-visible pr-4 leading-[0.9]">
             {isAr ? 'خريطة' : 'VISUAL'}<br/>
@@ -147,7 +152,6 @@ export default async function VisualSitemapPage({ params }) {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        [dir="rtl"] .pr-4 { padding-right: 1.2rem !important; }
         [dir="rtl"] .text-start { text-align: right !important; }
         h1, h2, span { overflow: visible !important; }
       `}} />

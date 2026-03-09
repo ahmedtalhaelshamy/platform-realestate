@@ -31,19 +31,38 @@ export async function generateStaticParams() {
   } catch (error) { return []; }
 }
 
+/**
+ * ✅ SEO Metadata: السيطرة اليدوية المطلقة وتوحيد الروابط
+ */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === "ar";
   const post = await client.fetch(`*[_type == "post" && slug.current == $slug][0]{ title, overview, seoTitle, seoDescription, mainImage }`, { slug });
-  if (!post) return { title: isAr ? "المقال غير موجود" : "Post Not Found" };
+  
+  if (!post) return { title: { absolute: isAr ? "المقال غير موجود" : "Post Not Found" } };
+  
   const cleanTitle = getSafeText(post.seoTitle || post.title);
-  const ogImageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).auto('format').url() : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = post.mainImage ? urlFor(post.mainImage).url() : `${BASE_URL}/og-image.jpg`;
+  
   return {
-    title: `${cleanTitle} | Platform`,
+    // 🚀 استخدام absolute لضمان السيطرة اليدوية من سانتي فقط
+    title: {
+      absolute: cleanTitle,
+    },
     description: getSafeText(post.seoDescription || post.overview).substring(0, 160),
-    metadataBase: new URL(BASE_URL),
-    alternates: { canonical: `${BASE_URL}/${lang}/blog/${slug}/` },
-    openGraph: { title: cleanTitle, images: [{ url: ogImageUrl }], locale: isAr ? 'ar_EG' : 'en_US', type: 'article' },
+    alternates: { 
+      canonical: `${BASE_URL}/${lang}/blog/${slug}/`,
+      languages: {
+        'ar': `${BASE_URL}/ar/blog/${slug}/`,
+        'en': `${BASE_URL}/en/blog/${slug}/`,
+      }
+    },
+    openGraph: { 
+      title: cleanTitle, 
+      images: [{ url: ogImageUrl }], 
+      locale: isAr ? 'ar_EG' : 'en_US', 
+      type: 'article' 
+    },
   };
 }
 
@@ -51,7 +70,6 @@ export default async function PostPage({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === "ar";
 
-  // 🚀 الاستعلام الكامل لجلب كل أنواع العلاقات
   const post = await client.fetch(
     `*[_type == "post" && slug.current == $slug][0] {
       ...,
@@ -86,7 +104,12 @@ export default async function PostPage({ params }) {
       image: ({ value }) => (
         <figure className="my-16">
           <div className="relative w-full h-[350px] md:h-[700px] overflow-hidden rounded-[3.5rem] shadow-xl">
-            <Image src={urlFor(value).auto('format').quality(90).url()} alt={getSafeText(value.alt || post.title)} fill className="object-cover" />
+            <Image 
+              src={urlFor(value).url()} 
+              alt={getSafeText(value.alt || post.title)} 
+              fill 
+              className="object-cover" 
+            />
           </div>
         </figure>
       ),
@@ -113,7 +136,13 @@ export default async function PostPage({ params }) {
       {/* Feature Image */}
       <div className="container mx-auto max-w-[1200px] px-6 -mt-16 relative z-20">
         <div className="relative h-[450px] md:h-[750px] w-full overflow-hidden rounded-[4.5rem] shadow-2xl border-[12px] md:border-[20px] border-white">
-          <Image src={urlFor(post.mainImage).auto('format').quality(95).url()} alt={cleanTitle} fill className="object-cover animate-slow-zoom" priority />
+          <Image 
+            src={urlFor(post.mainImage).url()} 
+            alt={cleanTitle} 
+            fill 
+            className="object-cover animate-slow-zoom" 
+            priority 
+          />
         </div>
       </div>
 
@@ -122,7 +151,7 @@ export default async function PostPage({ params }) {
           <PortableText value={post.body} components={components} />
         </div>
 
-        {/* 🚀 ✅ قسم الارتباطات الذكية الشامل (Related Data) */}
+        {/* Smart Related Entities Section */}
         {hasAnyRelations && (
           <div className="mt-32 p-10 md:p-16 bg-slate-50 rounded-[4rem] border border-slate-100 space-y-16">
             <header className="text-start space-y-4">
@@ -132,11 +161,11 @@ export default async function PostPage({ params }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                
-               {/* 🏢 المشاريع */}
+               {/* 🏢 Projects */}
                {post.relatedProjects?.map((proj) => (
                  <Link key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(proj.mainImage).width(200).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" />
+                      <Image src={urlFor(proj.mainImage).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
                     </div>
                     <div className="text-start overflow-hidden">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "مشروع عقاري" : "Project"}</span>
@@ -145,11 +174,11 @@ export default async function PostPage({ params }) {
                  </Link>
                ))}
 
-               {/* 🏗️ المطورين */}
+               {/* 🏗️ Developers */}
                {post.relatedDevelopers?.map((dev) => (
                  <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden bg-slate-50 p-3">
-                      <Image src={urlFor(dev.logo).width(200).url()} alt="dev" fill className="object-contain group-hover:scale-110 transition-transform" />
+                      <Image src={urlFor(dev.logo).url()} alt="dev" fill className="object-contain group-hover:scale-110 transition-transform" unoptimized={true} />
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "المطور العقاري" : "Developer"}</span>
@@ -158,11 +187,11 @@ export default async function PostPage({ params }) {
                  </Link>
                ))}
 
-               {/* 🌍 المناطق (المدن) */}
+               {/* 🌍 Locations */}
                {post.relatedLocations?.map((loc) => (
                  <Link key={loc._id} href={`/${lang}/locations/${loc.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(loc.image).width(200).url()} alt="loc" fill className="object-cover group-hover:scale-110 transition-transform" />
+                      <Image src={urlFor(loc.image).url()} alt="loc" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "المدينة / المنطقة" : "City / Location"}</span>
@@ -171,11 +200,11 @@ export default async function PostPage({ params }) {
                  </Link>
                ))}
 
-               {/* 📍 الأحياء */}
+               {/* 📍 Districts */}
                {post.relatedDistricts?.map((dist) => (
                  <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(dist.image).width(200).url()} alt="dist" fill className="object-cover group-hover:scale-110 transition-transform" />
+                      <Image src={urlFor(dist.image).url()} alt="dist" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "الحي السكني" : "District"}</span>

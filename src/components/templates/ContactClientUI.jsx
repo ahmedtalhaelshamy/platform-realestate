@@ -34,15 +34,6 @@ const getSafeText = (val) => {
   return "";
 };
 
-const PhoneNumberDisplay = ({ number }) => {
-  const formattedNumber = number.replace(/(\+20)(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
-  return (
-    <span dir="ltr" className="font-sans font-black text-lg text-brand-dark flex items-center gap-1 justify-center">
-      {formattedNumber}
-    </span>
-  );
-};
-
 export default function ContactClientUI({ settings, isAr }) {
   const [formStatus, setFormStatus] = useState('idle');
   const [preferredTime, setPreferredTime] = useState('any'); 
@@ -98,9 +89,8 @@ export default function ContactClientUI({ settings, isAr }) {
   return (
     <main className={`relative w-full overflow-hidden bg-white selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
       
-      {/* 🎨 Premium Dynamic Background Accents */}
+      {/* 🎨 Premium Background Accents */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-         {/* استخدام Logical Property: start-0 */}
          <div className="absolute top-0 start-0 w-[50vw] h-[50vw] bg-brand-red/5 rounded-full blur-[120px] opacity-40 animate-pulse" />
          <div className="absolute bottom-0 end-0 w-[40vw] h-[40vw] bg-brand-gray-50 rounded-full blur-[100px] opacity-60" />
       </div>
@@ -118,7 +108,7 @@ export default function ContactClientUI({ settings, isAr }) {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">
                   {isAr ? 'مستشارونا متاحون الآن' : 'Experts Online Now'}
                 </span>
               </div>
@@ -130,7 +120,7 @@ export default function ContactClientUI({ settings, isAr }) {
                 </span>
               </h1>
 
-              <p className="text-slate-600 text-lg md:text-xl leading-relaxed max-w-md border-s-8 border-brand-red ps-8 font-medium">
+              <p className="text-slate-600 text-lg md:text-xl leading-relaxed max-w-md border-s-8 border-brand-red ps-8 font-medium italic">
                 {isAr 
                   ? 'نحن لا نبيع العقارات، نحن نؤمن مستقبلك. تواصل مع نخبة الخبراء للحصول على عرض حصري.' 
                   : 'We don’t just list properties; we secure your legacy. Connect with elite advisors for a bespoke offer.'}
@@ -141,7 +131,6 @@ export default function ContactClientUI({ settings, isAr }) {
                <div className="flex flex-col sm:flex-row gap-5">
                   <a 
                     href={`tel:${data.phone.replace(/\s/g, '')}`} 
-                    aria-label={isAr ? "اتصال هاتفي" : "Call us"}
                     className="flex-1 bg-white text-brand-dark border border-slate-100 h-28 rounded-[2.5rem] font-black flex items-center justify-center gap-4 hover:bg-brand-red hover:text-white transition-all duration-500 shadow-premium group active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20"
                   >
                      <div className="w-14 h-14 rounded-2xl bg-slate-50 group-hover:bg-white/20 flex items-center justify-center transition-colors shadow-inner">
@@ -153,7 +142,6 @@ export default function ContactClientUI({ settings, isAr }) {
                   <a 
                     href={`https://wa.me/${data.whatsapp.replace(/\D/g, '')}`} 
                     target="_blank" rel="noopener noreferrer"
-                    aria-label={isAr ? "تواصل عبر واتساب" : "WhatsApp support"}
                     className="flex-1 bg-white text-brand-dark border border-slate-100 h-28 rounded-[2.5rem] font-black flex items-center justify-center gap-4 hover:bg-[#25D366] hover:text-white transition-all duration-500 shadow-premium group active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-green-500/20"
                   >
                      <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 group-hover:bg-white/20 flex items-center justify-center transition-colors shadow-inner">
@@ -166,7 +154,6 @@ export default function ContactClientUI({ settings, isAr }) {
                <a 
                  href={data.mapLocation} 
                  target="_blank" rel="noopener noreferrer" 
-                 aria-label={isAr ? "موقع المقر على الخريطة" : "HQ location on map"}
                  className="flex items-center justify-between p-6 md:p-8 rounded-[2.5rem] bg-white border border-slate-50 shadow-premium hover:shadow-2xl transition-all group active:scale-[0.99] outline-none focus-visible:ring-4 focus-visible:ring-brand-red/10"
                >
                   <div className="flex items-center gap-6">
@@ -186,7 +173,6 @@ export default function ContactClientUI({ settings, isAr }) {
           {/* 📝 الجانب الأيمن: نموذج حجز المواعيد */}
           <div className="lg:col-span-7">
             <div className="bg-white border border-slate-100 p-8 md:p-16 rounded-[4rem] shadow-premium relative overflow-hidden group">
-              {/* استخدام Logical Property: end-0 */}
               <div className="absolute top-0 end-0 w-80 h-80 bg-brand-red/5 rounded-full blur-3xl -me-40 -mt-40 transition-transform duration-1000 group-hover:scale-150" />
               
               <div className="flex justify-between items-start mb-16 text-start relative z-10">
@@ -199,12 +185,12 @@ export default function ContactClientUI({ settings, isAr }) {
                   </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-12 text-start relative z-10" aria-labelledby="form-heading">
+              <form onSubmit={handleSubmit} className="space-y-12 text-start relative z-10">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-4">
                     <label htmlFor="name-field" className="text-[11px] font-black text-brand-dark uppercase tracking-widest ps-2 flex items-center gap-2">
-                      <User size={14} className="text-brand-red" aria-hidden="true" /> {isAr ? 'الاسم بالكامل' : 'Full Name'}
+                      <User size={14} className="text-brand-red" /> {isAr ? 'الاسم بالكامل' : 'Full Name'}
                     </label>
                     <input 
                       id="name-field"
@@ -213,13 +199,13 @@ export default function ContactClientUI({ settings, isAr }) {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="w-full bg-brand-gray-50 border-2 border-transparent rounded-2xl px-6 py-5 text-brand-dark font-bold text-lg focus:border-brand-red focus:bg-white focus:outline-none transition-all placeholder:text-slate-300 leading-relaxed" 
+                      className="w-full bg-brand-gray-50 border-2 border-transparent rounded-2xl px-6 py-5 text-brand-dark font-bold text-lg focus:border-brand-red focus:bg-white focus:outline-none transition-all placeholder:text-slate-300" 
                       placeholder={isAr ? 'أدخل اسمك هنا...' : 'Your name...'} 
                     />
                   </div>
                   <div className="space-y-4">
                     <label htmlFor="phone-field" className="text-[11px] font-black text-brand-dark uppercase tracking-widest ps-2 flex items-center gap-2">
-                      <Phone size={14} className="text-brand-red" aria-hidden="true" /> {isAr ? 'رقم الهاتف' : 'Contact Number'}
+                      <Phone size={14} className="text-brand-red" /> {isAr ? 'رقم الهاتف' : 'Contact Number'}
                     </label>
                     <input 
                       id="phone-field"
@@ -236,7 +222,7 @@ export default function ContactClientUI({ settings, isAr }) {
 
                 <div className="space-y-6">
                    <label className="text-[11px] font-black text-brand-dark uppercase tracking-widest ps-2">{isAr ? 'متى نواصل معك؟' : 'Preferred Callback Time'}</label>
-                   <div className="grid grid-cols-3 gap-4" role="radiogroup" aria-label={isAr ? "الوقت المفضل" : "Preferred time"}>
+                   <div className="grid grid-cols-3 gap-4" role="radiogroup">
                      {[
                        { id: 'morning', icon: <Sun size={20}/>, ar: 'صباحاً', en: 'Morning' },
                        { id: 'evening', icon: <Moon size={20}/>, ar: 'مساءً', en: 'Evening' },
@@ -247,7 +233,7 @@ export default function ContactClientUI({ settings, isAr }) {
                          type="button" 
                          onClick={() => setPreferredTime(time.id)} 
                          aria-pressed={preferredTime === time.id}
-                         className={`py-5 md:py-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-500 active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20 ${
+                         className={`py-5 md:py-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-4 transition-all duration-500 active:scale-95 outline-none ${
                            preferredTime === time.id 
                            ? 'border-brand-red bg-brand-red text-white shadow-lg shadow-brand-red/30 scale-105' 
                            : 'border-brand-gray-50 bg-brand-gray-50 text-slate-400 hover:border-slate-200 hover:text-brand-dark'
@@ -268,16 +254,16 @@ export default function ContactClientUI({ settings, isAr }) {
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      className="w-full bg-brand-gray-50 border-2 border-transparent rounded-2xl px-6 py-5 text-brand-dark font-bold text-lg focus:border-brand-red focus:bg-white focus:outline-none transition-all resize-none leading-relaxed" 
+                      className="w-full bg-brand-gray-50 border-2 border-transparent rounded-2xl px-6 py-5 text-brand-dark font-bold text-lg focus:border-brand-red focus:bg-white focus:outline-none transition-all resize-none" 
                       placeholder={isAr ? 'مهتم بمشروع معين؟ أخبرنا هنا...' : 'Interested in a specific compound?'}
                     />
                 </div>
 
-                <div aria-live="polite" className="relative">
+                <div aria-live="polite">
                   <button 
                     type="submit" 
                     disabled={formStatus !== 'idle'}
-                    className={`w-full py-8 rounded-[2.5rem] font-black text-sm md:text-base uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-4 shadow-2xl active:scale-95 hover:-translate-y-1 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30 ${
+                    className={`w-full py-8 rounded-[2.5rem] font-black text-sm md:text-base uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-4 shadow-2xl active:scale-95 hover:-translate-y-1 outline-none ${
                       formStatus === 'success' ? 'bg-green-600 text-white' : 'bg-brand-dark text-white hover:bg-brand-red'
                     }`}
                   >
@@ -288,8 +274,7 @@ export default function ContactClientUI({ settings, isAr }) {
                     ) : (
                       <> 
                         {isAr ? 'تأكيد الحجز عبر واتساب' : 'Confirm via WhatsApp'} 
-                        {/* استخدام RTL Fix للسهم */}
-                        <ArrowRight size={24} className={`transition-transform duration-500 group-hover:translate-x-1 ${isAr ? 'rotate-180 group-hover:-translate-x-1' : ''}`}/> 
+                        <ArrowRight size={24} className={`transition-transform duration-500 ${isAr ? 'rotate-180' : ''}`}/> 
                       </>
                     )}
                   </button>
