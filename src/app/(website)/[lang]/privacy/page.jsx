@@ -49,7 +49,9 @@ export async function generateMetadata({ params }) {
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    title: title,
+    title: {
+      absolute: title,
+    },
     description: description,
     metadataBase: new URL(baseUrl),
     alternates: { 
@@ -112,27 +114,27 @@ export default async function PrivacyPage({ params }) {
 
       <div className="max-w-5xl mx-auto px-6">
         
-        {/* Breadcrumbs - Improved Contrast */}
+        {/* Breadcrumbs */}
         <nav className="mb-12 opacity-80" aria-label="Breadcrumb">
            <Breadcrumbs items={[{ label: isAr ? 'سياسة الخصوصية' : 'Privacy Policy' }]} lang={lang} />
         </nav>
 
         {/* 🏆 Luxury Header Card */}
-        <header className="relative bg-brand-dark rounded-[3rem] md:rounded-[4rem] p-12 md:p-24 mb-20 overflow-hidden shadow-premium">
-           {/* Glow Effects using Logical Properties */}
-           <div className="absolute top-0 end-0 w-96 h-96 bg-brand-red/20 rounded-full blur-[120px] -me-48 -mt-48 pointer-events-none" aria-hidden="true" />
-           <div className="absolute bottom-0 start-0 w-64 h-64 bg-brand-red/10 rounded-full blur-[100px] -ms-32 -mb-32 pointer-events-none" aria-hidden="true" />
+        <header className="relative bg-[#080A0D] border border-slate-800 rounded-[3rem] md:rounded-[4rem] p-12 md:p-24 mb-20 overflow-hidden shadow-2xl">
+           {/* Glow Effects */}
+           <div className="absolute top-0 right-0 w-96 h-96 bg-[#C02026]/20 rounded-full blur-[120px] -mr-48 -mt-48 pointer-events-none" aria-hidden="true" />
+           <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#C02026]/10 rounded-full blur-[100px] -ml-32 -mb-32 pointer-events-none" aria-hidden="true" />
 
            <div className="relative z-10 flex flex-col items-center text-center space-y-10">
-              <div className="p-6 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl text-brand-red shadow-2xl animate-bounce-slow">
+              <div className="p-6 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl text-[#C02026] shadow-2xl animate-bounce-slow">
                 <Shield size={64} strokeWidth={1.5} aria-hidden="true" />
               </div>
               
               <div className="space-y-6">
                 <h1 id="privacy-heading" className={`text-4xl md:text-7xl font-black text-white uppercase tracking-tight leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
-                  {isAr ? 'سياسة' : 'Privacy'} <span className="text-brand-red not-italic">{isAr ? 'الخصوصية' : 'Policy'}</span>
+                  {isAr ? 'سياسة' : 'Privacy'} <span className="text-[#C02026] not-italic">{isAr ? 'الخصوصية' : 'Policy'}</span>
                 </h1>
-                <div className="h-1.5 w-24 bg-brand-red mx-auto rounded-full" aria-hidden="true" />
+                <div className="h-1.5 w-24 bg-[#C02026] mx-auto rounded-full" aria-hidden="true" />
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] md:text-xs">
                   {isAr ? 'حماية بياناتكم هي أولويتنا القصوى لعام 2026' : 'Data Integrity is our 2026 top priority'}
                 </p>
@@ -146,14 +148,14 @@ export default async function PrivacyPage({ params }) {
             <article 
               key={index} 
               role="listitem"
-              className="group p-10 md:p-14 bg-brand-gray-50 rounded-[3.5rem] border border-slate-100 hover:border-brand-red/20 transition-all duration-700 hover:bg-white hover:shadow-premium"
+              className="group p-10 md:p-14 bg-slate-50 rounded-[3.5rem] border border-slate-100 hover:border-[#C02026]/20 transition-all duration-700 hover:bg-white hover:shadow-2xl"
             >
               <div className="flex flex-col md:flex-row gap-10 items-start text-start">
-                <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-brand-red group-hover:text-white transition-all duration-500 shadow-xl shrink-0">
+                <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-[#C02026] group-hover:text-white transition-all duration-500 shadow-xl shrink-0">
                   <section.icon size={36} strokeWidth={1.5} aria-hidden="true" />
                 </div>
                 <div className="space-y-6">
-                  <h2 className={`text-2xl md:text-3xl font-black text-brand-dark uppercase tracking-tight leading-none group-hover:text-brand-red transition-colors ${isAr ? '' : 'italic'}`}>
+                  <h2 className={`text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight leading-none group-hover:text-[#C02026] transition-colors ${isAr ? '' : 'italic'}`}>
                     {section.title}
                   </h2>
                   <p className="text-slate-600 leading-relaxed text-lg md:text-xl font-medium">
@@ -166,8 +168,8 @@ export default async function PrivacyPage({ params }) {
         </div>
 
         {/* 📞 Contact - Premium Support Card */}
-        <div className="bg-brand-dark rounded-[4rem] p-12 md:p-20 text-white text-center relative overflow-hidden shadow-2xl group">
-           <div className="absolute inset-0 bg-brand-red/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" aria-hidden="true" />
+        <div className="bg-[#080A0D] border border-slate-800 rounded-[4rem] p-12 md:p-20 text-white text-center relative overflow-hidden shadow-2xl group">
+           <div className="absolute inset-0 bg-[#C02026]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" aria-hidden="true" />
            
            <div className="relative z-10 space-y-12">
               <div className="space-y-6">
@@ -182,15 +184,15 @@ export default async function PrivacyPage({ params }) {
               <div className="flex flex-wrap justify-center gap-6">
                 <a 
                   href={`mailto:${email}`} 
-                  className="bg-white text-brand-dark px-10 py-5 rounded-[2rem] font-bold text-xs uppercase tracking-widest hover:bg-brand-red hover:text-white transition-all shadow-xl flex items-center gap-4 active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20"
+                  className="bg-white text-slate-950 px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-[#C02026] hover:text-white transition-all shadow-xl flex items-center gap-4 active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-white/20"
                 >
-                  <Mail size={22} className="opacity-20" aria-hidden="true" /> {email}
+                  <Mail size={22} className="opacity-50" aria-hidden="true" /> {email}
                 </a>
                 <a 
                   href={`tel:${phone?.replace(/\s/g, '')}`} 
-                  className="bg-brand-red text-white px-10 py-5 rounded-[2rem] font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-brand-dark transition-all shadow-xl flex items-center gap-4 active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-brand-red/30"
+                  className="bg-[#C02026] text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-xl flex items-center gap-4 active:scale-95 outline-none focus-visible:ring-4 focus-visible:ring-[#C02026]/30"
                 >
-                  <Phone size={22} className="opacity-20" aria-hidden="true" /> {phone}
+                  <Phone size={22} className="opacity-50 text-white" aria-hidden="true" /> {phone}
                 </a>
               </div>
            </div>
@@ -201,7 +203,6 @@ export default async function PrivacyPage({ params }) {
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         .animate-bounce-slow { animation: bounce-slow 5s ease-in-out infinite; }
-        .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }
       `}} />
     </main>
   );

@@ -58,7 +58,6 @@ export async function generateMetadata({ params }) {
     : `${BASE_URL}/og-image.jpg`;
 
   return {
-    // 🚀 استخدام absolute لضمان السيطرة اليدوية من سانتي فقط
     title: {
       absolute: title,
     },
@@ -127,38 +126,44 @@ export default async function LocationsIndexPage({ params }) {
     >       
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="relative h-[85vh] md:h-[90vh] flex items-center justify-center bg-brand-dark overflow-hidden pt-24">
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent z-10" />
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-red via-transparent to-transparent animate-pulse pointer-events-none z-10" />
+      {/* ================= HERO SECTION (تم التعديل لضمان وضوح النص بنسبة 100%) ================= */}
+      <section className="relative h-[70vh] md:h-[80vh] flex items-center justify-center bg-[#080A0D] overflow-hidden pt-24">
+        {/* شبكة خلفية تضفي طابع عقاري هندسي */}
+        <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] z-0" />
         
-        <div className="relative z-30 text-center px-6 max-w-5xl animate-fade-in-up">
-            <div className="flex justify-center mb-12">
+        {/* إضاءة حمراء خافتة خلف النص لزيادة التباين */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#C02026]/30 rounded-full blur-[100px] pointer-events-none z-0" />
+        
+        <div className="relative z-30 text-center px-6 max-w-5xl animate-fade-in-up mt-10">
+            <div className="flex justify-center mb-8">
                <Breadcrumbs items={breadcrumbItems} lang={lang} />
             </div>
-            <h1 id="hero-heading" className={`text-5xl md:text-8xl lg:text-[10rem] font-black text-white mb-8 uppercase leading-[1.1] md:leading-[0.9] drop-shadow-2xl ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
-                {isAr ? 'خريطة الاستثمار' : 'Prime Hotspots'}
+            
+            {/* عنوان شديد الوضوح بفضل تباين الألوان */}
+            <h1 id="hero-heading" className={`text-6xl md:text-8xl lg:text-[10rem] font-black text-white mb-6 uppercase leading-[1.1] md:leading-[0.9] drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
+                {isAr ? 'خريطة' : 'PRIME'} <span className="text-[#C02026]">{isAr ? 'الاستثمار' : 'HOTSPOTS'}</span>
             </h1>
-            <p className="text-slate-400 text-lg md:text-2xl font-bold max-w-3xl mx-auto leading-relaxed opacity-80 mb-12">
+            
+            <p className="text-slate-300 text-base md:text-xl font-medium max-w-2xl mx-auto leading-relaxed mb-12 drop-shadow-md">
                 {isAr 
                   ? 'اكتشف وجهاتنا العقارية المختارة بعناية، حيث تلتقي الفخامة بأعلى عوائد الاستثمار في السوق المصري.' 
                   : 'Discover handpicked destinations where elite luxury meets the highest ROI in Egypt.'}
             </p>
 
-            <div className="flex justify-center mt-10 relative z-50">
+            <div className="flex justify-center relative z-50">
               <a 
                 href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 
-                className="flex items-center gap-4 bg-[#C02026] text-white hover:bg-white hover:text-black border-2 border-[#C02026] px-10 py-5 rounded-[2rem] font-black text-sm md:text-base uppercase tracking-widest transition-all duration-300 shadow-2xl active:scale-95 group cursor-pointer"
+                className="flex items-center gap-3 bg-[#C02026] text-white hover:bg-white hover:text-[#C02026] px-8 py-4 md:px-10 md:py-5 rounded-2xl md:rounded-[2rem] font-black text-xs md:text-sm uppercase tracking-widest transition-all duration-300 shadow-[0_10px_40px_-10px_rgba(192,32,38,0.6)] hover:shadow-xl active:scale-95 group cursor-pointer border border-[#C02026]"
               >
-                <Phone size={22} fill="currentColor" className="text-white group-hover:text-black group-hover:animate-bounce transition-colors" />
-                <span className="text-white group-hover:text-black">{isAr ? 'تواصل مع مستشار عقاري' : 'Call Investment Expert'}</span>
+                <Phone size={20} fill="currentColor" className="group-hover:animate-bounce transition-colors" />
+                <span>{isAr ? 'تواصل مع خبير استثماري' : 'Consult an Expert'}</span>
               </a>
             </div>
         </div>
       </section>
 
       {/* ================= LOCATIONS GRID ================= */}
-      <section className="max-w-[1440px] mx-auto px-4 md:px-12 py-24 md:py-40">
+      <section className="max-w-[1440px] mx-auto px-4 md:px-12 py-24 md:py-32">
         {locations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14">
             {locations.map((loc, index) => {
@@ -167,7 +172,7 @@ export default async function LocationsIndexPage({ params }) {
                 <Link 
                   key={loc._id} 
                   href={`/${lang}/locations/${loc.slug}/`}
-                  className="group relative h-[500px] md:h-[650px] rounded-[3rem] md:rounded-[4rem] overflow-hidden shadow-xl transition-all duration-700 block bg-slate-100 hover:-translate-y-4 hover:shadow-premium outline-none focus-visible:ring-4 focus-visible:ring-brand-red/20"
+                  className="group relative h-[450px] md:h-[600px] rounded-[3rem] overflow-hidden shadow-xl transition-all duration-700 block bg-slate-100 hover:-translate-y-4 hover:shadow-premium outline-none focus-visible:ring-4 focus-visible:ring-[#C02026]/20"
                 >
                   {loc.image ? (
                     <Image 
@@ -184,18 +189,19 @@ export default async function LocationsIndexPage({ params }) {
                       </div>
                   )}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-700" />
+                  {/* تدرج لوني أسود لضمان قراءة اسم المنطقة */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-700" />
 
-                  <div className="absolute inset-0 flex flex-col justify-end p-10 md:p-14 z-20 text-start">
-                      <div className="space-y-6">
-                        <div className="inline-flex items-center gap-3 bg-brand-red text-white px-5 py-2 rounded-2xl shadow-xl group-hover:bg-white group-hover:text-brand-red transition-all duration-500">
+                  <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 z-20 text-start">
+                      <div className="space-y-4">
+                        <div className="inline-flex items-center gap-3 bg-[#C02026] text-white px-5 py-2 rounded-2xl shadow-xl group-hover:bg-white group-hover:text-[#C02026] transition-all duration-500">
                             <Building2 size={16} className="animate-pulse" />
-                            <span className="text-[11px] font-black uppercase tracking-widest">
+                            <span className="text-[10px] font-black uppercase tracking-widest">
                                 {loc.projectsCount} {isAr ? 'مشروع متاح' : 'Active Assets'}
                             </span>
                         </div>
                         
-                        <h2 className={`text-4xl md:text-6xl font-black text-white uppercase leading-[1.1] transition-colors ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
+                        <h2 className={`text-4xl md:text-5xl font-black text-white uppercase leading-[1.1] transition-colors ${isAr ? 'tracking-normal' : 'italic tracking-tighter'}`}>
                             {locName}
                         </h2>
                         
@@ -210,7 +216,7 @@ export default async function LocationsIndexPage({ params }) {
             })}
           </div>
         ) : (
-          <div className="text-center py-40 bg-brand-gray-50 rounded-[4rem] border-2 border-dashed border-slate-200">
+          <div className="text-center py-40 bg-slate-50 rounded-[4rem] border-2 border-dashed border-slate-200">
              <Globe size={64} className="mx-auto text-slate-300 mb-8 animate-spin-slow" />
              <h2 className="text-2xl font-black text-slate-900 italic uppercase tracking-widest">
                 {isAr ? 'جاري تحديث الخريطة...' : 'Synchronizing Data...'}
@@ -221,13 +227,13 @@ export default async function LocationsIndexPage({ params }) {
 
       {/* 📰 Market Intel Section */}
       {latestPosts && latestPosts.length > 0 && (
-        <section className="bg-slate-950 py-32 md:py-48 relative overflow-hidden">
+        <section className="bg-slate-950 py-32 md:py-40 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C02026]/10 rounded-full blur-[150px] -mr-64 -mt-64" />
           
           <div className="max-w-[1440px] mx-auto px-6 md:px-12 relative z-10">
-            <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-20 gap-8 text-start border-s-[12px] border-[#C02026] ps-8">
+            <header className="flex flex-col md:flex-row items-center md:items-end justify-between mb-16 gap-8 text-start border-s-[12px] border-[#C02026] ps-8">
                <div>
-                  <h2 className={`text-4xl md:text-7xl font-black text-white uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
+                  <h2 className={`text-4xl md:text-6xl font-black text-white uppercase leading-none ${isAr ? '' : 'italic tracking-tighter'}`}>
                     {isAr ? 'بوصلة السوق' : 'Market Intel'}
                   </h2>
                   <p className="text-slate-400 font-bold text-sm md:text-lg mt-4 max-w-xl">
@@ -242,7 +248,7 @@ export default async function LocationsIndexPage({ params }) {
                </Link>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {latestPosts.map((post) => (
                 <Link 
                   key={post.slug} 

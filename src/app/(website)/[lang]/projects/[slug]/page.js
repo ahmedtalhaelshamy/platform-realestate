@@ -5,8 +5,7 @@ import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
 // ✅ الأداء: ISR كل ساعة لضمان سرعة الاستجابة
-export const revalidate = 3600; 
-
+export const revalidate = false;
 // 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
 const BUNNY_DOMAIN = 'https://platform-images.b-cdn.net';

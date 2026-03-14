@@ -14,8 +14,7 @@ import Link from 'next/link';
 
 // ✅ 1. PERFORMANCE: ISR كل ساعة
 export const dynamic = 'force-static';
-export const revalidate = 3600; 
-
+export const revalidate = false;
 const BASE_URL = 'https://platformrealestate.co';
 
 const getSafeText = (val) => {

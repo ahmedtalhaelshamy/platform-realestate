@@ -8,7 +8,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import ShareBtn from '@/components/ShareBtn'; 
 
-export const revalidate = 3600; 
+export const revalidate = false;
 const BASE_URL = 'https://platformrealestate.co';
 
 const getSafeText = (val) => {

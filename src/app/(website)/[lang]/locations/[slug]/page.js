@@ -30,8 +30,7 @@ export async function generateStaticParams() {
   return locations.flatMap((loc) => [{ lang: 'ar', slug: loc.slug }, { lang: 'en', slug: loc.slug }]);
 }
 
-export const revalidate = 3600; 
-
+export const revalidate = false;
 /**
  * 🔍 SEO Metadata: السيطرة اليدوية المطلقة
  */
