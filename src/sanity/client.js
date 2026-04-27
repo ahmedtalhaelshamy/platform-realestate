@@ -4,31 +4,21 @@ import imageUrlBuilder from '@sanity/image-url'
 
 /**
  * إعدادات العميل لـ Sanity
- * تم تغيير useCdn إلى true لزيادة الحصة المجانية إلى مليون طلب شهرياً
- * ولتحسين سرعة الموقع باستخدام النسخ المخزنة (Cache).
+ * تم تفعيل useCdn لحل مشكلة استهلاك الـ API وتوفير 1,000,000 طلب مجاني.
  */
 export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2024-01-01', 
-  useCdn: true, // الآن ستحصل على مليون طلب مجاني بدلاً من 250 ألف
+  useCdn: true, // تفعيل الـ CDN لفتح الحظر عن الموقع
 })
 
 const builder = imageUrlBuilder(client)
 
 /**
  * دالة توليد روابط الصور
- * معدلة لتدعم الـ Bunny CDN تلقائياً إذا كان مفعلاً لديك
+ * تم إرجاعها لشكلها الأصلي المتوافق مع الكود الحالي للموقع لمنع أخطاء الـ Build
  */
 export function urlFor(source) {
-  if (!source) return '';
-
-  const url = builder.image(source).url();
-
-  // نصيحة احترافية: إذا كان لديك رابط Bunny Pull Zone، 
-  // يمكنك فك التعليق عن السطرين القادمين لتبديل الروابط تلقائياً
-  // const bunnyDomain = 'https://your-zone-name.b-cdn.net'; 
-  // return url.replace('https://cdn.sanity.io', bunnyDomain);
-
-  return url;
+  return builder.image(source)
 }
