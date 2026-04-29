@@ -276,10 +276,10 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   ];
 
   return (
-    <main className={`font-sans text-slate-900 bg-white selection:bg-red-50 ${isArabic ? 'font-almarai' : 'font-jakarta'}`} dir={isArabic ? 'rtl' : 'ltr'} itemScope itemType="https://schema.org/RealEstateListing">
+    <main className={`font-sans text-slate-900 bg-white selection:bg-red-50 ${isArabic ? 'font-almarai' : 'font-jakarta'}`} dir={isArabic ? 'rtl' : 'ltr'} e itemType="https://schema.org/RealEstateListing">
       
       {/* Hero Section */}
-      <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">
+      <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">itemScop
         {data.mainImage && (
           <Image 
             src={urlFor(data.mainImage).url()} 
@@ -289,7 +289,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             className="object-cover opacity-60 scale-105 animate-slow-zoom" 
             priority 
             fetchPriority="high"
-            itemProp="image"
+            
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
@@ -316,9 +316,10 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 <span itemProp="name" className="block text-[#C02026] text-xl md:text-2xl font-black uppercase tracking-[0.3em] italic leading-none">{officialName}</span>
                 <h1 className="text-4xl md:text-7xl font-black text-white leading-[0.9] tracking-tighter drop-shadow-2xl max-w-5xl mb-6 italic uppercase">{h1Title}</h1>
             </div>
-            <div className="flex items-center gap-3 text-xl text-slate-200 font-bold relative z-10 bg-white/5 w-fit px-4 py-2 rounded-xl backdrop-blur-md border border-white/10" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-                <MapPin className="text-[#C02026] w-6 h-6" /> <span itemProp="addressLocality">{txt(data.districtData?.nameAr, data.districtData?.nameEn)}</span>
-            </div>
+         <div className="flex items-center gap-3 text-xl text-slate-200 font-bold relative z-10 bg-white/5 w-fit px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
+    <MapPin className="text-[#C02026] w-6 h-6" /> 
+    <span>{txt(data.districtData?.nameAr, data.districtData?.nameEn)}</span>
+</div>
           </div>
         </div>
       </section>
@@ -479,27 +480,27 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             </section>
 
             {/* ✅ [AEO]: FAQs Section - الإضافة الثانية لمحركات البحث */}
-            {data.faqs && data.faqs.length > 0 && (
-              <section className="py-20 bg-white" itemScope itemType="https://schema.org/FAQPage">
-                 <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-12 italic uppercase tracking-tighter leading-none flex items-center gap-4">
-                    <HelpCircle size={40} className="text-[#C02026]" />
-                    {isArabic ? `الأسئلة الشائعة عن ${officialName}` : `FAQ: ${officialName}`}
-                 </h2>
-                 <div className="space-y-4">
-                    {data.faqs.map((faq, i) => (
-                      <details key={i} className="group bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100 cursor-pointer text-start" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-                        <summary className="flex justify-between items-center font-black text-lg md:text-xl outline-none uppercase italic text-slate-900">
-                          <span itemProp="name">{isArabic ? faq.questionAr : faq.questionEn}</span>
-                          <span className="text-[#C02026] group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
-                        </summary>
-                        <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-200 pt-6">
-                          <p itemProp="text">{isArabic ? faq.answerAr : faq.answerEn}</p>
-                        </div>
-                      </details>
-                    ))}
-                 </div>
-              </section>
-            )}
+   {data.faqs && data.faqs.length > 0 && (
+  <section className="py-20 bg-white">
+      <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-12 italic uppercase tracking-tighter leading-none flex items-center gap-4">
+          <HelpCircle size={40} className="text-[#C02026]" />
+          {isArabic ? `الأسئلة الشائعة عن ${officialName}` : `FAQ: ${officialName}`}
+      </h2>
+      <div className="space-y-4">
+          {data.faqs.map((faq, i) => (
+            <details key={i} className="group bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100 cursor-pointer text-start">
+              <summary className="flex justify-between items-center font-black text-lg md:text-xl outline-none uppercase italic text-slate-900">
+                <span>{isArabic ? faq.questionAr : faq.questionEn}</span>
+                <span className="text-[#C02026] group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+              </summary>
+              <div className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-200 pt-6">
+                <p>{isArabic ? faq.answerAr : faq.answerEn}</p>
+              </div>
+            </details>
+          ))}
+      </div>
+  </section>
+)}
 
             {(data.prosAr || data.consAr) && (
                 <section className="py-20 bg-white">
