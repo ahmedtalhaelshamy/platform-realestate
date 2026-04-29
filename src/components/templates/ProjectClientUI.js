@@ -17,7 +17,7 @@ import {
   Star, Percent, CreditCard, PaintBucket, Clock, ShieldCheck, CarFront, Trees, Gamepad2, Armchair, 
   Dumbbell, Coffee, Lock, User, ChevronDown, HelpCircle, ThumbsUp, ThumbsDown, CheckCircle, 
   Activity, ArrowUpFromLine, Fan, Wifi, Mic, Syringe, Pill, Tv, Utensils, Palmtree, Anchor, Maximize,
-  Calculator, Share2, Copy, Check, ArrowRight 
+  Calculator, Share2, Copy, Check, ArrowRight, Cpu, CheckCircle2 
 } from 'lucide-react';
 
 // --- 1. CONFIGURATION ---
@@ -157,12 +157,12 @@ const CTABox = ({ isArabic, inquiries, whatsappLink, handleShare, copied, projec
   </div>
 );
 
-const ContentSection = ({ title, image, content, children, altBg = false, id }) => {
+const ContentSection = ({ title, image, content, children, altBg = false, id, itemProp }) => {
   const safeTitle = getSafeText(title);
   if (!safeTitle && !content && !image && !children) return null;
 
   return (
-    <section id={id} className={`py-12 md:py-16 ${altBg ? 'bg-slate-50' : 'bg-white'} rounded-[2.5rem] my-4 overflow-hidden`}>
+    <section id={id} itemProp={itemProp} className={`py-12 md:py-16 ${altBg ? 'bg-slate-50' : 'bg-white'} rounded-[2.5rem] my-4 overflow-hidden`}>
       <div className="max-w-[1440px] mx-auto px-4 md:px-8">
         {safeTitle && <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-8 border-s-8 border-[#C02026] ps-6 italic uppercase tracking-tighter leading-none">{safeTitle}</h2>}
         <div className="space-y-6 mb-8 max-w-5xl text-start">
@@ -264,18 +264,19 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappLink = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isArabic ? `استفسار عن: ${officialName}` : `Inquiry about: ${officialName}`)}`;
   const videoId = getYoutubeId(data.videoUrl);
+  const aiSummary = isArabic ? data.aiSummaryAr : data.aiSummaryEn;
 
   const stats = [
-    { l: isArabic ?'المساحات من':'Areas From', v: data.minArea ? `${data.minArea} m²` : '-', i: Maximize }, 
+    { l: isArabic ?'المساحات من':'Areas From', v: data.minArea ? `${data.minArea} m²` : '-', i: Maximize, p: "floorSize" }, 
     { l: isArabic ?'المقدم':'Down Payment', v: data.downPayment ? `${data.downPayment}%` : '-', i: Percent },
     { l: isArabic ?'التقسيط':'Installments', v: data.installments ? `${data.installments} ${isArabic ?'سنوات':'Yrs'}` : '-', i: CreditCard },
     { l: isArabic ?'التشطيب':'Finishing', v: txt(data.finishingTypeAr || data.finishingType, data.finishingTypeEn || data.finishingType) || '-', i: PaintBucket },
     { l: isArabic ?'الاستلام':'Delivery', v: txt(data.deliveryDateAr || data.deliveryDate, data.deliveryDateEn || data.deliveryDate) || '-', i: Calendar },
-    { l: isArabic ?'سعر يبدأ من':'Prices From', v: data.price ? `${formatNum(data.price)} EGP` : (isArabic ?'اتصل بنا':'Call'), i: Star, c: 'text-[#C02026]' }
+    { l: isArabic ?'سعر يبدأ من':'Prices From', v: data.price ? `${formatNum(data.price)} EGP` : (isArabic ?'اتصل بنا':'Call'), i: Star, c: 'text-[#C02026]', p: "price" }
   ];
 
   return (
-    <main className={`font-sans text-slate-900 bg-white selection:bg-red-50 ${isArabic ? 'font-almarai' : 'font-jakarta'}`} dir={isArabic ? 'rtl' : 'ltr'}>
+    <main className={`font-sans text-slate-900 bg-white selection:bg-red-50 ${isArabic ? 'font-almarai' : 'font-jakarta'}`} dir={isArabic ? 'rtl' : 'ltr'} itemScope itemType="https://schema.org/RealEstateListing">
       
       {/* Hero Section */}
       <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">
@@ -288,6 +289,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             className="object-cover opacity-60 scale-105 animate-slow-zoom" 
             priority 
             fetchPriority="high"
+            itemProp="image"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
@@ -311,11 +313,11 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 {data.isReadyToMove && <span className="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><CheckCircle size={12}/> {isArabic ? 'جاهز للاستلام' : 'Ready'}</span>}
             </div>
             <div className="relative z-10 space-y-2">
-                <span className="block text-[#C02026] text-xl md:text-2xl font-black uppercase tracking-[0.3em] italic leading-none">{officialName}</span>
+                <span itemProp="name" className="block text-[#C02026] text-xl md:text-2xl font-black uppercase tracking-[0.3em] italic leading-none">{officialName}</span>
                 <h1 className="text-4xl md:text-7xl font-black text-white leading-[0.9] tracking-tighter drop-shadow-2xl max-w-5xl mb-6 italic uppercase">{h1Title}</h1>
             </div>
-            <div className="flex items-center gap-3 text-xl text-slate-200 font-bold relative z-10 bg-white/5 w-fit px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
-                <MapPin className="text-[#C02026] w-6 h-6" /> {txt(data.districtData?.nameAr, data.districtData?.nameEn)}
+            <div className="flex items-center gap-3 text-xl text-slate-200 font-bold relative z-10 bg-white/5 w-fit px-4 py-2 rounded-xl backdrop-blur-md border border-white/10" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+                <MapPin className="text-[#C02026] w-6 h-6" /> <span itemProp="addressLocality">{txt(data.districtData?.nameAr, data.districtData?.nameEn)}</span>
             </div>
           </div>
         </div>
@@ -328,11 +330,31 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 <div key={i} className="text-center px-4 group">
                     <div className="flex justify-center mb-2 text-slate-300 group-hover:text-[#C02026] transition-colors"><x.i size={22}/></div>
                     <div className="text-[10px] text-slate-400 font-black uppercase mb-1.5 tracking-widest leading-none">{x.l}</div>
-                    <div className={`text-base md:text-xl font-black tracking-tighter ${x.c || 'text-slate-900'}`}>{x.v}</div>
+                    <div className={`text-base md:text-xl font-black tracking-tighter ${x.c || 'text-slate-900'}`} itemProp={x.p}>{x.v}</div>
                 </div>
               ))}
           </div>
       </section>
+
+      {/* ✅ [GEO]: AI Highlights Section - الإضافة الجديدة لمحركات الإجابة */}
+      {aiSummary && aiSummary.length > 0 && (
+        <section className="max-w-[1440px] mx-auto px-4 md:px-8 mt-20">
+          <div className="bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-white/5 relative overflow-hidden text-start">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-[#C02026]/10 rounded-full blur-[80px]" />
+             <div className="flex items-center gap-4 mb-8">
+               <Cpu className="text-[#C02026] w-10 h-10" />
+               <h3 className="font-black text-2xl text-white italic uppercase tracking-wider">{isArabic ? `ملخص استثماري: ${officialName}` : `${officialName} AI Insights`}</h3>
+             </div>
+             <ul className="grid md:grid-cols-2 gap-6">
+               {aiSummary.map((point, i) => (
+                 <li key={i} className="flex gap-4 text-slate-300 font-bold text-lg items-center">
+                   <CheckCircle2 size={24} className="text-[#C02026] shrink-0" /><span>{point}</span>
+                 </li>
+               ))}
+             </ul>
+          </div>
+        </section>
+      )}
 
       {/* Gallery Section */}
       {data.gallery?.length > 0 && (
@@ -348,7 +370,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 pb-40 pt-10 grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-9 space-y-6">
             
-            <ContentSection id="intro" title={txt(data.introTitleAr, data.introTitleEn) || (isArabic ? 'نبذة عن المشروع' : 'Introduction')} content={isArabic ? data.introContentAr : data.introContentEn} />
+            <ContentSection id="intro" itemProp="description" title={txt(data.introTitleAr, data.introTitleEn) || (isArabic ? 'نبذة عن المشروع' : 'Introduction')} content={isArabic ? data.introContentAr : data.introContentEn} />
             
             <ContentSection id="location" title={txt(data.locationTitleAr, data.locationTitleEn) || (isArabic ? 'الموقع الاستراتيجي' : 'Location')} image={data.locationImage} content={isArabic ? data.locationContentAr : data.locationContentEn} altBg>
                 {data.nearbyPlaces?.length > 0 && (
@@ -456,10 +478,32 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 </div>
             </section>
 
-            {/* 🔴 المكونات المستعادة بالكامل */}
+            {/* ✅ [AEO]: FAQs Section - الإضافة الثانية لمحركات البحث */}
+            {data.faqs && data.faqs.length > 0 && (
+              <section className="py-20 bg-white" itemScope itemType="https://schema.org/FAQPage">
+                 <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-12 italic uppercase tracking-tighter leading-none flex items-center gap-4">
+                    <HelpCircle size={40} className="text-[#C02026]" />
+                    {isArabic ? `الأسئلة الشائعة عن ${officialName}` : `FAQ: ${officialName}`}
+                 </h2>
+                 <div className="space-y-4">
+                    {data.faqs.map((faq, i) => (
+                      <details key={i} className="group bg-slate-50 p-6 md:p-8 rounded-[2.5rem] border border-slate-100 cursor-pointer text-start" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                        <summary className="flex justify-between items-center font-black text-lg md:text-xl outline-none uppercase italic text-slate-900">
+                          <span itemProp="name">{isArabic ? faq.questionAr : faq.questionEn}</span>
+                          <span className="text-[#C02026] group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+                        </summary>
+                        <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-200 pt-6">
+                          <p itemProp="text">{isArabic ? faq.answerAr : faq.answerEn}</p>
+                        </div>
+                      </details>
+                    ))}
+                 </div>
+              </section>
+            )}
+
             {(data.prosAr || data.consAr) && (
                 <section className="py-20 bg-white">
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 mb-12 italic tracking-tighter uppercase leading-none">{isArabic ? 'التقييم الفني' : 'Evaluation'}</h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 mb-12 italic tracking-tighter uppercase leading-none">{isArabic ? 'التقييم الفني للمشروع' : 'Expert Evaluation'}</h2>
                     <div className="grid md:grid-cols-2 gap-8">
                         {data.prosAr && (
                             <div className="bg-emerald-50/40 p-10 rounded-[3rem] border border-emerald-100 hover:bg-emerald-50 transition-colors text-start">
@@ -568,62 +612,6 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                   )}
                 </div>
             </ContentSection>
-
-            {similarProjects?.length > 0 && (
-                <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden text-start">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
-                    <div className="max-w-[1440px] mx-auto px-12 relative z-10">
-                        <div className="flex items-end justify-between mb-16">
-                           <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
-                           <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
-                        </div>
-                        <div className="w-full"><AutoProjectCarousel projects={similarProjects} lang={lang} isAr={isArabic} desktopSlides={3} /></div>
-                    </div>
-                </section>
-            )}
-
-            {relatedPosts && relatedPosts.length > 0 && (
-              <section className="py-24 bg-slate-50 rounded-[4rem] border border-slate-100 my-16 text-start">
-                <header className="flex flex-col md:flex-row items-center justify-between mb-16 px-6 md:px-12 gap-8">
-                  <div className="border-s-[12px] border-[#C02026] ps-8">
-                    <span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[10px] block mb-2">
-                      {isArabic ? 'تغطية حصرية' : 'Project Intelligence'}
-                    </span>
-                    <h2 className="text-3xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
-                      {isArabic ? `أخبار ${officialName}` : `${officialName} Intel`}
-                    </h2>
-                  </div>
-                  <Link href={`/${lang}/blog/`} className="group flex items-center gap-4 bg-white text-slate-900 px-10 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest border border-slate-200 hover:bg-[#C02026] hover:text-white transition-all shadow-xl shrink-0">
-                    {isArabic ? 'كل الأخبار' : 'Explore Blog'}
-                    <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform rtl:rotate-180" />
-                  </Link>
-                </header>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-6 md:px-12">
-                  {relatedPosts.map((post) => (
-                    <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700">
-                      <div className="aspect-[16/10] overflow-hidden relative">
-                        {post.mainImage && (
-                          <Image 
-                            src={urlFor(post.mainImage).url()} 
-                            alt={post.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
-                          />
-                        )}
-                      </div>
-                      <div className="p-10 flex flex-col flex-1">
-                        <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.2em] mb-4 block">
-                          {new Date(post._createdAt).toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
-                        </span>
-                        <h3 className="text-2xl font-black text-slate-950 mb-6 group-hover:text-[#C02026] transition-colors line-clamp-2 leading-tight italic uppercase">{post.title}</h3>
-                        <p className="text-slate-500 text-sm font-medium line-clamp-3 leading-relaxed">{post.overview}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
         </div>
 
         <aside className="lg:col-span-3 space-y-8 hidden lg:block h-full">
@@ -641,6 +629,62 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             </div>
         </aside>
       </div>
+
+      {similarProjects?.length > 0 && (
+          <section className="py-32 bg-slate-950 rounded-[4rem] my-20 relative overflow-hidden text-start">
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C02026]/5 rounded-full blur-[150px]" />
+              <div className="max-w-[1440px] mx-auto px-12 relative z-10">
+                  <div className="flex items-end justify-between mb-16">
+                      <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">{isArabic ? 'مشاريع مقترحة لك' : 'Recommended'}</h2>
+                      <Link href={`/${lang}/projects/`} className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] hover:text-[#C02026] transition-colors">View All Directory</Link>
+                  </div>
+                  <div className="w-full"><AutoProjectCarousel projects={similarProjects} lang={lang} isAr={isArabic} desktopSlides={3} /></div>
+              </div>
+          </section>
+      )}
+
+      {relatedPosts && relatedPosts.length > 0 && (
+        <section className="py-24 bg-slate-50 rounded-[4rem] border border-slate-100 my-16 text-start">
+          <header className="flex flex-col md:flex-row items-center justify-between mb-16 px-6 md:px-12 gap-8">
+            <div className="border-s-[12px] border-[#C02026] ps-8">
+              <span className="text-[#C02026] font-black uppercase tracking-[0.4em] text-[10px] block mb-2">
+                {isArabic ? 'تغطية حصرية' : 'Project Intelligence'}
+              </span>
+              <h2 className="text-3xl md:text-6xl font-black text-slate-950 italic tracking-tighter uppercase leading-none">
+                {isArabic ? `أخبار ${officialName}` : `${officialName} Intel`}
+              </h2>
+            </div>
+            <Link href={`/${lang}/blog/`} className="group flex items-center gap-4 bg-white text-slate-900 px-10 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest border border-slate-200 hover:bg-[#C02026] hover:text-white transition-all shadow-xl shrink-0">
+              {isArabic ? 'كل الأخبار' : 'Explore Blog'}
+              <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform rtl:rotate-180" />
+            </Link>
+          </header>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-6 md:px-12">
+            {relatedPosts.map((post) => (
+              <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700">
+                <div className="aspect-[16/10] overflow-hidden relative">
+                  {post.mainImage && (
+                    <Image 
+                      src={urlFor(post.mainImage).url()} 
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
+                    />
+                  )}
+                </div>
+                <div className="p-10 flex flex-col flex-1">
+                  <span className="text-[10px] font-black text-[#C02026] uppercase tracking-[0.2em] mb-4 block">
+                    {new Date(post._createdAt).toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-950 mb-6 group-hover:text-[#C02026] transition-colors line-clamp-2 leading-tight italic uppercase">{post.title}</h3>
+                  <p className="text-slate-500 text-sm font-medium line-clamp-3 leading-relaxed">{post.overview}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <nav className="lg:hidden fixed bottom-6 left-4 right-4 z-[110] flex gap-3 h-16 animate-in slide-in-from-bottom-12 duration-1000">
           <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`} 

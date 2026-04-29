@@ -3,7 +3,7 @@ import { urlFor } from "@/sanity/image";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Clock, Globe, MessageCircle, PhoneCall, Building2, MapPin, ArrowRight, Briefcase, Navigation } from "lucide-react";
+import { Calendar, Clock, Globe, MessageCircle, PhoneCall, Building2, MapPin, ArrowRight, Briefcase, Navigation, Cpu, CheckCircle2, HelpCircle, ChevronDown } from "lucide-react";
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
 import ShareBtn from '@/components/ShareBtn'; 
@@ -31,9 +31,6 @@ export async function generateStaticParams() {
   } catch (error) { return []; }
 }
 
-/**
- * ✅ SEO Metadata: السيطرة اليدوية المطلقة وتوحيد الروابط
- */
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === "ar";
@@ -45,10 +42,7 @@ export async function generateMetadata({ params }) {
   const ogImageUrl = post.mainImage ? urlFor(post.mainImage).url() : `${BASE_URL}/og-image.jpg`;
   
   return {
-    // 🚀 استخدام absolute لضمان السيطرة اليدوية من سانتي فقط
-    title: {
-      absolute: cleanTitle,
-    },
+    title: { absolute: cleanTitle },
     description: getSafeText(post.seoDescription || post.overview).substring(0, 160),
     alternates: { 
       canonical: `${BASE_URL}/${lang}/blog/${slug}/`,
@@ -70,9 +64,13 @@ export default async function PostPage({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === "ar";
 
+  // ✅ [AEO/GEO Update]: إضافة aiSummary و faqs للاستعلام
   const post = await client.fetch(
     `*[_type == "post" && slug.current == $slug][0] {
       ...,
+      aiSummaryAr,
+      aiSummaryEn,
+      faqs,
       "relatedProjects": relatedProjects[]->{ _id, titleAr, titleEn, "slug": slug.current, mainImage },
       "relatedDistricts": relatedDistricts[]->{ _id, nameAr, nameEn, "slug": slug.current, image },
       "relatedDevelopers": relatedDevelopers[]->{ _id, nameAr, nameEn, "slug": slug.current, logo },
@@ -87,6 +85,39 @@ export default async function PostPage({ params }) {
   const cleanTitle = getSafeText(post.title);
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const breadcrumbItems = [{ label: isAr ? "المدونة" : "Insights", href: `/${lang}/blog/` }, { label: cleanTitle }];
+  const aiSummary = isAr ? post.aiSummaryAr : post.aiSummaryEn;
+  const currentUrl = `${BASE_URL}/${lang}/blog/${slug}/`;
+
+  // ✅ [AEO & GEO Schema]: Article + FAQPage
+  const faqList = post.faqs?.map(faq => ({
+    '@type': 'Question',
+    'name': isAr ? faq.questionAr : faq.questionEn,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': isAr ? faq.answerAr : faq.answerEn
+    }
+  })).filter(q => q.name && q.acceptedAnswer.text) || [];
+
+  const graphElements = [
+    {
+      '@type': 'Article',
+      '@id': `${currentUrl}#article`,
+      'headline': cleanTitle,
+      'description': getSafeText(post.seoDescription || post.overview).substring(0, 160),
+      'image': post.mainImage ? urlFor(post.mainImage).url() : '',
+      'datePublished': post._createdAt,
+      'dateModified': post._updatedAt || post._createdAt,
+      'author': { '@type': 'Organization', 'name': 'Platform Real Estate' }
+    }
+  ];
+
+  if (faqList.length > 0) {
+    graphElements.push({
+      '@type': 'FAQPage',
+      '@id': `${currentUrl}#faq`,
+      'mainEntity': faqList
+    });
+  }
 
   const components = {
     block: {
@@ -104,12 +135,7 @@ export default async function PostPage({ params }) {
       image: ({ value }) => (
         <figure className="my-16">
           <div className="relative w-full h-[350px] md:h-[700px] overflow-hidden rounded-[3.5rem] shadow-xl">
-            <Image 
-              src={urlFor(value).url()} 
-              alt={getSafeText(value.alt || post.title)} 
-              fill 
-              className="object-cover" 
-            />
+            <Image src={urlFor(value).url()} alt={getSafeText(value.alt || post.title)} fill className="object-cover" />
           </div>
         </figure>
       ),
@@ -120,6 +146,8 @@ export default async function PostPage({ params }) {
 
   return (
     <article className="min-h-screen bg-white pb-32 selection:bg-[#C02026] selection:text-white" dir={isAr ? "rtl" : "ltr"}>
+      {/* ✅ حقن بيانات الـ SEO/GEO */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@graph': graphElements }) }} />
       
       {/* Header */}
       <header className="bg-slate-50 pt-32 pb-24 border-b border-slate-100 relative overflow-hidden text-start">
@@ -136,31 +164,72 @@ export default async function PostPage({ params }) {
       {/* Feature Image */}
       <div className="container mx-auto max-w-[1200px] px-6 -mt-16 relative z-20">
         <div className="relative h-[450px] md:h-[750px] w-full overflow-hidden rounded-[4.5rem] shadow-2xl border-[12px] md:border-[20px] border-white">
-          <Image 
-            src={urlFor(post.mainImage).url()} 
-            alt={cleanTitle} 
-            fill 
-            className="object-cover animate-slow-zoom" 
-            priority 
-          />
+          <Image src={urlFor(post.mainImage).url()} alt={cleanTitle} fill className="object-cover animate-slow-zoom" priority />
         </div>
       </div>
 
       <div className="container mx-auto max-w-4xl px-8 pt-24">
+        
+        {/* ✅ [GEO]: صندوق ملخص الذكاء الاصطناعي (يظهر قبل المقال لتشجيع القراءة) */}
+        {aiSummary && aiSummary.length > 0 && (
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-[3rem] p-10 mb-16 shadow-2xl border border-slate-800 relative overflow-hidden text-start">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-[#C02026]/20 rounded-full blur-[80px]" />
+             <div className="flex items-center gap-4 mb-8">
+               <Cpu className="text-[#C02026] w-10 h-10" />
+               <h3 className="font-black text-2xl text-white italic uppercase tracking-wider">{isAr ? `نقاط تلخيصية سريعة` : `Article Key Takeaways`}</h3>
+             </div>
+             <ul className="grid gap-4">
+               {aiSummary.map((point, i) => (
+                 <li key={i} className="flex gap-4 text-slate-300 font-bold text-lg items-center">
+                   <CheckCircle2 size={24} className="text-[#C02026] shrink-0" /><span>{point}</span>
+                 </li>
+               ))}
+             </ul>
+          </div>
+        )}
+
+        {/* جسم المقال الرئيسي */}
         <div className="prose prose-xl prose-slate max-w-none text-start">
           <PortableText value={post.body} components={components} />
         </div>
 
+        {/* ✅ [AEO]: الأسئلة الشائعة للمقال (تغذي محركات الإجابات) */}
+        {post.faqs && post.faqs.length > 0 && (
+          <div className="mt-20 bg-slate-50 p-10 md:p-16 rounded-[4rem] border border-slate-100" itemScope itemType="https://schema.org/FAQPage">
+             <h2 className="text-3xl md:text-4xl font-black mb-12 flex items-center gap-4 italic uppercase tracking-tighter text-slate-900 text-start">
+                <HelpCircle size={40} className="text-[#C02026]" />
+                {isAr ? `أسئلة تهمك حول الموضوع` : `Frequently Asked Questions`}
+             </h2>
+             <div className="space-y-4">
+                {post.faqs.map((faq, i) => {
+                  const q = isAr ? faq.questionAr : faq.questionEn;
+                  const a = isAr ? faq.answerAr : faq.answerEn;
+                  if (!q || !a) return null;
+                  return (
+                    <details key={i} className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 cursor-pointer text-start" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                      <summary className="flex justify-between items-center font-black text-lg outline-none uppercase italic text-slate-900">
+                        <span itemProp="name">{q}</span>
+                        <span className="text-[#C02026] group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+                      </summary>
+                      <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-6">
+                        <p itemProp="text">{a}</p>
+                      </div>
+                    </details>
+                  );
+                })}
+             </div>
+          </div>
+        )}
+
         {/* Smart Related Entities Section */}
         {hasAnyRelations && (
-          <div className="mt-32 p-10 md:p-16 bg-slate-50 rounded-[4rem] border border-slate-100 space-y-16">
+          <div className="mt-20 p-10 md:p-16 bg-slate-50 rounded-[4rem] border border-slate-100 space-y-16">
             <header className="text-start space-y-4">
                <span className="text-[#C02026] text-[10px] font-black uppercase tracking-[0.4em]">{isAr ? "بيانات التحليل" : "Contextual Data"}</span>
                <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-slate-900">{isAr ? "أطراف ذات صلة بالخبر" : "Key Entities"}</h2>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               
                {/* 🏢 Projects */}
                {post.relatedProjects?.map((proj) => (
                  <Link key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
@@ -212,7 +281,6 @@ export default async function PostPage({ params }) {
                     </div>
                  </Link>
                ))}
-
             </div>
           </div>
         )}

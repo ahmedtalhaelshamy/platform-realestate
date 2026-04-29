@@ -2,7 +2,7 @@ import ProjectCard from '@/components/ProjectCard';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { 
   Building2, LayoutGrid, Phone, ShieldCheck, 
-  MessageCircle, HelpCircle, CheckCircle2, ArrowRight, Calendar
+  MessageCircle, HelpCircle, CheckCircle2, ArrowRight, Cpu, ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -12,9 +12,10 @@ import { urlFor } from '@/sanity/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import Link from 'next/link';
 
-// ✅ 1. PERFORMANCE: ISR كل ساعة
+// ✅ PERFORMANCE: ISR
 export const dynamic = 'force-static';
 export const revalidate = false;
+
 const BASE_URL = 'https://platformrealestate.co';
 
 const getSafeText = (val) => {
@@ -29,9 +30,6 @@ const getSafeText = (val) => {
   return String(val);
 };
 
-/**
- * ✅ نظام تنسيق النصوص الخاص بـ PortableText
- */
 const devPortableTextComponents = {
   block: {
     normal: ({ children }) => <p className="mb-6 text-slate-600 leading-relaxed text-justify text-base md:text-lg italic font-medium">{children}</p>,
@@ -61,9 +59,6 @@ export async function generateStaticParams() {
   }
 }
 
-/**
- * ✅ 3. الـ SEO Metadata: السيطرة اليدوية المطلقة
- */
 export async function generateMetadata({ params }) {
   const { lang, slug } = await params;
   const isAr = lang === 'ar';
@@ -78,15 +73,10 @@ export async function generateMetadata({ params }) {
   const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
   const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
   const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
-
-  const ogImage = data.logo 
-    ? urlFor(data.logo).url()
-    : `${BASE_URL}/og-image.jpg`;
+  const ogImage = data.logo ? urlFor(data.logo).url() : `${BASE_URL}/og-image.jpg`;
 
   return { 
-    title: {
-      absolute: title, // 🚀 سيطرة يدوية كاملة
-    },
+    title: { absolute: title },
     description: description.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     alternates: {
@@ -102,7 +92,7 @@ export async function generateMetadata({ params }) {
         url: `${BASE_URL}/${lang}/developers/${slug}/`,
         images: [{ url: ogImage }],
         locale: isAr ? 'ar_EG' : 'en_US',
-        type: 'website',
+        type: 'profile',
     }
   };
 }
@@ -110,7 +100,7 @@ export async function generateMetadata({ params }) {
 async function getDeveloperData(slug, lang) {
   const query = `{
     "developer": *[_type == "developer" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
-      _id, nameAr, nameEn, descriptionAr, descriptionEn, logo, reviewTitle, faqs
+      _id, nameAr, nameEn, descriptionAr, descriptionEn, logo, reviewTitle, faqs, aiSummaryAr, aiSummaryEn, website, socialProfiles
     },
     "projects": *[_type == "project" && references(*[_type == "developer" && slug.current == $slug][0]._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc) {
       _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, mainImage, "slug": slug.current,
@@ -132,6 +122,7 @@ export default async function DeveloperDetailPage({ params }) {
 
   const { developer, projects, relatedPosts } = data;
   const devName = getSafeText(isAr ? developer.nameAr : developer.nameEn);
+  const aiSummary = isAr ? developer.aiSummaryAr : developer.aiSummaryEn;
   
   const breadcrumbItems = [
     { label: isAr ? 'المطورين' : 'TITANS', href: `/${lang}/developers/` },
@@ -141,9 +132,42 @@ export default async function DeveloperDetailPage({ params }) {
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `أريد استشارة حول مشاريع شركة ${devName}` : `Inquiry about ${devName} projects`)}`;
 
+  // ✅ [AEO & GEO] بناء الـ Schema المشتركة (Organization + FAQPage)
+  const currentUrl = `${BASE_URL}/${lang}/developers/${slug}/`;
+  const faqList = developer.faqs?.map(faq => ({
+    '@type': 'Question',
+    'name': getSafeText(isAr ? faq.questionAr : faq.questionEn),
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': getSafeText(isAr ? faq.answerAr : faq.answerEn)
+    }
+  })).filter(q => q.name && q.acceptedAnswer.text) || [];
+
+  const graphElements = [
+    {
+      '@type': 'Organization',
+      '@id': `${currentUrl}#organization`,
+      'name': devName,
+      'url': currentUrl,
+      'logo': developer.logo ? urlFor(developer.logo).url() : '',
+      'sameAs': developer.socialProfiles || [],
+      ...(developer.website && { 'url': developer.website })
+    }
+  ];
+
+  if (faqList.length > 0) {
+    graphElements.push({
+      '@type': 'FAQPage',
+      '@id': `${currentUrl}#faq`,
+      'mainEntity': faqList
+    });
+  }
+
   return (
     <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
-      
+      {/* ✅ حقن الـ Schema */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@graph': graphElements }) }} />
+
       {/* HERO SECTION */}
       <header className="relative pt-32 pb-20 md:pt-48 md:pb-32 bg-slate-50 border-b border-slate-100 overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-red-50/20 skew-x-12 translate-x-20 pointer-events-none" aria-hidden="true" />
@@ -156,14 +180,7 @@ export default async function DeveloperDetailPage({ params }) {
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 text-start">
             <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex items-center justify-center p-8 shrink-0 relative group">
                 {developer.logo ? (
-                 <Image 
-                  src={urlFor(developer.logo).url()} 
-                  alt={devName} 
-                  width={250} height={250} 
-                  className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" 
-                  priority 
-                  sizes="(max-width: 768px) 192px, 256px"
-                />
+                 <Image src={urlFor(developer.logo).url()} alt={devName} width={250} height={250} className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" priority sizes="(max-width: 768px) 192px, 256px" />
                 ) : <Building2 size={64} className="text-slate-200 relative z-10" />}
             </div>
             
@@ -187,6 +204,24 @@ export default async function DeveloperDetailPage({ params }) {
             
             <div className="lg:col-span-8 space-y-32">
               
+              {/* ✅ [GEO]: صندوق ملخص الذكاء الاصطناعي للمطور */}
+              {aiSummary && aiSummary.length > 0 && (
+                <section className="bg-gradient-to-br from-slate-950 to-slate-900 rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-white/10 text-white text-start relative overflow-hidden -mt-10">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-[#C02026]/20 rounded-full blur-[80px] -z-10" />
+                   <div className="flex items-center gap-4 mb-8">
+                     <Cpu className="text-[#C02026] w-10 h-10" />
+                     <h3 className="font-black text-2xl md:text-3xl italic uppercase tracking-wider">{isAr ? `نظرة سريعة على ${devName}` : `${devName} Highlights`}</h3>
+                   </div>
+                   <ul className="grid md:grid-cols-2 gap-4">
+                     {aiSummary.map((point, i) => (
+                       <li key={i} className="flex gap-3 text-slate-300 font-medium items-center text-lg">
+                         <CheckCircle2 size={24} className="text-[#C02026] shrink-0" /><span>{point}</span>
+                       </li>
+                     ))}
+                   </ul>
+                </section>
+              )}
+
               {/* PROJECTS PORTFOLIO */}
               <section id="portfolio">
                   <header className="mb-16 border-s-[12px] border-[#C02026] ps-8 text-start">
@@ -221,12 +256,7 @@ export default async function DeveloperDetailPage({ params }) {
                       <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
                         <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
                           {post.mainImage && (
-                            <Image 
-                              src={urlFor(post.mainImage).url()} 
-                              alt={post.title} 
-                              fill 
-                              className="object-cover group-hover:scale-110 transition-transform duration-[2s]" 
-                            />
+                            <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />
                           )}
                         </div>
                         <div className="p-8 flex flex-col flex-1">
@@ -254,22 +284,30 @@ export default async function DeveloperDetailPage({ params }) {
                 </div>
               </article>
 
-              {/* FAQs */}
+              {/* ✅ [AEO]: FAQs Semantic Update */}
               {developer.faqs?.length > 0 && (
-                <section className="space-y-12">
+                <section className="space-y-12" itemScope itemType="https://schema.org/FAQPage">
                    <h2 className="text-3xl md:text-5xl font-black text-slate-950 flex items-center gap-5 italic uppercase tracking-tighter leading-none text-start">
                      <div className="p-4 bg-red-50 rounded-3xl text-[#C02026]"><HelpCircle size={40} strokeWidth={1.5} /></div>
                      {isAr ? 'الأسئلة الشائعة' : 'Titan FAQs'}
                    </h2>
                    <div className="grid grid-cols-1 gap-6">
-                      {developer.faqs.map((faq, idx) => (
-                        <div key={idx} className="bg-slate-50 p-8 md:p-12 rounded-[3rem] border border-slate-100 text-start hover:bg-white hover:shadow-2xl transition-all duration-500 group">
-                           <h3 className="text-xl md:text-2xl font-black text-slate-950 mb-6 flex gap-4 italic uppercase">
-                              <span className="text-[#C02026]">Q.</span> {getSafeText(isAr ? faq.questionAr : faq.questionEn)}
-                           </h3>
-                           <p className="text-slate-600 leading-relaxed text-lg font-medium ps-10 italic border-s-2 border-slate-200">{getSafeText(isAr ? faq.answerAr : faq.answerEn)}</p>
-                        </div>
-                      ))}
+                      {developer.faqs.map((faq, idx) => {
+                        const q = getSafeText(isAr ? faq.questionAr : faq.questionEn);
+                        const a = getSafeText(isAr ? faq.answerAr : faq.answerEn);
+                        if(!q || !a) return null;
+                        return (
+                          <details key={idx} className="group bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 cursor-pointer text-start" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                            <summary className="flex justify-between items-center font-black text-lg outline-none uppercase italic text-slate-900">
+                              <span itemProp="name">{q}</span>
+                              <span className="text-[#C02026] group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+                            </summary>
+                            <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-6">
+                              <p itemProp="text">{a}</p>
+                            </div>
+                          </details>
+                        )
+                      })}
                    </div>
                 </section>
               )}

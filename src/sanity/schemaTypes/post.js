@@ -4,7 +4,9 @@ export const post = {
   type: 'document',
   fieldsets: [
     { name: 'seo', title: 'إعدادات الأرشفة والظهور (SEO)', options: { collapsible: true, collapsed: true } },
-    { name: 'relations', title: 'الروابط والارتباطات (Internal Links)', options: { collapsible: true } }
+    { name: 'relations', title: 'الروابط والارتباطات (Internal Links)', options: { collapsible: true } },
+    // ✅ [تحديث GEO/AEO]: قسم جديد مخصص للذكاء الاصطناعي
+    { name: 'aiFeatures', title: '🤖 ملخصات وأسئلة الذكاء الاصطناعي (GEO & AEO)', options: { collapsible: true, collapsed: false } }
   ],
   fields: [
     { 
@@ -54,6 +56,42 @@ export const post = {
       description: 'تظهر في كارت المقال وفي نتائج البحث',
       validation: Rule => Rule.required().max(200)
     },
+    
+    // ==========================================
+    // 🤖 حقول الذكاء الاصطناعي (GEO & AEO Updates)
+    // ==========================================
+    {
+      name: 'aiSummaryAr',
+      title: 'نقاط تلخيصية للذكاء الاصطناعي (Ar)',
+      type: 'array',
+      fieldset: 'aiFeatures',
+      of: [{type: 'string'}],
+      description: 'أهم 3-4 نقاط يستنتجها القارئ (أو الـ AI) من المقال ليتم عرضها كـ (Featured Snippet).'
+    },
+    {
+      name: 'aiSummaryEn',
+      title: 'AI Summary Highlights (En)',
+      type: 'array',
+      fieldset: 'aiFeatures',
+      of: [{type: 'string'}]
+    },
+    {
+      name: 'faqs',
+      title: 'أسئلة وإجابات داخل المقال (AEO FAQ Schema)',
+      type: 'array',
+      fieldset: 'aiFeatures',
+      of: [{
+        type: 'object',
+        fields: [
+          {name: 'questionAr', title: 'السؤال (عربي)', type: 'string'},
+          {name: 'answerAr', title: 'الجواب (عربي)', type: 'text', rows: 3},
+          {name: 'questionEn', title: 'Question (English)', type: 'string'},
+          {name: 'answerEn', title: 'Answer (English)', type: 'text', rows: 3}
+        ]
+      }],
+      description: 'الأسئلة الشائعة التي يجيب عنها هذا المقال. (تغذي محركات مثل ChatGPT وجوجل بالإجابات المباشرة).'
+    },
+
     { 
       name: 'body', 
       type: 'array', 
@@ -72,7 +110,7 @@ export const post = {
       ] 
     },
 
-    // 🚀 قسم العلاقات (تم إضافة المنطقة والمطور والحي والمشروع)
+    // 🚀 قسم العلاقات (الروابط الداخلية للـ Knowledge Graph)
     {
       name: 'relatedProjects',
       title: 'مشاريع مرتبطة بالخبر',

@@ -3,7 +3,7 @@ import ProjectCard from '@/components/ProjectCard';
 import SearchFilter from '@/components/SearchFilter';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
-import { Search, Sparkles, Building2 } from 'lucide-react';
+import { Search, Sparkles, Building2, Cpu, CheckCircle2 } from 'lucide-react';
 import { Suspense } from 'react';
 import { urlFor } from '@/sanity/image';
 
@@ -45,16 +45,12 @@ export async function generateMetadata({ params, searchParams }) {
     title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
   }
 
-  // توجيه صورة الـ SEO لـ Bunny
   const ogImageUrl = seo?.openGraphImage 
     ? urlFor(seo.openGraphImage).url()
     : `${CONTACT_INFO.domain}/og-image.jpg`;
 
   return {
-    // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
-    title: {
-      absolute: title,
-    },
+    title: { absolute: title },
     description: getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn),
     metadataBase: new URL(CONTACT_INFO.domain),
     alternates: { 
@@ -76,9 +72,6 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 
-/**
- * 🛰️ Data Fetching Engine
- */
 async function getProjects(filters) {
   const { search, location, developer, type } = filters; 
   let filterQuery = `_type == "project" && !(_id in path("drafts.**"))`;
@@ -126,6 +119,10 @@ export default async function ProjectsPage({ params, searchParams }) {
   const filters = await searchParams;
   const isAr = lang === 'ar';
   
+  // ✅ [AEO]: جلب بيانات السيو لتعزيز السياق للذكاء الاصطناعي
+  const settings = await client.fetch(`*[_type == "siteSettings"][0]{ projectsSeo, aiSummaryAr, aiSummaryEn }`);
+  const aiSummary = isAr ? settings?.aiSummaryAr : settings?.aiSummaryEn;
+
   return (
     <main className={`min-h-screen bg-white selection:bg-brand-red selection:text-white ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>
       
@@ -165,6 +162,28 @@ export default async function ProjectsPage({ params, searchParams }) {
         </div>
       </header>
 
+      {/* ✅ [GEO]: Market Snapshot Snippet - إضافة مخصصة لمحركات البحث التوليدية */}
+      {!filters.search && aiSummary && (
+        <section className="max-w-4xl mx-auto -mt-16 relative z-30 px-6">
+            <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-slate-100">
+                <div className="flex items-center gap-4 mb-6">
+                    <Cpu className="text-brand-red w-8 h-8" />
+                    <h2 className="font-black text-xl italic uppercase tracking-wider text-brand-dark">
+                        {isAr ? 'نظرة سريعة على السوق' : 'Market Snapshot'}
+                    </h2>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                    {aiSummary.map((point, i) => (
+                        <div key={i} className="flex gap-3 text-slate-600 font-bold text-sm md:text-base items-center">
+                            <CheckCircle2 size={20} className="text-brand-red shrink-0" />
+                            <span>{point}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+      )}
+
       {/* 🏙️ 2. PROJECTS GRID */}
       <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-24 md:py-32" aria-live="polite">
         <Suspense key={JSON.stringify(filters)} fallback={<ProjectsLoading />}>
@@ -187,6 +206,22 @@ export default async function ProjectsPage({ params, searchParams }) {
 async function ProjectsGrid({ filters, lang }) {
     const isAr = lang === 'ar';
     const projects = await getProjects(filters);
+    const baseUrl = CONTACT_INFO.domain;
+    const currentUrl = `${baseUrl}/${lang}/projects/`;
+
+    // ✅ [AEO/GEO Schema]: بناء سكيما ItemList لنتائج البحث
+    const itemListSchema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": isAr ? "قائمة العقارات المتاحة" : "Real Estate Listings",
+        "numberOfItems": projects.length,
+        "itemListElement": projects.map((proj, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": `${baseUrl}/${lang}/projects/${proj.slug}/`,
+            "name": isAr ? proj.titleAr : proj.titleEn
+        }))
+    };
 
     if (projects.length === 0) {
         return (
@@ -213,13 +248,17 @@ async function ProjectsGrid({ filters, lang }) {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 lg:gap-16">
-            {projects.map((project, index) => (
-                <div key={project._id} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                  {/* تمرير unoptimized={true} داخلياً في ProjectCard لضمان عمل Bunny */}
-                  <ProjectCard lang={lang} data={project} isPriority={index < 3} />
-                </div>
-            ))}
-        </div>
+        <>
+            {/* حقن سكيما القائمة في الكود */}
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 lg:gap-16">
+                {projects.map((project, index) => (
+                    <div key={project._id} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <ProjectCard lang={lang} data={project} isPriority={index < 3} />
+                    </div>
+                ))}
+            </div>
+        </>
     );
 }

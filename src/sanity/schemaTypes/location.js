@@ -1,5 +1,5 @@
 import { defineField, defineType } from 'sanity'
-import { Map, Share2, Search } from 'lucide-react'
+import { Map, Share2, Search, Cpu, HelpCircle } from 'lucide-react'
 
 export default defineType({
   name: 'location',
@@ -7,10 +7,11 @@ export default defineType({
   type: 'document',
   icon: Map,
   
-  // ✅ تقسيم الواجهة لثلاث تبويبات مريحة
+  // ✅ الحفاظ على تقسيم الواجهة وإضافة تبويب جديد للذكاء الاصطناعي
   groups: [
     { name: 'main', title: '🏠 البيانات الأساسية', default: true },
     { name: 'content', title: '📝 المحتوى والمقال' },
+    { name: 'aiFeatures', title: '🤖 ذكاء اصطناعي (GEO & AEO)' }, // التبويب الجديد
     { name: 'seo', title: '🔍 SEO & Social' },
   ],
 
@@ -78,6 +79,43 @@ export default defineType({
       initialValue: 0,
     }),
 
+    // ==========================================
+    // 🤖 حقول الذكاء الاصطناعي (GEO & AEO Updates)
+    // ==========================================
+    defineField({
+      name: 'aiSummaryAr',
+      title: 'نقاط تلخيصية للذكاء الاصطناعي (Ar) - GEO',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: Cpu,
+      of: [{type: 'string'}],
+      description: 'أهم 3-4 نقاط تلخص المنطقة (مثل: أهم المحاور، متوسط الأسعار). الـ AI يستخدمها للإجابات السريعة.'
+    }),
+    defineField({
+      name: 'aiSummaryEn',
+      title: 'AI Summary Highlights (En)',
+      type: 'array',
+      group: 'aiFeatures',
+      of: [{type: 'string'}]
+    }),
+    defineField({
+      name: 'faqs',
+      title: 'الأسئلة الشائعة عن المنطقة (AEO FAQ Schema)',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: HelpCircle,
+      of: [{
+        type: 'object',
+        fields: [
+          {name: 'questionAr', title: 'السؤال (عربي)', type: 'string'},
+          {name: 'answerAr', title: 'الجواب (عربي)', type: 'text', rows: 3},
+          {name: 'questionEn', title: 'Question (English)', type: 'string'},
+          {name: 'answerEn', title: 'Answer (English)', type: 'text', rows: 3}
+        ]
+      }],
+      description: 'أضف الأسئلة التي يبحث عنها العملاء بكثرة في جوجل وChatGPT بخصوص هذه المنطقة.'
+    }),
+
     // ================================
     // 2️⃣ المحتوى والمقال (Content)
     // ================================
@@ -97,7 +135,7 @@ export default defineType({
             {title: 'اقتباس', value: 'blockquote'},
           ],
         },
-        { type: 'image', options: { hotspot: true } } // ✅ السماح بإضافة صور وسط الكلام
+        { type: 'image', options: { hotspot: true } } 
       ],
     }),
 
@@ -130,7 +168,6 @@ export default defineType({
       group: 'seo',
       icon: Search,
       fields: [
-        // Meta Titles
         defineField({
           name: 'metaTitleAr',
           title: 'عنوان الصفحة في جوجل (Ar)',
@@ -144,7 +181,6 @@ export default defineType({
           validation: Rule => Rule.max(60).warning('Should be under 60 characters'),
         }),
 
-        // Meta Descriptions
         defineField({
           name: 'metaDescAr',
           title: 'وصف الصفحة في جوجل (Ar)',
@@ -161,7 +197,6 @@ export default defineType({
           validation: Rule => Rule.max(160),
         }),
 
-        // Keywords
         defineField({
           name: 'keywordsAr',
           title: 'الكلمات الدلالية (Keywords Ar)',
@@ -181,7 +216,6 @@ export default defineType({
           }
         }),
 
-        // Social Share Image
         defineField({
           name: 'openGraphImage',
           title: 'صورة المشاركة (Social Media Image)',
@@ -193,7 +227,6 @@ export default defineType({
     }),
   ],
   
-  // شكل الكارت من بره في لوحة التحكم
   preview: {
     select: {
       titleAr: 'nameAr',

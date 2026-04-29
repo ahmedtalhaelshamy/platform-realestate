@@ -1,5 +1,5 @@
 import { defineField, defineType } from 'sanity'
-import { MapPin } from 'lucide-react'
+import { MapPin, Cpu, HelpCircle } from 'lucide-react'
 
 export default defineType({
   name: 'district',
@@ -11,6 +11,7 @@ export default defineType({
   groups: [
     { name: 'main', title: '🏠 البيانات الأساسية', default: true },
     { name: 'content', title: '📝 المحتوى والمقال' },
+    { name: 'aiFeatures', title: '🤖 ذكاء اصطناعي (GEO & AEO)' },
     { name: 'seo', title: '🔍 SEO & Google' },
   ],
 
@@ -46,9 +47,8 @@ export default defineType({
       validation: (rule) => rule.required(),
     }),
 
-    // ✅ الحقل ده مهم جداً عشان يربط الحي بالمنطقة
     defineField({
-      name: 'location', // (تأكدنا إن ده الاسم المستخدم في الكود الجديد)
+      name: 'location',
       title: 'المنطقة التابع لها (Parent Location)',
       description: 'اختر المنطقة الكبرى التي يتبع لها هذا الحي (مثال: اختر القاهرة الجديدة لحي النرجس)',
       type: 'reference',
@@ -65,7 +65,6 @@ export default defineType({
       options: { hotspot: true },
     }),
 
-    // ✅ (إضافة جديدة) حقل الترتيب عشان تتحكم مين يظهر الأول
     defineField({
       name: 'order',
       title: 'ترتيب العرض (Sorting Order)',
@@ -74,8 +73,45 @@ export default defineType({
       initialValue: 0,
     }),
 
+    // ==========================================
+    // 2️⃣ حقول الذكاء الاصطناعي (GEO & AEO Updates)
+    // ==========================================
+    defineField({
+      name: 'aiSummaryAr',
+      title: 'نقاط تلخيصية للذكاء الاصطناعي (Ar) - GEO',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: Cpu,
+      of: [{type: 'string'}],
+      description: 'أضف أهم 3 نقاط تميز هذا الحي (مثال: القرب من الجامعة الأمريكية، هدوء تام، مرافق متكاملة).'
+    }),
+    defineField({
+      name: 'aiSummaryEn',
+      title: 'AI Summary Highlights (En)',
+      type: 'array',
+      group: 'aiFeatures',
+      of: [{type: 'string'}]
+    }),
+    defineField({
+      name: 'faqs',
+      title: 'أسئلة شائعة عن الحي (AEO FAQ Schema)',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: HelpCircle,
+      of: [{
+        type: 'object',
+        fields: [
+          {name: 'questionAr', title: 'السؤال (عربي)', type: 'string'},
+          {name: 'answerAr', title: 'الجواب (عربي)', type: 'text', rows: 3},
+          {name: 'questionEn', title: 'Question (English)', type: 'string'},
+          {name: 'answerEn', title: 'Answer (English)', type: 'text', rows: 3}
+        ]
+      }],
+      description: 'الأسئلة التي يطرحها الناس غالباً عن هذا الحي (مثل: ما هي أسعار المتر في حي النرجس؟).'
+    }),
+
     // ================================
-    // 2️⃣ المحتوى (Rich Text)
+    // 3️⃣ المحتوى (Rich Text)
     // ================================
     defineField({
       name: 'descriptionAr',
@@ -92,7 +128,7 @@ export default defineType({
             {title: 'اقتباس', value: 'blockquote'},
           ],
         },
-        { type: 'image', options: { hotspot: true } } // ✅ السماح بإضافة صور وسط الكلام
+        { type: 'image', options: { hotspot: true } }
       ],
     }),
 
@@ -111,27 +147,26 @@ export default defineType({
             {title: 'Quote', value: 'blockquote'},
           ],
         },
-        { type: 'image', options: { hotspot: true } } // ✅ السماح بإضافة صور وسط الكلام
+        { type: 'image', options: { hotspot: true } }
       ],
     }),
 
     // ================================
-    // 3️⃣ إعدادات السيو (SEO)
+    // 4️⃣ إعدادات السيو (SEO)
     // ================================
     defineField({
       name: 'seo',
       title: 'إعدادات محركات البحث',
-      type: 'seo', // ✅ استدعاء الكبسولة الجاهزة
+      type: 'seo', 
       group: 'seo'
     })
   ],
 
-  // تحسين شكل الكارت في القائمة
   preview: {
     select: {
       title: 'nameAr',
       subtitle: 'nameEn',
-      areaAr: 'location.nameAr', // بيجيب اسم المنطقة الأب
+      areaAr: 'location.nameAr',
       media: 'image',
     },
     prepare(selection) {

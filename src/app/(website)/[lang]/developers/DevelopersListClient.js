@@ -8,12 +8,14 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { Building2, Search, X, ChevronRight, ChevronLeft, MessageCircle, Phone, Calendar, ArrowRight, MapPin, Home } from 'lucide-react';
 
+const BASE_URL = 'https://platformrealestate.co';
+
 export default function DevelopersListClient({ 
   initialDevelopers = [], 
   initialPosts = [], 
-  initialProjects = [],  // ✅ تمت إضافتها للبحث
-  initialAreas = [],     // ✅ تمت إضافتها للبحث
-  initialDistricts = [], // ✅ تمت إضافتها للبحث
+  initialProjects = [], 
+  initialAreas = [], 
+  initialDistricts = [], 
   lang 
 }) {
   const isAr = lang === 'ar';
@@ -78,7 +80,7 @@ export default function DevelopersListClient({
         _id: a._id,
         title: isAr ? a.nameAr : a.nameEn,
         typeLabel: isAr ? 'منطقة' : 'Area',
-        url: `/${lang}/areas/${a.slug}/`,
+        url: `/${lang}/locations/${a.slug}/`,
         image: null,
         icon: 'area',
         subtitle: isAr ? 'تصفح المنطقة' : 'Explore Area'
@@ -123,6 +125,7 @@ export default function DevelopersListClient({
               onFocus={() => setIsOpen(true)}
               onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
               placeholder={isAr ? "ابحث عن مطور، مشروع، منطقة..." : "Search developers, projects, areas..."} 
+              aria-label="Search Developers and Projects"
               className="relative w-full bg-white rounded-full py-5 md:py-7 px-14 md:px-16 text-lg font-bold focus:ring-4 focus:ring-[#C02026]/20 outline-none text-slate-900 shadow-2xl transition-all"
             />
 
@@ -138,7 +141,6 @@ export default function DevelopersListClient({
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group ${isAr ? 'text-right' : 'text-left'}`}
                         >
-                          {/* أيقونة العنصر الديناميكية */}
                           <div className="w-12 h-12 bg-slate-100 rounded-2xl p-2 shrink-0 border border-slate-200 group-hover:border-[#C02026]/30 transition-all flex items-center justify-center overflow-hidden relative">
                             {item.image ? (
                               <Image src={urlFor(item.image).width(100).url()} alt={item.title} fill className="object-contain p-1" unoptimized={true} />
@@ -149,7 +151,6 @@ export default function DevelopersListClient({
                             )}
                           </div>
                           
-                          {/* تفاصيل العنصر مع حماية الـ min-w-0 */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-[8px] font-black text-white bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-widest group-hover:bg-[#C02026] transition-colors">
@@ -186,17 +187,27 @@ export default function DevelopersListClient({
         </div>
       </header>
 
-      {/* 🏙️ DEVELOPERS GRID (يعرض المطورين فقط) */}
+      {/* 🏙️ DEVELOPERS GRID (✅ تم دعمه بـ ItemList Microdata) */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10">
-          {filteredDevelopers.map((dev) => (
-            <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex flex-col items-center text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10" itemScope itemType="https://schema.org/ItemList">
+          {filteredDevelopers.map((dev, index) => (
+            <Link 
+              key={dev._id} 
+              href={`/${lang}/developers/${dev.slug}/`} 
+              className="group flex flex-col items-center text-center"
+              itemProp="itemListElement" 
+              itemScope 
+              itemType="https://schema.org/ListItem"
+            >
+              <meta itemProp="position" content={index + 1} />
+              <meta itemProp="url" content={`${BASE_URL}/${lang}/developers/${dev.slug}/`} />
+              
               <div className="aspect-square w-full relative mb-6 bg-slate-50 rounded-[2rem] md:rounded-[3rem] p-6 border border-slate-100 group-hover:border-[#C02026]/30 transition-all">
                 {dev.logo ? (
-                  <Image src={urlFor(dev.logo).width(400).url()} alt="logo" fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" unoptimized={true} />
+                  <Image src={urlFor(dev.logo).width(400).url()} alt={isAr ? dev.nameAr : dev.nameEn} fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" unoptimized={true} />
                 ) : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} className="text-slate-200" /></div>}
               </div>
-              <h2 className="text-base md:text-xl font-black text-slate-900 px-2 leading-tight uppercase italic overflow-visible w-full break-words">
+              <h2 itemProp="name" className="text-base md:text-xl font-black text-slate-900 px-2 leading-tight uppercase italic overflow-visible w-full break-words">
                 {isAr ? dev.nameAr : dev.nameEn}
               </h2>
               <div className="mt-3 text-[10px] font-black text-[#C02026] uppercase tracking-widest bg-red-50 px-4 py-1.5 rounded-full">
@@ -212,7 +223,7 @@ export default function DevelopersListClient({
         </div>
       </section>
 
-      {/* 📰 ✅ قسم أخبار العمالقة (TITAN INTEL) */}
+      {/* 📰 ✅ قسم أخبار العمالقة (تم دعمه بـ ItemList Microdata) */}
       {initialPosts && initialPosts.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 py-20 border-t border-slate-100">
           <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
@@ -228,9 +239,19 @@ export default function DevelopersListClient({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {initialPosts.slice(0, 3).map((post) => (
-              <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8" itemScope itemType="https://schema.org/ItemList">
+            {initialPosts.slice(0, 3).map((post, index) => (
+              <Link 
+                key={post.slug} 
+                href={`/${lang}/blog/${post.slug}/`} 
+                className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500"
+                itemProp="itemListElement" 
+                itemScope 
+                itemType="https://schema.org/ListItem"
+              >
+                <meta itemProp="position" content={index + 1} />
+                <meta itemProp="url" content={`${BASE_URL}/${lang}/blog/${post.slug}/`} />
+
                 <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
                   {post.mainImage && (
                     <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s] " unoptimized={true} />
@@ -246,7 +267,7 @@ export default function DevelopersListClient({
                     <Calendar size={12} className="text-[#C02026]" />
                     {new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short' })}
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors leading-tight italic uppercase">
+                  <h3 itemProp="name" className="text-xl font-black text-slate-900 mb-4 group-hover:text-[#C02026] transition-colors leading-tight italic uppercase">
                     {post.title}
                   </h3>
                   <p className="text-slate-500 text-sm font-medium line-clamp-2 leading-relaxed">

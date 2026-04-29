@@ -1,5 +1,5 @@
 import { defineField, defineType } from 'sanity'
-import { Cog } from 'lucide-react'
+import { Cog, Phone, Cpu, HelpCircle, Share2 } from 'lucide-react'
 
 export default defineType({
   name: 'siteSettings',
@@ -7,9 +7,12 @@ export default defineType({
   type: 'document',
   icon: Cog,
   
+  // ✅ تنظيم المجموعات لتشمل الذكاء الاصطناعي وبيانات الثقة
   groups: [
     { name: 'hero', title: 'واجهة الصفحة الرئيسية', default: true },
     { name: 'social', title: 'السوشيال ميديا' },
+    { name: 'contact', title: '📞 بيانات التواصل (E-E-A-T)' }, // مجموعة جديدة للثقة
+    { name: 'aiFeatures', title: '🤖 ذكاء اصطناعي (GEO & AEO)' }, // مجموعة جديدة للمحركات التوليدية
     { name: 'seo', title: 'SEO & Google' },
   ],
 
@@ -54,7 +57,59 @@ export default defineType({
       ]
     }),
 
-    // --- 🌐 2. SOCIAL MEDIA ---
+    // --- 📞 2. CONTACT INFO (Trust Signals / E-E-A-T) ---
+    // هذه البيانات ضرورية جداً لمحركات الذكاء الاصطناعي لإثبات أنكم كيان حقيقي
+    defineField({
+      name: 'contactInfo',
+      title: 'بيانات التواصل والمقر الرسمي',
+      type: 'object',
+      group: 'contact',
+      icon: Phone,
+      fields: [
+        { name: 'phone', title: 'رقم الهاتف الرسمي', type: 'string' },
+        { name: 'whatsapp', title: 'رقم الواتساب', type: 'string' },
+        { name: 'email', title: 'البريد الإلكتروني الرسمي', type: 'string' },
+        { name: 'addressAr', title: 'عنوان المقر (عربي)', type: 'string' },
+        { name: 'addressEn', title: 'Headquarters Address (En)', type: 'string' },
+      ]
+    }),
+
+    // --- 🤖 3. AI & ANSWER ENGINE FEATURES (GEO & AEO) ---
+    defineField({
+      name: 'aiSummaryAr',
+      title: 'خلاصة تعريف الموقع للذكاء الاصطناعي (Ar)',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: Cpu,
+      of: [{type: 'string'}],
+      description: 'أهم 3-4 نقاط تميز المنصة (تستخدمها ChatGPT وجوجل للتعريف بموقعكم في الإجابات المباشرة).'
+    }),
+    defineField({
+      name: 'aiSummaryEn',
+      title: 'Global AI Summary (En)',
+      type: 'array',
+      group: 'aiFeatures',
+      of: [{type: 'string'}]
+    }),
+    defineField({
+      name: 'globalFaqs',
+      title: 'أسئلة شائعة عامة عن السوق (AEO)',
+      type: 'array',
+      group: 'aiFeatures',
+      icon: HelpCircle,
+      of: [{
+        type: 'object',
+        fields: [
+          {name: 'questionAr', title: 'السؤال (عربي)', type: 'string'},
+          {name: 'answerAr', title: 'الجواب (عربي)', type: 'text', rows: 3},
+          {name: 'questionEn', title: 'Question (English)', type: 'string'},
+          {name: 'answerEn', title: 'Answer (English)', type: 'text', rows: 3}
+        ]
+      }],
+      description: 'أضف أسئلة عامة مثل: "لماذا استثمر في عقارات مصر؟" لتظهر كإجابة مباشرة في المحركات.'
+    }),
+
+    // --- 🌐 4. SOCIAL MEDIA ---
     defineField({
       name: 'facebook',
       title: 'Facebook URL',
@@ -86,8 +141,7 @@ export default defineType({
       group: 'social'
     }),
 
-    // --- 🔍 3. SEO SETTINGS ---
-    // ✅ إضافة الحقول الفردية لضمان عدم تكرار العناوين وحل مشاكل Semrush
+    // --- 🔍 5. SEO SETTINGS ---
     defineField({
       name: 'metaTitleAr',
       title: 'العنوان الأساسي للسيو (عربي)',

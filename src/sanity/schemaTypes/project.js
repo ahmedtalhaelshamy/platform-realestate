@@ -1,5 +1,5 @@
 import { defineField, defineType } from 'sanity'
-import { Building2 } from 'lucide-react'
+import { Building2, Cpu, HelpCircle, Lightbulb } from 'lucide-react'
 
 // 1. إعدادات المحتوى الغني الموحدة
 const richTextConfig = [
@@ -52,6 +52,7 @@ export default defineType({
     { name: 'hero', title: '1. الهيرو والعنوان (Hero)', options: { collapsible: true } }, 
     { name: 'badges', title: '🏷️ شارات وتميز (Badges)', options: { columns: 2 } }, 
     { name: 'infoBar', title: '2. شريط المعلومات (Info Bar)', options: { collapsible: true } }, 
+    { name: 'aiFeatures', title: '🤖 ذكاء اصطناعي (AI & Answer Engine)', options: { collapsible: true } }, // مجموعة جديدة لـ GEO
     { name: 'intro', title: '3. المقدمة (Introduction)', options: { collapsible: true } },
     { name: 'locationSec', title: '4. قسم الموقع (Location)', options: { collapsible: true } },
     { name: 'projectDetails', title: '5. تفاصيل المشروع (Project Details)', options: { collapsible: true } },
@@ -81,12 +82,7 @@ export default defineType({
         { name: 'metaTitleEn', title: 'Title (En)', type: 'string' },
         { name: 'metaDescAr', title: 'Description (Ar)', type: 'text', rows: 3 },
         { name: 'metaDescEn', title: 'Description (En)', type: 'text', rows: 3 },
-        { 
-          name: 'ogImage', 
-          title: 'صورة المشاركة (OG Image)', 
-          type: 'image', 
-          description: 'تظهر عند مشاركة الرابط على واتساب وفيسبوك (1200x630px)' 
-        },
+        { name: 'ogImage', title: 'صورة المشاركة (OG Image)', type: 'image' },
         {
           name: 'schemaType',
           title: 'نوع الصفحة (Schema Type)',
@@ -99,13 +95,11 @@ export default defineType({
             ]
           }
         },
-        // ✅ إضافة حقل الـ No Index المطلوب هنا (داخل كائن seo ليبقى منظماً)
         {
           name: 'noIndex',
           title: 'منع الأرشفة (No Index)',
           type: 'boolean',
           initialValue: false,
-          description: 'عند التفعيل، سيتم إضافة وسم noindex للصفحة وحذفها تماماً من الـ Sitemap'
         }
       ]
     }),
@@ -139,6 +133,24 @@ export default defineType({
     defineField({ name: 'isFeatured', title: '⭐ مميز', type: 'boolean', fieldset: 'badges', initialValue: false }),
     defineField({ name: 'isInvestmentOpportunity', title: '📈 فرصة استثمارية', type: 'boolean', fieldset: 'badges', initialValue: false }),
 
+    // --- 🔹 قسم الذكاء الاصطناعي (NEW FOR GEO) ---
+    defineField({
+      name: 'aiSummaryAr',
+      title: 'ملخص المشروع للذكاء الاصطناعي (Ar)',
+      type: 'array',
+      fieldset: 'aiFeatures',
+      of: [{ type: 'string' }],
+      icon: Lightbulb,
+      description: 'أهم 3-4 نقاط تجذب العميل (يستخدمها ChatGPT وجوجل للرد السريع على "لماذا أشتري في هذا المشروع؟").'
+    }),
+    defineField({
+      name: 'aiSummaryEn',
+      title: 'AI Insights Summary (En)',
+      type: 'array',
+      fieldset: 'aiFeatures',
+      of: [{ type: 'string' }],
+    }),
+
     // --- 2. INFO BAR ---
     defineField({ 
       name: 'finishingType', 
@@ -170,7 +182,6 @@ export default defineType({
           { title: 'إداري (Admin)', value: 'Admin' },
           { title: 'طبي (Medical)', value: 'Medical' },
           { title: 'فندقي (Hotel)', value: 'Hotel' }
-        ,
         ],
         layout: 'grid' 
       }
@@ -301,19 +312,21 @@ export default defineType({
     defineField({ name: 'consEn', title: 'Cons (En)', type: 'array', of: [{type: 'string'}], fieldset: 'analysis' }),
     defineField({ 
       name: 'faqs', 
-      title: 'الأسئلة الشائعة', 
+      title: 'الأسئلة الشائعة للمحركات (AEO)', 
       type: 'array', 
-      fieldset: 'analysis',
+      fieldset: 'aiFeatures',
       of: [{
         name: 'faqItem',
         type: 'object', 
+        icon: HelpCircle,
         fields: [
           {name: 'questionAr', title:'سؤال (Ar)', type: 'string'}, 
           {name: 'answerAr', title:'جواب (Ar)', type: 'text'},
           {name: 'questionEn', title:'Question (En)', type: 'string'}, 
           {name: 'answerEn', title:'Answer (En)', type: 'text'}
         ]
-      }]
+      }],
+      description: 'أضف الأسئلة التي يبحث عنها المستخدمون في جوجل لتظهر كإجابة مباشرة (Rich Snippets).'
     }),
     defineField({ name: 'author', title: 'كاتب الصفحة', type: 'reference', to: [{type: 'author'}], fieldset: 'analysis' }),
   ],

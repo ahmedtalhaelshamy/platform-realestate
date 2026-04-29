@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
-// ✅ الأداء: ISR كل ساعة لضمان سرعة الاستجابة
+// ✅ الأداء: ISR لضمان سرعة الاستجابة
 export const revalidate = false;
 // 🏁 الدومين الموحد المعتمد
 const BASE_URL = 'https://platformrealestate.co';
@@ -139,6 +139,9 @@ export default async function ProjectDetailPage({ params }) {
   const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
     ...,
     _id,
+    aiSummaryAr,
+    aiSummaryEn,
+    faqs,
     "slug": slug.current,
     "brochureUrl": brochure.asset->url,
     "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
@@ -178,24 +181,45 @@ export default async function ProjectDetailPage({ params }) {
     { label: sanitizedData.computedH1 }
   ];
 
+  // ✅ [AEO & GEO] بناء الـ Structured Data المتقدمة بصيغة Graph
+  const currentUrl = `${BASE_URL}/${lang}/projects/${slug}/`;
+  const faqList = data.faqs?.map(f => ({
+    '@type': 'Question',
+    'name': isAr ? f.questionAr : f.questionEn,
+    'acceptedAnswer': { '@type': 'Answer', 'text': isAr ? f.answerAr : f.answerEn }
+  })).filter(q => q.name && q.acceptedAnswer.text) || [];
+
   const mainSchema = {
     '@context': 'https://schema.org',
-    '@type': data.seo?.schemaType || 'RealEstateListing',
-    'name': sanitizedData.computedH1,
-    'description': getSafeText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
-    'image': getSafeImageUrl(data.mainImage),
-    'url': `${BASE_URL}/${lang}/projects/${slug}/`,
-    'brand': {
-      '@type': 'Brand',
-      'name': sanitizedData.developerName
-    },
-    'address': {
-      '@type': 'PostalAddress',
-      'addressLocality': sanitizedData.districtName,
-      'addressRegion': sanitizedData.cityName,
-      'addressCountry': 'EG'
-    }
+    '@graph': [
+      {
+        '@type': data.seo?.schemaType || 'RealEstateListing',
+        '@id': `${currentUrl}#listing`,
+        'name': sanitizedData.computedH1,
+        'description': getSafeText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn).substring(0, 200),
+        'image': getSafeImageUrl(data.mainImage),
+        'url': currentUrl,
+        'brand': {
+          '@type': 'Brand',
+          'name': sanitizedData.developerName
+        },
+        'address': {
+          '@type': 'PostalAddress',
+          'addressLocality': sanitizedData.districtName,
+          'addressRegion': sanitizedData.cityName,
+          'addressCountry': 'EG'
+        }
+      }
+    ]
   };
+
+  if (faqList.length > 0) {
+    mainSchema['@graph'].push({
+      '@type': 'FAQPage',
+      '@id': `${currentUrl}#faq`,
+      'mainEntity': faqList
+    });
+  }
 
   return (
     <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>

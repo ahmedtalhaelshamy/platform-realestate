@@ -25,8 +25,10 @@ const jakarta = Plus_Jakarta_Sans({
 
 async function getSiteSettings() {
   try {
+    // ✅ [GEO/AEO]: جلب كل البيانات المطلوبة للـ Schema الشاملة
     const query = `*[_type == "siteSettings"][0]{ 
       seo, 
+      facebook, instagram, linkedin, youtube, tiktok,
       contactInfo { whatsapp, phone, email, addressAr, addressEn } 
     }`;
     return await client.fetch(query, {}, { next: { revalidate: 3600 } });
@@ -101,23 +103,52 @@ export default async function WebsiteLayout({ children, params }) {
   const { lang } = await params;
   const isAr = lang === 'ar';
   const settings = await getSiteSettings();
+  const baseUrl = 'https://platformrealestate.co';
 
+  // ✅ تجميع روابط السوشيال ميديا لإخبار جوجل أنهم نفس الكيان (Entity Linking)
+  const socialLinks = [
+    settings?.facebook,
+    settings?.instagram,
+    settings?.linkedin,
+    settings?.youtube,
+    settings?.tiktok
+  ].filter(Boolean);
+
+  // ✅ [AEO & GEO E-E-A-T Schema]: التغليف المتقدم للموقع ككيان عقاري موثوق
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
-    "url": "https://platformrealestate.co",
-    "logo": "https://platformrealestate.co/icon.png",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Cairo",
-      "addressCountry": "EG"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": settings?.contactInfo?.phone || CONTACT_INFO.phone,
-      "contactType": "customer service"
-    }
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${baseUrl}/#website`,
+        "url": baseUrl,
+        "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
+        "inLanguage": isAr ? "ar-EG" : "en-US",
+        "publisher": { "@id": `${baseUrl}/#organization` }
+      },
+      {
+        "@type": ["Organization", "RealEstateAgent"],
+        "@id": `${baseUrl}/#organization`,
+        "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
+        "url": baseUrl,
+        "logo": `${baseUrl}/icon.png`,
+        "image": `${baseUrl}/og-image.png`,
+        "sameAs": socialLinks.length > 0 ? socialLinks : undefined,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Cairo",
+          "addressCountry": "EG",
+          "streetAddress": isAr ? settings?.contactInfo?.addressAr : settings?.contactInfo?.addressEn
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": settings?.contactInfo?.phone || CONTACT_INFO.phone,
+          "contactType": "customer service",
+          "areaServed": "EG",
+          "availableLanguage": ["Arabic", "English"]
+        }
+      }
+    ]
   };
 
   return (

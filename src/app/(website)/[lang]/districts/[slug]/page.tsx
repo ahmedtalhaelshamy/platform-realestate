@@ -4,7 +4,7 @@ import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
-import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, ArrowRight } from 'lucide-react';
+import { MapPin, Building2, Info, Phone, MessageCircle, Sparkles, ArrowUpRight, ArrowRight, Cpu, HelpCircle, ChevronDown, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -66,9 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const currentPath = `${BASE_URL}/${lang}/districts/${slug}/`;
 
   return {
-    title: {
-      absolute: title, // 🚀 سيطرة يدوية كاملة
-    },
+    title: { absolute: title },
     description: description.substring(0, 160) || (isAr 
       ? `استكشف أفضل العقارات والمشاريع في ${name}. مقارنة أسعار وأنظمة سداد.` 
       : `Explore top projects in ${name}. Compare prices and plans.`),
@@ -105,7 +103,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
 
   const query = `{
     "district": *[_type == "district" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
-      _id, nameAr, nameEn, descriptionAr, descriptionEn, image,
+      _id, nameAr, nameEn, descriptionAr, descriptionEn, image, aiSummaryAr, aiSummaryEn, faqs,
       "location": location->{_id, nameAr, nameEn, "slug": slug.current},
       "projects": *[_type == "project" && references(^._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc, _createdAt desc) {
         _id, titleAr, titleEn, price, installments, downPayment, 
@@ -126,6 +124,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
   const { district } = data;
   const distName = isAr ? getSafeText(district.nameAr) : getSafeText(district.nameEn);
   const parentLocName = isAr ? getSafeText(district.location.nameAr) : getSafeText(district.location.nameEn);
+  const aiSummary = isAr ? district.aiSummaryAr : district.aiSummaryEn;
 
   const locationProjectsQuery = `*[_type == "project" && location._ref == $locationId && !references($districtId) && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...6] {
     _id, titleAr, titleEn, price, installments, downPayment, 
@@ -146,29 +145,52 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
     { label: distName }
   ];
 
+  const currentPath = `${BASE_URL}/${lang}/districts/${slug}/`;
   const whatsappPhone = CONTACT_INFO.whatsapp.replace(/\D/g, '');
   const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(isAr ? `استفسار عن العقارات في حي ${distName}` : `Property inquiry in ${distName} District`)}`;
 
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "Place",
-    "name": distName,
-    "description": isAr ? `دليل الاستثمار والمشاريع في ${distName}` : `Investment hub in ${distName} district`,
-    "url": `${BASE_URL}/${lang}/districts/${slug}/`,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": distName,
-      "addressRegion": parentLocName,
-      "addressCountry": "EG"
+  // ✅ [AEO & GEO] بناء الـ Schema المشتركة (Place + FAQPage)
+  const faqList = district.faqs?.map((faq: any) => ({
+    '@type': 'Question',
+    'name': isAr ? faq.questionAr : faq.questionEn,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': isAr ? faq.answerAr : faq.answerEn
     }
-  };
+  })).filter((q: any) => q.name && q.acceptedAnswer.text) || [];
+
+  const graphElements: any[] = [
+    {
+      "@type": "Place",
+      "@id": `${currentPath}#place`,
+      "name": distName,
+      "description": getSafeText(isAr ? district.descriptionAr : district.descriptionEn).substring(0, 200) || distName,
+      "url": currentPath,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": distName,
+        "addressRegion": parentLocName,
+        "addressCountry": "EG"
+      },
+      "containedInPlace": {
+        "@type": "Place",
+        "name": parentLocName,
+        "url": `${BASE_URL}/${lang}/locations/${district.location.slug}/`
+      }
+    }
+  ];
+
+  if (faqList.length > 0) {
+    graphElements.push({
+      '@type': 'FAQPage',
+      '@id': `${currentPath}#faq`,
+      'mainEntity': faqList
+    });
+  }
 
   return (
-    <main 
-      className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} 
-      dir={isAr ? 'rtl' : 'ltr'}
-    >       
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
+    <main className={`min-h-screen bg-white selection:bg-[#C02026] selection:text-white overflow-x-hidden ${isAr ? 'font-almarai' : 'font-jakarta'}`} dir={isAr ? 'rtl' : 'ltr'}>       
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@graph': graphElements }) }} />
       
       {/* 1. HERO SECTION */}
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">
@@ -198,6 +220,24 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-24 space-y-32">
         
+        {/* ✅ [GEO]: AI Quick Facts Section */}
+        {aiSummary && aiSummary.length > 0 && (
+          <section className="bg-brand-gray-50 rounded-[3rem] p-8 md:p-12 border border-slate-100 relative overflow-hidden -mt-20 z-30 shadow-premium">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red/10 rounded-full blur-[80px]" />
+             <div className="flex items-center gap-4 mb-8">
+               <Cpu className="text-brand-red w-10 h-10" />
+               <h3 className="font-black text-2xl md:text-3xl italic uppercase tracking-wider text-brand-dark">{isAr ? `نظرة سريعة على ${distName}` : `${distName} Highlights`}</h3>
+             </div>
+             <ul className="grid md:grid-cols-2 gap-6">
+               {aiSummary.map((point: string, i: number) => (
+                 <li key={i} className="flex gap-4 text-slate-700 font-bold text-lg items-center">
+                   <CheckCircle2 size={24} className="text-[#C02026] shrink-0" /><span>{point}</span>
+                 </li>
+               ))}
+             </ul>
+          </section>
+        )}
+
         {/* 2. DISTRICT PROJECTS GRID */}
         <section id="projects-grid">
           <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8 border-s-[12px] border-brand-red ps-8 text-start">
@@ -216,7 +256,6 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12">
               {district.projects.map((proj: any, index: number) => (
                 <div key={proj._id} className="animate-fade-in-up">
-                  {/* ✅ الإصلاح: تغيير priority إلى isPriority */}
                   <ProjectCard data={proj} lang={lang} isPriority={index < 3} />
                 </div>
               ))}
@@ -246,15 +285,43 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                     </div>
                   </section>
                 )}
+
+                {/* ✅ [AEO]: FAQs Section for AI Response Engines */}
+                {district.faqs && district.faqs.length > 0 && (
+                  <section className="mt-24 space-y-12" itemScope itemType="https://schema.org/FAQPage">
+                     <h2 className="text-3xl md:text-5xl font-black text-brand-dark flex items-center gap-4 italic uppercase tracking-tighter leading-none text-start">
+                        <HelpCircle size={40} className="text-brand-red" />
+                        {isAr ? `أسئلة وأجوبة حول ${distName}` : `District Intelligence`}
+                     </h2>
+                     <div className="space-y-4">
+                        {district.faqs.map((faq: any, i: number) => {
+                          const q = isAr ? faq.questionAr : faq.questionEn;
+                          const a = isAr ? faq.answerAr : faq.answerEn;
+                          if (!q || !a) return null;
+                          return (
+                            <details key={i} className="group bg-brand-gray-50 p-6 md:p-10 rounded-[2.5rem] border border-slate-100 cursor-pointer text-start transition-all" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                              <summary className="flex justify-between items-center font-black text-lg md:text-xl outline-none uppercase italic text-brand-dark">
+                                <span itemProp="name">{q}</span>
+                                <span className="text-brand-red group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+                              </summary>
+                              <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="mt-6 text-slate-600 font-medium leading-relaxed border-t border-slate-200 pt-6">
+                                <p itemProp="text">{a}</p>
+                              </div>
+                            </details>
+                          );
+                        })}
+                     </div>
+                  </section>
+                )}
             </article>
 
             <aside className="lg:col-span-4 lg:sticky lg:top-32 order-1 lg:order-2">
-                <section className="bg-brand-dark rounded-[4rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border-b-[16px] border-brand-red group">
+                <section className="bg-brand-dark rounded-[4rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border-b-[16px] border-brand-red group text-start">
                     <div className="absolute -top-16 -end-16 opacity-10 group-hover:rotate-12 transition-transform duration-[2s] pointer-events-none">
                         <Building2 size={350} />
                     </div>
                     
-                    <div className="relative z-10 text-start">
+                    <div className="relative z-10">
                         <div className="inline-flex items-center gap-3 bg-brand-red px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase mb-10 shadow-xl border border-white/10">
                             <Sparkles size={14} className="animate-pulse" /> {isAr ? 'دعم استثماري' : 'Platinum Support'}
                         </div>
@@ -300,7 +367,6 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14">
               {locationProjects.map((proj: any) => (
                 <div key={proj._id}>
-                  {/* ✅ الإصلاح: تغيير priority إلى isPriority */}
                   <ProjectCard data={proj} lang={lang} isPriority={false} />
                 </div>
               ))}
@@ -328,13 +394,12 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
               {district.relatedPosts.map((post: any) => (
                 <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500">
-                  <div className="aspect-[16/10] overflow-hidden relative">
+                  <div className="aspect-[16/10] overflow-hidden relative bg-slate-200">
                     <Image 
                       src={urlFor(post.mainImage).url()} 
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  
                     />
                   </div>
                   <div className="p-10 flex flex-col flex-1 text-start">

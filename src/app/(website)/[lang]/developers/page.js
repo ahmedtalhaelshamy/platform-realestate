@@ -61,25 +61,60 @@ export async function generateMetadata({ params }) {
 
 export default async function DevelopersPage({ params }) {
   const { lang } = await params;
+  const isAr = lang === 'ar';
+  const baseUrl = 'https://platformrealestate.co';
+  const currentUrl = `${baseUrl}/${lang}/developers/`;
   
-  // جلب قائمة المطورين مع جلب الأخبار المرتبطة لضمان سرعة العرض
+  // 1. جلب قائمة المطورين
   const developers = await client.fetch(`*[_type == "developer" && !(_id in path("drafts.**"))] | order(order asc) {
     _id, nameAr, nameEn, "slug": slug.current, logo,
     "projectsCount": count(*[_type == "project" && references(^._id) && !(_id in path("drafts.**"))])
   }`);
 
-  // جلب أحدث 3 أخبار متعلقة بالشركات لعرضها في قسم TITAN INTEL
+  // 2. جلب أحدث 3 أخبار متعلقة بالشركات لعرضها في قسم TITAN INTEL
   const initialPosts = await client.fetch(`*[_type == "post" && language == $lang] | order(_createdAt desc)[0...3] {
     title, "slug": slug.current, mainImage, overview, _createdAt
   }`, { lang });
 
+  // ✅ [تغذية محرك البحث - Omni Search]: جلب المشاريع، المناطق، والأحياء لتشغيل البحث السريع
+  const initialProjects = await client.fetch(`*[_type == "project" && !(_id in path("drafts.**"))] { _id, titleAr, titleEn, "slug": slug.current, mainImage }`);
+  const initialAreas = await client.fetch(`*[_type == "location" && !(_id in path("drafts.**"))] { _id, nameAr, nameEn, "slug": slug.current }`);
+  const initialDistricts = await client.fetch(`*[_type == "district" && !(_id in path("drafts.**"))] { _id, nameAr, nameEn, "slug": slug.current }`);
+
+  // ✅ [AEO & GEO]: بناء سكيما الـ CollectionPage وربط المطورين فيها
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${currentUrl}#collection`,
+    "name": isAr ? "أهم المطورين العقاريين في مصر" : "Top Real Estate Developers",
+    "description": isAr ? "دليل شامل لأكبر شركات التطوير العقاري في مصر" : "Comprehensive guide to the largest real estate development companies in Egypt",
+    "url": currentUrl,
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": developers.map((dev, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `${baseUrl}/${lang}/developers/${dev.slug}/`,
+        "name": isAr ? dev.nameAr : dev.nameEn
+      }))
+    }
+  };
+
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center font-black animate-pulse text-slate-200 uppercase tracking-widest">Generating Intelligence...</div>}>
-      <DevelopersListClient 
-        initialDevelopers={developers} 
-        initialPosts={initialPosts} 
-        lang={lang} 
-      />
-    </Suspense>
+    <>
+      {/* حقن البيانات المهيكلة في الهيدر الخفي */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
+      
+      <Suspense fallback={<div className="h-screen flex items-center justify-center font-black animate-pulse text-slate-200 uppercase tracking-widest">Generating Intelligence...</div>}>
+        <DevelopersListClient 
+          initialDevelopers={developers} 
+          initialPosts={initialPosts} 
+          initialProjects={initialProjects}
+          initialAreas={initialAreas}
+          initialDistricts={initialDistricts}
+          lang={lang} 
+        />
+      </Suspense>
+    </>
   );
 }
