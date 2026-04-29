@@ -8,7 +8,7 @@ import FeaturedProjects from '@/components/sections/FeaturedProjects';
 import SearchFilter from '@/components/SearchFilter';
 import AboutSection from '@/components/AboutSection';
 import CityCarousel from '@/components/CityCarousel'; 
-import { ShieldCheck, ArrowRight, Award, CheckCircle, Gem } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Award, CheckCircle, Gem, Cpu, CheckCircle2, HelpCircle, ChevronDown } from 'lucide-react';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
 // ✅ 1. PERFORMANCE & CACHING
@@ -50,10 +50,7 @@ export async function generateMetadata({ params }) {
     : `${baseUrl}/og-image.jpg`;
 
   return {
-    // 🚀 استخدام absolute لمنع Next.js من دمج العنوان مع الـ Layout Template
-    title: {
-      absolute: title,
-    },
+    title: { absolute: title },
     description: description.substring(0, 160),
     alternates: { 
       canonical: `${baseUrl}/${lang}/`,
@@ -85,6 +82,7 @@ async function getPageData() {
   const query = `{
     "settings": *[_type == "siteSettings"][0]{ 
         titleAr, titleEn, descriptionAr, descriptionEn, heroImage, 
+        aiSummaryAr, aiSummaryEn, globalFaqs,
         "seo": seo { metaTitleAr, metaTitleEn, metaDescAr, metaDescEn, openGraphImage }
     },
     "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...15] {
@@ -111,21 +109,42 @@ export default async function HomePage({ params }) {
 
   const { settings, projects, developers } = data;
   const marqueeItems = [...developers, ...developers, ...developers];
+  const baseUrl = 'https://platformrealestate.co';
 
-  const organizationSchema = {
+  // ✅ [AEO/GEO Graph Schema]: دمج الهوية مع الأسئلة الشائعة
+  const graphSchema = {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
-    "url": `https://platformrealestate.co/${lang}/`,
-    "logo": `https://platformrealestate.co/logo.png`,
-    "telephone": CONTACT_INFO.phone,
-    "sameAs": Object.values(CONTACT_INFO.social),
-    "address": { "@type": "PostalAddress", "addressLocality": "New Cairo", "addressCountry": "EG" }
+    "@graph": [
+      {
+        "@type": "RealEstateAgent",
+        "@id": `${baseUrl}/${lang}/#organization`,
+        "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
+        "url": `${baseUrl}/${lang}/`,
+        "logo": `${baseUrl}/logo.png`,
+        "telephone": CONTACT_INFO.phone,
+        "sameAs": Object.values(CONTACT_INFO.social),
+        "address": { "@type": "PostalAddress", "addressLocality": "New Cairo", "addressCountry": "EG" }
+      }
+    ]
   };
+
+  if (settings?.globalFaqs?.length > 0) {
+    graphSchema["@graph"].push({
+      "@type": "FAQPage",
+      "@id": `${baseUrl}/${lang}/#faq`,
+      "mainEntity": settings.globalFaqs.map(f => ({
+        "@type": "Question",
+        "name": isAr ? f.questionAr : f.questionEn,
+        "acceptedAnswer": { "@type": "Answer", "text": isAr ? f.answerAr : f.answerEn }
+      }))
+    });
+  }
+
+  const aiSummary = isAr ? settings?.aiSummaryAr : settings?.aiSummaryEn;
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(graphSchema) }} />
 
       <main className="min-h-screen bg-white" dir={isAr ? 'rtl' : 'ltr'}>
         
@@ -141,7 +160,6 @@ export default async function HomePage({ params }) {
                 fill
                 sizes="100vw"
                 className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
-             
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60 z-10" aria-hidden="true" />
@@ -173,8 +191,32 @@ export default async function HomePage({ params }) {
           </div>
         </header>
 
-        <div className="pt-40 md:pt-60 space-y-32 md:space-y-48 pb-32">
+        {/* ✅ حل مشكلة الـ Hydration عبر إضافة suppressHydrationWarning وتقسيم المناطق */}
+        <div suppressHydrationWarning className="pt-40 md:pt-60 space-y-32 md:space-y-48 pb-32">
           
+          {/* ✅ [GEO]: AI Strategic Insights - إضافة تعزز ثقة المحركات التوليدية */}
+          {aiSummary && aiSummary.length > 0 && (
+            <section className="max-w-4xl mx-auto px-6">
+                <div className="bg-slate-50 rounded-[2.5rem] p-8 md:p-12 border border-slate-100 relative overflow-hidden">
+                    <div className="absolute top-0 end-0 p-8 opacity-5 text-brand-dark"><Cpu size={120} /></div>
+                    <div className="flex items-center gap-4 mb-8">
+                        <Cpu className="text-brand-red w-8 h-8" />
+                        <h2 className="font-black text-xl italic uppercase tracking-wider text-brand-dark">
+                            {isAr ? 'رؤية المنصة الذكية' : 'AI Market Insight'}
+                        </h2>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {aiSummary.map((point, i) => (
+                            <div key={i} className="flex gap-3 text-slate-600 font-bold text-sm items-center">
+                                <CheckCircle2 size={20} className="text-brand-red shrink-0" />
+                                <span>{point}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+          )}
+
           <AboutSection lang={lang} isAr={isAr} />
           
           <section id="featured" className="bg-brand-gray-50 py-32 border-y border-slate-100" aria-labelledby="featured-title">
@@ -230,6 +272,31 @@ export default async function HomePage({ params }) {
                   <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
           </section>
+
+          {/* ✅ [AEO]: FAQ Section on Homepage - لتعزيز محركات الإجابة */}
+          {settings?.globalFaqs && settings.globalFaqs.length > 0 && (
+            <section className="max-w-4xl mx-auto px-6 py-20">
+                <div className="flex items-center gap-4 mb-12">
+                    <HelpCircle size={40} className="text-brand-red" />
+                    <h2 className={`text-4xl md:text-6xl font-black text-brand-dark uppercase ${isAr ? 'tracking-tight' : 'italic tracking-tighter'}`}>
+                        {isAr ? 'الأسئلة الشائعة' : 'Questions'}
+                    </h2>
+                </div>
+                <div className="space-y-4">
+                    {settings.globalFaqs.map((faq, i) => (
+                        <details key={i} className="group bg-brand-gray-50 p-6 md:p-8 rounded-[2rem] border border-slate-100 cursor-pointer">
+                            <summary className="flex justify-between items-center font-black text-lg md:text-xl outline-none uppercase italic text-brand-dark">
+                                <span>{isAr ? faq.questionAr : faq.questionEn}</span>
+                                <span className="text-brand-red group-open:rotate-180 transition-transform"><ChevronDown size={24}/></span>
+                            </summary>
+                            <div className="mt-6 text-slate-600 font-bold leading-relaxed border-t border-slate-200 pt-6">
+                                <p>{isAr ? faq.answerAr : faq.answerEn}</p>
+                            </div>
+                        </details>
+                    ))}
+                </div>
+            </section>
+          )}
         </div>
 
         <style dangerouslySetInnerHTML={{ __html: `
@@ -273,7 +340,6 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
                 fill 
                 sizes="(max-width: 768px) 200px, 320px"
                 className="object-contain" 
-                
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-slate-500 font-black text-sm uppercase tracking-widest text-center">{dev.nameEn}</div>

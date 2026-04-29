@@ -27,9 +27,8 @@ export const CONTACT_INFO = {
   
   // ✅ الروابط الجغرافية
   // تم تصحيح الرابط ليكون الرابط المباشر للوكيشن
-  googleMapsUrl: "https://maps.app.goo.gl/YourActualLocationLink", 
-  googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18...", 
-
+googleMapsUrl: "https://maps.app.goo.gl/jQGXfPKTeJq2zCJq9", 
+googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3452.871144026363!2d31.373977!3d30.112189!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145817c18c1d305d%3A0xc3f8e65870000!2sStoda%20Sheraton!5e0!3m2!1sen!2seg!4v1714407000000!5m2!1sen!2seg",
   // ✅ التواجد الرقمي (Social Signals)
   social: {
     facebook: "https://www.facebook.com/PlatformRealEstate.eg",
