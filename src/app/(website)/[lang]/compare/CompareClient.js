@@ -152,40 +152,42 @@ export default function CompareClient({ lang }) {
         </header>
 
         {/* ✅ Comparison Table */}
-        <div className="bg-white rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden relative">
+        <div className="bg-white rounded-[2rem] md:rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden relative">
           <div className="overflow-x-auto hide-scrollbar snap-x">
-            <table className="w-full border-collapse">
+            {/* استخدام w-max لإجبار المتصفح على احترام المسافات وإظهار الـ Scroll */}
+            <table className="w-max border-collapse">
               <thead>
                 <tr>
-                  <th className="sticky start-0 z-50 bg-white/95 backdrop-blur-xl p-10 min-w-[200px] md:min-w-[380px] text-start border-e border-slate-50 shadow-[10px_0_30px_-15px_rgba(0,0,0,0.05)]">
-                      <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">{isAr ? 'المواصفات الفنية' : 'Market Intelligence'}</span>
+                  {/* الرأس الثابت: تم تصغير حجمه على الموبايل ليكون 100 بكسل كحد أقصى */}
+                  <th className="sticky start-0 z-50 bg-white/95 backdrop-blur-xl p-3 md:p-10 w-[100px] min-w-[100px] max-w-[100px] md:w-[320px] md:min-w-[320px] md:max-w-none text-center md:text-start border-e border-slate-50 shadow-[10px_0_30px_-15px_rgba(0,0,0,0.05)] align-middle">
+                      <span className="text-[9px] md:text-[11px] font-black uppercase md:tracking-[0.4em] text-slate-400 block">{isAr ? 'المواصفات' : 'Specs'}</span>
                   </th>
                   {projects.map((p, idx) => {
                     const title = getSafeText(isAr ? p.titleAr : p.titleEn);
                     return (
-                      <th key={p._id} className="snap-center p-10 min-w-[340px] md:min-w-[480px] border-b border-slate-50 relative align-top">
-                        <button onClick={() => removeItem(p._id)} className="absolute top-8 end-8 z-30 w-12 h-12 bg-white/90 backdrop-blur shadow-xl rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-600 transition-all border border-slate-100">
-                          <X size={22} />
+                      <th key={p._id} className="snap-center p-4 md:p-10 w-[280px] min-w-[280px] md:w-[480px] md:min-w-[480px] border-b border-slate-50 relative align-top">
+                        <button onClick={() => removeItem(p._id)} className="absolute top-6 end-6 md:top-8 md:end-8 z-30 w-8 h-8 md:w-12 md:h-12 bg-white/90 backdrop-blur shadow-xl rounded-full md:rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-600 transition-all border border-slate-100">
+                          <X size={18} className="md:w-[22px] md:h-[22px]" />
                         </button>
-                        <div className="relative aspect-[16/10] rounded-[3rem] overflow-hidden mb-10 shadow-2xl group">
+                        <div className="relative w-full aspect-[16/10] rounded-2xl md:rounded-[3rem] overflow-hidden mb-6 md:mb-10 shadow-lg md:shadow-2xl group bg-slate-100">
                           {p.mainImage && (
                             <Image 
                               src={urlFor(p.mainImage).url()} 
                               alt={title} 
                               fill 
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              sizes="(max-width: 768px) 280px, 480px"
                               className="object-cover transition-transform duration-1000 group-hover:scale-110" 
                               priority={idx < 2}
                             />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-80" />
-                          <div className="absolute bottom-6 start-8 text-white text-start">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-[#C02026] mb-2">{getSafeText(isAr ? p.location?.nameAr : p.location?.nameEn)}</p>
-                              <h3 className="text-xl md:text-2xl font-black leading-tight italic uppercase tracking-tighter line-clamp-1">{title}</h3>
+                          <div className="absolute bottom-4 md:bottom-6 start-4 md:start-8 text-white text-start pe-4">
+                              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#C02026] mb-1 md:mb-2 line-clamp-1">{getSafeText(isAr ? p.location?.nameAr : p.location?.nameEn)}</p>
+                              <h3 className="text-lg md:text-2xl font-black leading-tight italic uppercase tracking-tighter line-clamp-2">{title}</h3>
                           </div>
                         </div>
-                        <Link href={`/${lang}/projects/${p.slug}/`} className="inline-flex items-center gap-4 bg-slate-50 text-slate-950 px-8 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-950 hover:text-white transition-all w-full justify-center shadow-sm">
-                          {isAr ? 'تفاصيل كاملة' : 'Full Specs'} <ArrowUpRight size={18} />
+                        <Link href={`/${lang}/projects/${p.slug}/`} className="inline-flex items-center gap-2 md:gap-4 bg-slate-50 text-slate-950 px-4 md:px-8 py-3 md:py-5 rounded-xl md:rounded-2xl font-black text-[9px] md:text-[11px] uppercase tracking-widest hover:bg-slate-950 hover:text-white transition-all w-full justify-center shadow-sm">
+                          {isAr ? 'تفاصيل كاملة' : 'Full Specs'} <ArrowUpRight size={14} className="md:w-[18px] md:h-[18px]" />
                         </Link>
                       </th>
                     );
@@ -194,29 +196,30 @@ export default function CompareClient({ lang }) {
               </thead>
 
               <tbody className="divide-y divide-slate-50">
-                <CompareRow icon={<Building2 size={20}/>} label={isAr ? 'المطور' : 'Developer'} projects={projects} field={isAr ? 'developer.nameAr' : 'developer.nameEn'} isBold isAr={isAr} />
-                <CompareRow icon={<Wallet size={20}/>} label={isAr ? 'السعر' : 'Price'} projects={projects} field="price" formatCurrency={formatCurrency} isPrice isAr={isAr} />
-                <CompareRow icon={<Ruler size={20}/>} label={isAr ? 'المساحة' : 'Space'} projects={projects} field="minArea" suffix={isAr ? ' م²' : ' m²'} isAr={isAr} />
-                <CompareRow icon={<CheckCircle2 size={20}/>} label={isAr ? 'المقدم' : 'Down Payment'} projects={projects} field="downPayment" suffix="%" isAr={isAr} />
-                <CompareRow icon={<GitCompare size={20}/>} label={isAr ? 'التقسيط' : 'Plan'} projects={projects} field="installments" suffix={isAr ? ' سنوات' : ' Years'} isAr={isAr} />
-                <CompareRow icon={<Home size={20}/>} label={isAr ? 'الاستلام' : 'Delivery'} projects={projects} field="deliveryDate" isAr={isAr} />
-                <CompareRow icon={<Paintbrush size={20}/>} label={isAr ? 'التشطيب' : 'Finish'} projects={projects} field="finishingType" isAr={isAr} />
-                <CompareRow icon={<Star size={20} className="text-amber-500 fill-amber-500" />} label={isAr ? 'التقييم' : 'Rating'} projects={projects} field="editorRating" suffix="/10" isScore isAr={isAr} />
+                <CompareRow icon={<Building2 className="w-5 h-5"/>} label={isAr ? 'المطور' : 'Developer'} projects={projects} field={isAr ? 'developer.nameAr' : 'developer.nameEn'} isBold isAr={isAr} />
+                <CompareRow icon={<Wallet className="w-5 h-5"/>} label={isAr ? 'السعر' : 'Price'} projects={projects} field="price" formatCurrency={formatCurrency} isPrice isAr={isAr} />
+                <CompareRow icon={<Ruler className="w-5 h-5"/>} label={isAr ? 'المساحة' : 'Space'} projects={projects} field="minArea" suffix={isAr ? ' م²' : ' m²'} isAr={isAr} />
+                <CompareRow icon={<CheckCircle2 className="w-5 h-5"/>} label={isAr ? 'المقدم' : 'Downpay'} projects={projects} field="downPayment" suffix="%" isAr={isAr} />
+                <CompareRow icon={<GitCompare className="w-5 h-5"/>} label={isAr ? 'التقسيط' : 'Plan'} projects={projects} field="installments" suffix={isAr ? ' سنوات' : ' Years'} isAr={isAr} />
+                <CompareRow icon={<Home className="w-5 h-5"/>} label={isAr ? 'الاستلام' : 'Delivery'} projects={projects} field="deliveryDate" isAr={isAr} />
+                <CompareRow icon={<Paintbrush className="w-5 h-5"/>} label={isAr ? 'التشطيب' : 'Finish'} projects={projects} field="finishingType" isAr={isAr} />
+                <CompareRow icon={<Star className="w-5 h-5 text-amber-500 fill-amber-500" />} label={isAr ? 'التقييم' : 'Rating'} projects={projects} field="editorRating" suffix="/10" isScore isAr={isAr} />
 
                 <tr className="bg-slate-50/50">
-                   <td className="sticky start-0 z-30 bg-white/80 backdrop-blur-md p-10 border-e border-slate-50">
-                      <div className="flex items-center gap-4 text-slate-950 font-black text-[11px] uppercase tracking-[0.3em]">
-                        <span className="text-[#C02026]"><Info size={18} /></span> {isAr ? 'احجز الآن' : 'Inquire Now'}
+                   <td className="sticky start-0 z-30 bg-white/90 backdrop-blur-md p-3 md:p-10 border-e border-slate-50 shadow-[4px_0_15px_-5px_rgba(0,0,0,0.05)] w-[100px] min-w-[100px] max-w-[100px] md:w-[320px] md:min-w-[320px] md:max-w-none">
+                      <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1.5 md:gap-4 text-slate-950 font-black text-[9px] md:text-[11px] uppercase tracking-widest md:tracking-[0.3em] text-center md:text-start">
+                        <span className="text-[#C02026]"><Info size={16} className="md:w-[18px] md:h-[18px]" /></span> 
+                        <span>{isAr ? 'تواصل' : 'Inquire'}</span>
                       </div>
                    </td>
                    {projects.map(p => (
-                     <td key={p._id} className="p-10">
+                     <td key={p._id} className="p-4 md:p-10 w-[280px] min-w-[280px] md:w-[480px] md:min-w-[480px]">
                         <a 
                           href={`https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(isAr ? `استفسار عن مقارنة مشروع ${getSafeText(p.titleAr)}` : `Special inquiry about ${getSafeText(p.titleEn)} from comparison matrix`)}`} 
                           target="_blank" rel="noopener noreferrer"
-                          className="w-full flex items-center justify-center gap-4 bg-[#25D366] text-white py-6 rounded-[2.5rem] font-black text-xs uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all active:scale-95"
+                          className="w-full flex items-center justify-center gap-2 md:gap-4 bg-[#25D366] text-white py-4 md:py-6 rounded-xl md:rounded-[2.5rem] font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all active:scale-95"
                         >
-                            <MessageCircle size={22} fill="currentColor" fillOpacity={0.2} /> {isAr ? 'عرض خاص' : 'VIP Offer'}
+                            <MessageCircle size={18} className="md:w-[22px] md:h-[22px]" fill="currentColor" fillOpacity={0.2} /> {isAr ? 'عرض خاص' : 'VIP Offer'}
                         </a>
                      </td>
                    ))}
@@ -229,7 +232,7 @@ export default function CompareClient({ lang }) {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
       `}} />
     </main>
   );
@@ -254,36 +257,41 @@ function CompareRow({ icon, label, projects, field, formatCurrency, suffix = "",
 
   return (
     <tr className={`group transition-all duration-500 ${highlightClass}`}>
-      <td className="sticky start-0 z-30 bg-white/95 backdrop-blur-md p-10 font-black text-[11px] uppercase tracking-widest text-slate-400 border-e border-slate-100 group-hover:bg-slate-50 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      {/* الخلية الثابتة تم التحكم بأبعادها بدقة وتكديس محتواها عمودياً على الموبايل */}
+      <td className="sticky start-0 z-30 bg-white/95 backdrop-blur-md p-2 md:p-10 w-[100px] min-w-[100px] max-w-[100px] md:w-[320px] md:min-w-[320px] md:max-w-none font-black text-[10px] md:text-[11px] uppercase tracking-widest text-slate-500 border-e border-slate-100 group-hover:bg-slate-50 transition-colors shadow-[4px_0_15px_-5px_rgba(0,0,0,0.04)] md:shadow-none">
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between h-full gap-2 md:gap-0 text-center md:text-start">
+          <div className="flex flex-col md:flex-row items-center gap-1.5 md:gap-4">
             <span className="text-[#C02026] group-hover:scale-110 transition-transform">{icon}</span> 
-            <span className="leading-none">{label}</span>
+            <span className="leading-tight break-words px-1">{label}</span>
           </div>
           {projects.length > 1 && (
-            areAllValuesEqual 
-              ? <CheckCircle2 size={16} className="text-emerald-500" /> 
-              : <Info size={16} className="text-rose-500 animate-pulse" />
+            <div className="hidden md:block">
+              {areAllValuesEqual 
+                ? <CheckCircle2 size={16} className="text-emerald-500" /> 
+                : <Info size={16} className="text-rose-500 animate-pulse" />
+              }
+            </div>
           )}
         </div>
       </td>
       
+      {/* خلايا البيانات تم تثبيت عرضها لضمان التمرير السلس */}
       {projects.map(p => {
         const val = getValue(p, field);
         const cleanVal = getSafeText(val);
         return (
-          <td key={p._id} className="p-10 align-middle text-center md:text-start transition-colors">
+          <td key={p._id} className="p-4 md:p-10 w-[280px] min-w-[280px] md:w-[480px] md:min-w-[480px] align-middle text-center md:text-start transition-colors">
              {isPrice ? (
-                <span className="text-2xl md:text-3xl font-black italic tracking-tighter whitespace-nowrap text-slate-900">
+                <span className="text-lg md:text-3xl font-black italic tracking-tighter whitespace-nowrap text-slate-900">
                   {formatCurrency(val)}
                 </span>
              ) : isScore ? (
                 <div className="flex items-baseline gap-1 justify-center md:justify-start">
-                  <span className="text-3xl md:text-4xl font-black italic text-slate-900">{cleanVal || '8.5'}</span>
-                  <span className="text-[11px] font-black opacity-30">{suffix}</span>
+                  <span className="text-xl md:text-4xl font-black italic text-slate-900">{cleanVal || '8.5'}</span>
+                  <span className="text-[9px] md:text-[11px] font-black opacity-30">{suffix}</span>
                 </div>
              ) : (
-                <span className={`text-base md:text-lg ${isBold ? 'font-black uppercase italic tracking-tighter text-slate-950' : 'font-bold text-slate-700'}`}>
+                <span className={`text-sm md:text-lg ${isBold ? 'font-black uppercase italic tracking-tighter text-slate-950' : 'font-bold text-slate-700'}`}>
                    {cleanVal ? `${cleanVal}${suffix}` : <span className="opacity-10 font-normal">N/A</span>}
                 </span>
              )}
