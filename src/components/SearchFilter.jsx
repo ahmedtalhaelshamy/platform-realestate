@@ -41,26 +41,30 @@ export default function SearchBar({ lang }) {
     let isMounted = true;
     async function fetchSearchIntel() {
       try {
+        // تم إضافة _createdAt desc لضمان ظهور أحدث المشاريع المضافة دائماً
         const groqQuery = `{
-          "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(isFeatured desc)[0...20]{ 
+          "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(isFeatured desc, _createdAt desc)[0...30]{ 
             _id, 
             "title": coalesce(${isAr ? 'titleAr' : 'titleEn'}, titleEn, titleAr), 
             "slug": slug.current, 
             projectType,
             "districtName": coalesce(district->nameAr, district->nameEn, "N/A")
           },
-          "developers": *[_type == "developer" && !(_id in path("drafts.**"))][0...12]{ 
+          "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...15]{ 
             _id, 
             "name": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
             "slug": slug.current 
           },
-          "districts": *[_type == "district" && !(_id in path("drafts.**"))]{ 
+          "districts": *[_type == "district" && !(_id in path("drafts.**"))] | order(_createdAt desc){ 
             _id, 
             "name": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
             "slug": slug.current 
           }
         }`;
-        const result = await client.fetch(groqQuery, {}, { next: { revalidate: 3600 } });
+        
+        // تم استخدام cache: 'no-store' لضمان عدم استخدام بيانات قديمة مخزنة بالمتصفح
+        const result = await client.fetch(groqQuery, {}, { cache: 'no-store' });
+        
         if (isMounted) setData(result);
       } catch (err) {
         console.error("Search Intel Error:", err);
