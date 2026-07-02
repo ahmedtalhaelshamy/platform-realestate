@@ -20,6 +20,15 @@ const TYPE_CONFIG = {
   default: { icon: LayoutGrid, color: 'text-slate-600', bg: 'bg-slate-100', ar: 'مشروع', en: 'Project' }
 };
 
+// 🚀 [إضافة جديدة] دالة لتوحيد الحروف العربية لتجاهل الفروق بين (أ، ا) و (ة، ه) في البحث
+const normalizeSearch = (text) => {
+  if (!text) return '';
+  return text.toLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ي/g, 'ى');
+};
+
 export default function SearchBar({ lang }) {
   const router = useRouter();
   const isAr = lang === 'ar';
@@ -30,7 +39,7 @@ export default function SearchBar({ lang }) {
   const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 🚀 تتبع الكلمات البحثية في GA4
+  // تتبع الكلمات البحثية في GA4
   const trackSearch = (searchTerm) => {
     if (typeof window !== 'undefined' && window.gtag && searchTerm.trim()) {
       window.gtag('event', 'search', { search_term: searchTerm.trim() });
@@ -41,16 +50,16 @@ export default function SearchBar({ lang }) {
     let isMounted = true;
     async function fetchSearchIntel() {
       try {
-        // تم إضافة _createdAt desc لضمان ظهور أحدث المشاريع المضافة دائماً
+        // 🚀 [تم التعديل] تم إزالة [0...30] لجلب كافة الداتا المخففة ليتمكن العميل من البحث في القديم والجديد
         const groqQuery = `{
-          "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(isFeatured desc, _createdAt desc)[0...30]{ 
+          "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(isFeatured desc, _createdAt desc){ 
             _id, 
             "title": coalesce(${isAr ? 'titleAr' : 'titleEn'}, titleEn, titleAr), 
             "slug": slug.current, 
             projectType,
             "districtName": coalesce(district->nameAr, district->nameEn, "N/A")
           },
-          "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...15]{ 
+          "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(_createdAt desc){ 
             _id, 
             "name": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
             "slug": slug.current 
@@ -62,7 +71,6 @@ export default function SearchBar({ lang }) {
           }
         }`;
         
-        // تم استخدام cache: 'no-store' لضمان عدم استخدام بيانات قديمة مخزنة بالمتصفح
         const result = await client.fetch(groqQuery, {}, { cache: 'no-store' });
         
         if (isMounted) setData(result);
@@ -84,13 +92,25 @@ export default function SearchBar({ lang }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // 🚀 [تم التعديل] استخدام دالة normalizeSearch لضمان قوة ودقة البحث
   const suggestions = useMemo(() => {
     if (!query.trim()) return { projects: [], developers: [], districts: [] };
-    const term = query.toLowerCase().trim();
+    
+    const term = normalizeSearch(query.trim());
+    
     return {
-      projects: data.projects.filter(p => p.title?.toLowerCase().includes(term) || p.districtName?.toLowerCase().includes(term)).slice(0, 5),
-      developers: data.developers.filter(d => d.name?.toLowerCase().includes(term)).slice(0, 3),
-      districts: data.districts.filter(dist => dist.name?.toLowerCase().includes(term)).slice(0, 3)
+      projects: data.projects.filter(p => 
+        normalizeSearch(p.title).includes(term) || 
+        normalizeSearch(p.districtName).includes(term)
+      ).slice(0, 5),
+      
+      developers: data.developers.filter(d => 
+        normalizeSearch(d.name).includes(term)
+      ).slice(0, 3),
+      
+      districts: data.districts.filter(dist => 
+        normalizeSearch(dist.name).includes(term)
+      ).slice(0, 3)
     };
   }, [query, data]);
 
