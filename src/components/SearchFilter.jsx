@@ -20,10 +20,10 @@ const TYPE_CONFIG = {
   default: { icon: LayoutGrid, color: 'text-slate-600', bg: 'bg-slate-100', ar: 'مشروع', en: 'Project' }
 };
 
-// 🚀 [إضافة جديدة] دالة لتوحيد الحروف العربية لتجاهل الفروق بين (أ، ا) و (ة، ه) في البحث
+// دالة لتوحيد الحروف لتجاهل الفروق الدقيقة في الكتابة
 const normalizeSearch = (text) => {
   if (!text) return '';
-  return text.toLowerCase()
+  return text.toString().toLowerCase()
     .replace(/[أإآ]/g, 'ا')
     .replace(/ة/g, 'ه')
     .replace(/ي/g, 'ى');
@@ -50,23 +50,31 @@ export default function SearchBar({ lang }) {
     let isMounted = true;
     async function fetchSearchIntel() {
       try {
-        // 🚀 [تم التعديل] تم إزالة [0...30] لجلب كافة الداتا المخففة ليتمكن العميل من البحث في القديم والجديد
+        // 🚀 تعديل GROQ: جلب الأسماء باللغتين للبحث فيهما معاً
         const groqQuery = `{
           "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(isFeatured desc, _createdAt desc){ 
             _id, 
-            "title": coalesce(${isAr ? 'titleAr' : 'titleEn'}, titleEn, titleAr), 
+            titleAr,
+            titleEn,
+            "titleDisplay": coalesce(${isAr ? 'titleAr' : 'titleEn'}, titleEn, titleAr), 
             "slug": slug.current, 
             projectType,
-            "districtName": coalesce(district->nameAr, district->nameEn, "N/A")
+            "districtNameAr": district->nameAr,
+            "districtNameEn": district->nameEn,
+            "districtDisplay": coalesce(district->nameAr, district->nameEn, "N/A")
           },
           "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(_createdAt desc){ 
             _id, 
-            "name": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
+            nameAr,
+            nameEn,
+            "nameDisplay": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
             "slug": slug.current 
           },
           "districts": *[_type == "district" && !(_id in path("drafts.**"))] | order(_createdAt desc){ 
             _id, 
-            "name": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
+            nameAr,
+            nameEn,
+            "nameDisplay": coalesce(${isAr ? 'nameAr' : 'nameEn'}, nameEn, nameAr), 
             "slug": slug.current 
           }
         }`;
@@ -92,7 +100,7 @@ export default function SearchBar({ lang }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 🚀 [تم التعديل] استخدام دالة normalizeSearch لضمان قوة ودقة البحث
+  // 🚀 الفلترة الذكية: البحث في اللغتين بغض النظر عن لغة الواجهة
   const suggestions = useMemo(() => {
     if (!query.trim()) return { projects: [], developers: [], districts: [] };
     
@@ -100,16 +108,20 @@ export default function SearchBar({ lang }) {
     
     return {
       projects: data.projects.filter(p => 
-        normalizeSearch(p.title).includes(term) || 
-        normalizeSearch(p.districtName).includes(term)
+        normalizeSearch(p.titleAr).includes(term) || 
+        normalizeSearch(p.titleEn).includes(term) ||
+        normalizeSearch(p.districtNameAr).includes(term) ||
+        normalizeSearch(p.districtNameEn).includes(term)
       ).slice(0, 5),
       
       developers: data.developers.filter(d => 
-        normalizeSearch(d.name).includes(term)
+        normalizeSearch(d.nameAr).includes(term) ||
+        normalizeSearch(d.nameEn).includes(term)
       ).slice(0, 3),
       
       districts: data.districts.filter(dist => 
-        normalizeSearch(dist.name).includes(term)
+        normalizeSearch(dist.nameAr).includes(term) ||
+        normalizeSearch(dist.nameEn).includes(term)
       ).slice(0, 3)
     };
   }, [query, data]);
@@ -171,12 +183,13 @@ export default function SearchBar({ lang }) {
                         <type.icon size={24} aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0 ps-2">
+                        {/* 🚀 عرض الاسم بناءً على اللغة المحددة */}
                         <span className="block font-black text-slate-950 group-hover:text-[#C02026] text-lg leading-tight mb-1 italic tracking-tight truncate">
-                          {p.title}
+                          {p.titleDisplay}
                         </span>
                         <div className="flex items-center gap-2">
                             <MapPin size={12} className="text-slate-400" />
-                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{p.districtName}</span>
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{p.districtDisplay}</span>
                         </div>
                       </div>
                       <ArrowUpRight size={20} className="text-slate-300 group-hover:text-[#C02026] transition-all transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1 group-hover:-translate-y-1 shrink-0 rtl:-scale-x-100" />
@@ -194,7 +207,7 @@ export default function SearchBar({ lang }) {
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.districts : data.districts.slice(0, 6)).map(d => (
                       <Link key={d._id} href={`/${lang}/districts/${d.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-[#C02026] hover:text-white transition-all uppercase tracking-tighter italic border border-slate-100">
-                        {d.name}
+                        {d.nameDisplay}
                       </Link>
                     ))}
                   </div>
@@ -206,7 +219,7 @@ export default function SearchBar({ lang }) {
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.developers : data.developers.slice(0, 6)).map(dev => (
                       <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-white border-2 border-slate-50 rounded-2xl text-[11px] font-black text-slate-900 hover:border-[#C02026] hover:text-[#C02026] transition-all italic">
-                        {dev.name}
+                        {dev.nameDisplay}
                       </Link>
                     ))}
                   </div>
