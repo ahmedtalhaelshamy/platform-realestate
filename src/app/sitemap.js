@@ -9,7 +9,7 @@ export default async function sitemap() {
   let data = { projects: [], locations: [], districts: [], developers: [], posts: [] };
 
   try {
-    // التحسين: إضافة حدود [0...5000] لمنع الـ Server Timeout وتسريع الاستجابة لجوجل
+    // جلب البيانات مع حدود [0...5000] لمنع الـ Server Timeout وتسريع الاستجابة لجوجل
     const query = `{
       "projects": *[_type == "project" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))][0...5000] { "slug": slug.current, _updatedAt },
       "locations": *[_type == "location" && defined(slug.current) && seo.noIndex != true && !(_id in path("drafts.**"))][0...5000] { "slug": slug.current, _updatedAt },
@@ -28,8 +28,8 @@ export default async function sitemap() {
   const staticRoutes = ['', 'projects', 'locations', 'developers', 'blog', 'contact', 'about-us'];
   
   const staticUrls = staticRoutes.flatMap((route) => {
-    // التحسين: إزالة الشرطة المائلة من النهاية لتجنب أخطاء التوجيه 308
-    const routePath = route ? `/${route}` : ''; 
+    // ✅ الإصلاح الجذري: إضافة الشرطة المائلة (/) في النهاية لتتطابق مع trailingSlash: true وتمنع أخطاء التوجيه
+    const routePath = route ? `/${route}/` : '/'; 
     
     return languages.map((lang) => ({
       url: `${baseUrl}/${lang}${routePath}`,
@@ -49,8 +49,8 @@ export default async function sitemap() {
   // 2. دالة إنتاج الروابط الديناميكية (Dynamic Routes Generator)
   const createUrls = (items, path, priority = 0.7) => 
     items.flatMap(item => {
-      // التحسين: إزالة الشرطة المائلة من النهاية
-      const itemPath = `/${path}/${item.slug}`;
+      // ✅ الإصلاح الجذري: إضافة الشرطة المائلة (/) في نهاية الروابط الديناميكية
+      const itemPath = `/${path}/${item.slug}/`;
       
       return languages.map(lang => ({
         url: `${baseUrl}/${lang}${itemPath}`,
