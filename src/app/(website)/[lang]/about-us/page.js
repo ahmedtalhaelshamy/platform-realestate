@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { client } from '@/sanity/lib/client';
 import { urlFor } from '@/sanity/lib/image';
+import { hasImage } from '@/sanity/hasImage';
 import { PortableText } from '@portabletext/react';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
@@ -129,7 +130,7 @@ export default async function AboutPage({ params }) {
 
       {/* 🚀 Hero Section */}
       <header className="relative min-h-[70vh] md:min-h-[85vh] flex items-center justify-center text-center overflow-hidden bg-[#080A0D]">
-        {data.heroImage && (
+        {hasImage(data.heroImage) && (
           <div className="absolute inset-0">
            <Image
               src={urlFor(data.heroImage).url()}
@@ -175,7 +176,7 @@ export default async function AboutPage({ params }) {
           </div>
           <div className="relative group">
             <div className="relative h-[600px] md:h-[850px] rounded-[5rem] overflow-hidden border-[20px] border-white shadow-premium transition-transform duration-1000 group-hover:scale-[1.02]">
-              {data.storyImage && (
+              {hasImage(data.storyImage) && (
                 <Image 
                   src={urlFor(data.storyImage).url()} 
                   alt="Platform Official Story" 

@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import { notFound } from 'next/navigation';
 
 import FeaturedProjects from '@/components/sections/FeaturedProjects'; 
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }) {
   const description = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
   const baseUrl = 'https://platformrealestate.co';
 
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url()
     : `${baseUrl}/og-image.jpg`;
 
@@ -151,7 +152,7 @@ export default async function HomePage({ params }) {
         {/* 🚀 HERO SECTION */}
         <header className="relative h-[85vh] md:h-[95vh] flex flex-col items-center justify-center bg-[#050505] z-30">
           <div className="absolute inset-0 z-0 overflow-hidden">
-            {settings?.heroImage && (
+            {hasImage(settings?.heroImage) && (
               <Image 
                 src={urlFor(settings.heroImage).url()} 
                 alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
@@ -333,7 +334,7 @@ const DeveloperLogoItem = ({ dev, isAr }) => {
 
         <div className="absolute inset-0 overflow-hidden rounded-[3rem] md:rounded-[4rem] z-10 flex items-center justify-center p-10">
           <div className="relative w-full h-full grayscale opacity-40 group-hover/dev:grayscale-0 group-hover/dev:opacity-100 transition-all duration-1000 transform group-hover/dev:scale-105">
-            {dev.logo ? (
+            {hasImage(dev.logo) ? (
               <Image 
                 src={urlFor(dev.logo).url()} 
                 alt={`${dev.nameEn} Logo`} 

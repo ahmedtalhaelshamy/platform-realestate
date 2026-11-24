@@ -1,5 +1,6 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -35,7 +36,7 @@ function getSafeText(input) {
  * 🖼️ حارس الصور المطور
  */
 const getSafeImageUrl = (source) => {
-  if (!source || !source.asset) return `${BASE_URL}/og-image.jpg`; 
+  if (!hasImage(source)) return `${BASE_URL}/og-image.jpg`; 
   try {
     const sanityUrl = urlFor(source).url();
     return sanityUrl.replace('https://cdn.sanity.io', BUNNY_DOMAIN);

@@ -1,5 +1,6 @@
 import { client } from "@/sanity/client";
 import { urlFor } from "@/sanity/image";
+import { hasImage } from "@/sanity/hasImage";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }) {
   if (!post) return { title: { absolute: isAr ? "المقال غير موجود" : "Post Not Found" } };
   
   const cleanTitle = getSafeText(post.seoTitle || post.title);
-  const ogImageUrl = post.mainImage ? urlFor(post.mainImage).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = hasImage(post.mainImage) ? urlFor(post.mainImage).url() : `${BASE_URL}/og-image.jpg`;
   
   return {
     title: { absolute: cleanTitle },
@@ -104,7 +105,7 @@ export default async function PostPage({ params }) {
       '@id': `${currentUrl}#article`,
       'headline': cleanTitle,
       'description': getSafeText(post.seoDescription || post.overview).substring(0, 160),
-      'image': post.mainImage ? urlFor(post.mainImage).url() : '',
+      'image': hasImage(post.mainImage) ? urlFor(post.mainImage).url() : '',
       'datePublished': post._createdAt,
       'dateModified': post._updatedAt || post._createdAt,
       'author': { '@type': 'Organization', 'name': 'Platform Real Estate' }
@@ -132,7 +133,7 @@ export default async function PostPage({ params }) {
       ),
     },
     types: {
-      image: ({ value }) => (
+      image: ({ value }) => !hasImage(value) ? null : (
         <figure className="my-16">
           <div className="relative w-full h-[350px] md:h-[700px] overflow-hidden rounded-[3.5rem] shadow-xl">
             <Image src={urlFor(value).url()} alt={getSafeText(value.alt || post.title)} fill className="object-cover" />
@@ -164,7 +165,7 @@ export default async function PostPage({ params }) {
       {/* Feature Image */}
       <div className="container mx-auto max-w-[1200px] px-6 -mt-16 relative z-20">
         <div className="relative h-[450px] md:h-[750px] w-full overflow-hidden rounded-[4.5rem] shadow-2xl border-[12px] md:border-[20px] border-white">
-          <Image src={urlFor(post.mainImage).url()} alt={cleanTitle} fill className="object-cover animate-slow-zoom" priority />
+          {hasImage(post.mainImage) && <Image src={urlFor(post.mainImage).url()} alt={cleanTitle} fill className="object-cover animate-slow-zoom" priority />}
         </div>
       </div>
 
@@ -234,7 +235,7 @@ export default async function PostPage({ params }) {
                {post.relatedProjects?.map((proj) => (
                  <Link key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(proj.mainImage).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
+                      {hasImage(proj.mainImage) && <Image src={urlFor(proj.mainImage).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
                     <div className="text-start overflow-hidden">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "مشروع عقاري" : "Project"}</span>
@@ -247,7 +248,7 @@ export default async function PostPage({ params }) {
                {post.relatedDevelopers?.map((dev) => (
                  <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden bg-slate-50 p-3">
-                      <Image src={urlFor(dev.logo).url()} alt="dev" fill className="object-contain group-hover:scale-110 transition-transform" unoptimized={true} />
+                      {hasImage(dev.logo) && <Image src={urlFor(dev.logo).url()} alt="dev" fill className="object-contain group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "المطور العقاري" : "Developer"}</span>
@@ -260,7 +261,7 @@ export default async function PostPage({ params }) {
                {post.relatedLocations?.map((loc) => (
                  <Link key={loc._id} href={`/${lang}/locations/${loc.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(loc.image).url()} alt="loc" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
+                      {hasImage(loc.image) && <Image src={urlFor(loc.image).url()} alt="loc" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "المدينة / المنطقة" : "City / Location"}</span>
@@ -273,7 +274,7 @@ export default async function PostPage({ params }) {
                {post.relatedDistricts?.map((dist) => (
                  <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
-                      <Image src={urlFor(dist.image).url()} alt="dist" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />
+                      {hasImage(dist.image) && <Image src={urlFor(dist.image).url()} alt="dist" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
                     <div className="text-start">
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "الحي السكني" : "District"}</span>

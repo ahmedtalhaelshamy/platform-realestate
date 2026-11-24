@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
@@ -142,7 +143,7 @@ export default function DevelopersListClient({
                           className={`flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group ${isAr ? 'text-right' : 'text-left'}`}
                         >
                           <div className="w-12 h-12 bg-slate-100 rounded-2xl p-2 shrink-0 border border-slate-200 group-hover:border-[#C02026]/30 transition-all flex items-center justify-center overflow-hidden relative">
-                            {item.image ? (
+                            {hasImage(item.image) ? (
                               <Image src={urlFor(item.image).width(100).url()} alt={item.title} fill className="object-contain p-1" unoptimized={true} />
                             ) : (
                               item.icon === 'developer' ? <Building2 size={20} className="text-slate-400" /> :
@@ -203,7 +204,7 @@ export default function DevelopersListClient({
               <meta itemProp="url" content={`${BASE_URL}/${lang}/developers/${dev.slug}/`} />
               
               <div className="aspect-square w-full relative mb-6 bg-slate-50 rounded-[2rem] md:rounded-[3rem] p-6 border border-slate-100 group-hover:border-[#C02026]/30 transition-all">
-                {dev.logo ? (
+                {hasImage(dev.logo) ? (
                   <Image src={urlFor(dev.logo).width(400).url()} alt={isAr ? dev.nameAr : dev.nameEn} fill className="object-contain p-4 grayscale group-hover:grayscale-0 transition-all duration-700" unoptimized={true} />
                 ) : <div className="w-full h-full flex items-center justify-center"><Building2 size={40} className="text-slate-200" /></div>}
               </div>
@@ -253,7 +254,7 @@ export default function DevelopersListClient({
                 <meta itemProp="url" content={`${BASE_URL}/${lang}/blog/${post.slug}/`} />
 
                 <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
-                  {post.mainImage && (
+                  {hasImage(post.mainImage) && (
                     <Image src={urlFor(post.mainImage).width(600).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s] " unoptimized={true} />
                   )}
                   <div className={`absolute top-6 ${isAr ? 'right-6' : 'left-6'}`}>

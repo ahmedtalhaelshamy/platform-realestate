@@ -1,5 +1,6 @@
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
+import { hasImage } from "@/sanity/hasImage";
 import Image from "next/image";
 import Link from "next/link";
 import { 
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }) {
   const desc = getSafeText(isAr ? seo?.metaDescAr : seo?.metaDescEn);
 
   // توجيه صورة الـ OG لـ Bunny للمساهمة في سرعة الأرشفة
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url() 
     : `${BASE_URL}/og-blog.jpg`;
 
@@ -114,7 +115,7 @@ export default async function BlogPage({ params }) {
       "headline": getSafeText(post.title),
       "url": `${BASE_URL}/${lang}/blog/${post.slug}/`,
       "datePublished": post._createdAt,
-      "image": post.mainImage ? urlFor(post.mainImage).url() : ""
+      "image": hasImage(post.mainImage) ? urlFor(post.mainImage).url() : ""
     }))
   };
 
@@ -171,7 +172,7 @@ export default async function BlogPage({ params }) {
                 >
                   {/* Image Container */}
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    {post.mainImage ? (
+                    {hasImage(post.mainImage) ? (
                       <Image 
                         src={urlFor(post.mainImage).url()} 
                         fill 

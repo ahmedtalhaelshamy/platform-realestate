@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Building2, ArrowUpRight } from 'lucide-react';
 import { client, urlFor } from '../sanity/client'; 
+import { hasImage } from '../sanity/hasImage';
 
 export default function CityCarousel({ lang }) {
   const currentLang = lang || 'ar';
@@ -113,7 +114,7 @@ export default function CityCarousel({ lang }) {
             >
               {/* 🖼️ Image Section - Bunny.net Optimized */}
               <div className="absolute inset-0 z-0">
-                {city.image ? (
+                {hasImage(city.image) ? (
                 <Image 
                   src={urlFor(city.image).url()} 
                   alt={isAr ? city.nameAr : city.nameEn} 

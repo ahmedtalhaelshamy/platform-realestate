@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { PortableText } from '@portabletext/react'; 
 import { urlFor } from '@/sanity/image'; 
+import { hasImage, filterImages } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact'; 
 import AutoProjectCarousel from '../AutoProjectsCarousel'; 
 import Breadcrumbs from '../Breadcrumbs'; 
@@ -280,7 +281,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
       
       {/* Hero Section */}
       <section className="relative h-[75vh] w-full bg-slate-900 overflow-hidden group">itemScop
-        {data.mainImage && (
+        {hasImage(data.mainImage) && (
           <Image 
             src={urlFor(data.mainImage).url()} 
             alt={officialName} 
@@ -358,12 +359,12 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
       )}
 
       {/* Gallery Section */}
-      {data.gallery?.length > 0 && (
+      {filterImages(data.gallery).length > 0 && (
         <section className="max-w-[1440px] mx-auto px-4 md:px-8 mt-24 mb-12">
             <div className="mb-10 text-start">
               <h2 className="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter uppercase leading-none">{isArabic ? 'معرض الصور' : 'Visual Gallery'}</h2>
             </div>
-            <ProjectGallery images={data.gallery} projectName={officialName} />
+            <ProjectGallery images={filterImages(data.gallery)} projectName={officialName} />
         </section>
       )}
 
@@ -530,7 +531,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                 <section className="bg-slate-950 p-10 md:p-16 rounded-[4rem] border border-white/5 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -me-32 -mt-32 group-hover:bg-[#C02026]/10 transition-all duration-1000" />
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-12 relative z-10 text-start">
-                        {data.developer.logo ? (
+                        {hasImage(data.developer.logo) ? (
                           <div className="w-32 h-32 md:w-48 md:h-48 bg-white rounded-[2.5rem] p-6 shadow-2xl flex items-center justify-center shrink-0 overflow-hidden relative">
                             <Image 
                               src={urlFor(data.developer.logo).url()} 
@@ -568,7 +569,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                {data.developerProjects.map((p, i) => (
                                   <Link key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
-                                    {p.mainImage && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
+                                    {hasImage(p.mainImage) && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
                                       <Image src={urlFor(p.mainImage).url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt={txt(p.titleAr, p.titleEn)} unoptimized={true}/></div>}
                                     <div className="overflow-hidden">
                                       <span className="font-black text-lg text-white group-hover:text-[#C02026] block truncate italic uppercase tracking-tighter">{txt(p.titleAr, p.titleEn)}</span>
@@ -595,7 +596,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                   )}
                   {data.author && (
                       <div className="flex items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm w-full md:w-fit text-start">
-                          {data.author.image ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
+                          {hasImage(data.author.image) ? <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
                             <Image 
                               src={urlFor(data.author.image).url()} 
                               fill 
@@ -665,7 +666,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             {relatedPosts.map((post) => (
               <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700">
                 <div className="aspect-[16/10] overflow-hidden relative">
-                  {post.mainImage && (
+                  {hasImage(post.mainImage) && (
                     <Image 
                       src={urlFor(post.mainImage).url()} 
                       alt={post.title}

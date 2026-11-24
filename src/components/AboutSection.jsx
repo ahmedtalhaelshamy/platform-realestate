@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ShieldCheck, Building2, Award, TrendingUp, ArrowRight, Star } from 'lucide-react';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import { PortableText } from '@portabletext/react';
 
 /**
@@ -120,7 +121,7 @@ export default async function AboutSection({ lang }) {
           {/* 🖼️ الصورة التعريفية - Optimized LCP Element */}
           <div className="flex-1 w-full relative">
             <div className="relative h-[450px] md:h-[650px] w-full rounded-[3.5rem] overflow-hidden shadow-premium border-[12px] border-brand-gray-50 group">
-              {data?.storyImage ? (
+              {hasImage(data?.storyImage) ? (
                 <Image
                   src={urlFor(data.storyImage).url()}
                   alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}

@@ -1,5 +1,6 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import ContactClientUI from '@/components/templates/ContactClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }) {
   const currentPath = isAr ? arPath : enPath;
 
   // توجيه صورة الـ OG لـ Bunny لضمان جودة وسرعة المعاينة
-  const ogImage = seo?.openGraphImage 
+  const ogImage = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url() 
     : `${BASE_URL}/og-contact.jpg`;
 

@@ -2,6 +2,7 @@ import { ShieldCheck, Gavel, Scale, FileWarning, MessageCircle } from 'lucide-re
 import Link from 'next/link';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }) {
     : getSafeText(seo?.metaDescEn || 'Learn about the terms of use for Platform Real Estate to ensure a secure investment experience.');
 
   // توجيه صورة الـ OG لـ Bunny لضمان سرعة المعاينة
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url() 
     : `${baseUrl}/og-image.jpg`;
 

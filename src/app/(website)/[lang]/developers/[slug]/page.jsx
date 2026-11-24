@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { PortableText } from '@portabletext/react'; 
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import Link from 'next/link';
 
@@ -73,7 +74,7 @@ export async function generateMetadata({ params }) {
   const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
   const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
   const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
-  const ogImage = data.logo ? urlFor(data.logo).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImage = hasImage(data.logo) ? urlFor(data.logo).url() : `${BASE_URL}/og-image.jpg`;
 
   return { 
     title: { absolute: title },
@@ -149,7 +150,7 @@ export default async function DeveloperDetailPage({ params }) {
       '@id': `${currentUrl}#organization`,
       'name': devName,
       'url': currentUrl,
-      'logo': developer.logo ? urlFor(developer.logo).url() : '',
+      'logo': hasImage(developer.logo) ? urlFor(developer.logo).url() : '',
       'sameAs': developer.socialProfiles || [],
       ...(developer.website && { 'url': developer.website })
     }
@@ -179,7 +180,7 @@ export default async function DeveloperDetailPage({ params }) {
 
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 text-start">
             <div className="w-48 h-48 md:w-64 md:h-64 bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex items-center justify-center p-8 shrink-0 relative group">
-                {developer.logo ? (
+                {hasImage(developer.logo) ? (
                  <Image src={urlFor(developer.logo).url()} alt={devName} width={250} height={250} className="object-contain relative z-10 transition-transform duration-700 group-hover:scale-110" priority sizes="(max-width: 768px) 192px, 256px" />
                 ) : <Building2 size={64} className="text-slate-200 relative z-10" />}
             </div>
@@ -255,7 +256,7 @@ export default async function DeveloperDetailPage({ params }) {
                     {relatedPosts.map((post) => (
                       <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
                         <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
-                          {post.mainImage && (
+                          {hasImage(post.mainImage) && (
                             <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />
                           )}
                         </div>

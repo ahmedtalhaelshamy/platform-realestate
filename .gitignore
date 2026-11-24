@@ -30,5 +30,10 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.tsgit rm -r --cached .
+next-env.d.ts
+
+# audit
+audit-input/
+AUDIT.md
+.env*
 node_modules

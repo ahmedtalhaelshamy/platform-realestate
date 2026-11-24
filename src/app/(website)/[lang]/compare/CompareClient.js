@@ -10,6 +10,7 @@ import {
   MessageCircle, ArrowUpRight, Info
 } from 'lucide-react';
 import { client, urlFor } from '@/sanity/client';
+import { hasImage } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
 /**
@@ -170,7 +171,7 @@ export default function CompareClient({ lang }) {
                           <X size={18} className="md:w-[22px] md:h-[22px]" />
                         </button>
                         <div className="relative w-full aspect-[16/10] rounded-2xl md:rounded-[3rem] overflow-hidden mb-6 md:mb-10 shadow-lg md:shadow-2xl group bg-slate-100">
-                          {p.mainImage && (
+                          {hasImage(p.mainImage) && (
                             <Image 
                               src={urlFor(p.mainImage).url()} 
                               alt={title} 

@@ -1,6 +1,7 @@
 // مسار الملف: src/sanity/client.js
 import { createClient } from 'next-sanity'
 import imageUrlBuilder from '@sanity/image-url'
+import { hasImage, emptyImageBuilder } from './hasImage'
 
 /**
  * إعدادات العميل لـ Sanity
@@ -20,5 +21,6 @@ const builder = imageUrlBuilder(client)
  * تم إرجاعها لشكلها الأصلي المتوافق مع الكود الحالي للموقع لمنع أخطاء الـ Build
  */
 export function urlFor(source) {
+  if (!hasImage(source)) return emptyImageBuilder
   return builder.image(source)
 }

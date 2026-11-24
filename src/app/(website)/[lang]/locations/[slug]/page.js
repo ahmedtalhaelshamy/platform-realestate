@@ -1,5 +1,6 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { MapPin, ArrowRight, LayoutGrid, Phone, MessageCircle, Info, Building2, Sparkles, CheckCircle, Cpu, HelpCircle, ChevronDown } from 'lucide-react';
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }) {
   
   const name = isAr ? getSafeText(data.nameAr) : getSafeText(data.nameEn);
   const title = isAr ? getSafeText(data.seoTitleAr || name) : getSafeText(data.seoTitleEn || name);
-  const ogImageUrl = data.image ? urlFor(data.image).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = hasImage(data.image) ? urlFor(data.image).url() : `${BASE_URL}/og-image.jpg`;
   
   return {
     title: { absolute: title },
@@ -101,7 +102,7 @@ export default async function LocationDetailPage({ params }) {
       'name': locName,
       'description': getSafeText(isAr ? locationData.descriptionAr : locationData.descriptionEn).substring(0, 200) || locName,
       'url': currentPath,
-      'image': locationData.image ? urlFor(locationData.image).url() : '',
+      'image': hasImage(locationData.image) ? urlFor(locationData.image).url() : '',
       'address': { '@type': 'PostalAddress', 'addressRegion': locName, 'addressCountry': 'EG' },
       'containsPlace': districts.map(d => ({
         '@type': 'Place',
@@ -119,7 +120,7 @@ export default async function LocationDetailPage({ params }) {
       
       {/* 1. HERO SECTION */}
       <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden bg-brand-dark pt-20">
-        {locationData.image && <Image src={urlFor(locationData.image).url()} alt={locName} fill sizes="100vw" className="object-cover opacity-50 scale-105 animate-slow-zoom" priority />}
+        {hasImage(locationData.image) && <Image src={urlFor(locationData.image).url()} alt={locName} fill sizes="100vw" className="object-cover opacity-50 scale-105 animate-slow-zoom" priority />}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-gray-50 via-brand-dark/20 to-brand-dark/60 z-10" />
         <div className="relative z-30 text-center text-white px-6 max-w-7xl animate-fade-in-up">
           <nav className="mb-12 flex justify-center"><Breadcrumbs items={breadcrumbItems} lang={lang} /></nav>
@@ -158,7 +159,7 @@ export default async function LocationDetailPage({ params }) {
             <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex flex-col items-center gap-5 transition-all duration-500 hover:-translate-y-2">
               <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-premium border border-slate-100 group-hover:ring-4 group-hover:ring-brand-red overflow-hidden transition-all duration-700">
                 <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
-                  {dist.image ? <Image src={urlFor(dist.image).url()} fill sizes="128px" alt="dist" className="object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><LayoutGrid size={32}/></div>}
+                  {hasImage(dist.image) ? <Image src={urlFor(dist.image).url()} fill sizes="128px" alt="dist" className="object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><LayoutGrid size={32}/></div>}
                 </div>
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-dark bg-white px-5 py-2.5 rounded-2xl shadow-xl group-hover:bg-brand-red group-hover:text-white transition-all">{isAr ? getSafeText(dist.nameAr) : getSafeText(dist.nameEn)}</span>
@@ -199,7 +200,7 @@ export default async function LocationDetailPage({ params }) {
                   {locationData.relatedPosts.map((post) => (
                     <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-red-50">
                       <div className="aspect-video relative overflow-hidden bg-slate-100">
-                        {post.mainImage && <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />}
+                        {hasImage(post.mainImage) && <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />}
                       </div>
                       <div className="p-8 flex flex-col flex-1">
                         <span className="text-[10px] font-black text-brand-red uppercase mb-3 block">{new Date(post._createdAt).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}</span>

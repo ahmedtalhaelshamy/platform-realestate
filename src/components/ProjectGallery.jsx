@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { urlFor } from '@/sanity/client'; 
+import { filterImages } from '@/sanity/hasImage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 
@@ -10,7 +11,9 @@ import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
  * 🎨 ProjectGallery - 2026 Ultra-Responsive Edition
  * تم إزالة unoptimized لضمان عمل Bunny.net CDN Loader
  */
-export default function ProjectGallery({ images = [], projectName = "Property", lang = 'ar' }) {
+export default function ProjectGallery({ images: rawImages = [], projectName = "Property", lang = 'ar' }) {
+  // تجاهل أي صورة بدون asset حتى لا تُسقط الصفحة
+  const images = filterImages(rawImages);
   const [index, setIndex] = useState(null);
   const isArabic = lang === 'ar';
 

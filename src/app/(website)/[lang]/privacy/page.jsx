@@ -3,6 +3,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import { client } from '@/sanity/client'; 
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 
 /**
  * 🛠️ دالة الأمان لمنع خطأ الـ Objects
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }) {
     ? getSafeText(seo?.metaDescAr || 'نحن نلتزم بأعلى معايير حماية البيانات والخصوصية لعملائنا في منصة بلاتفورم العقارية.') 
     : getSafeText(seo?.metaDescEn || 'At Platform, we adhere to the highest standards of data protection and privacy for our clients.');
 
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url() 
     : `${baseUrl}/og-image.jpg`;
 
