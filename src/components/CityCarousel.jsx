@@ -107,7 +107,7 @@ export default function CityCarousel({ lang }) {
           className="flex gap-6 md:gap-10 overflow-x-auto hide-scrollbar pb-12 pt-4 snap-x snap-mandatory scroll-smooth px-2"
         >
           {locations.map((city, index) => (
-            <Link 
+            <Link prefetch={false} 
               key={city._id} 
               href={`/${currentLang}/locations/${city.slug}/`} 
               className="relative min-w-[320px] md:min-w-[450px] h-[500px] md:h-[650px] rounded-[3.5rem] overflow-hidden group shadow-2xl transition-all duration-700 block snap-center border border-slate-100 bg-slate-200"
@@ -119,7 +119,6 @@ export default function CityCarousel({ lang }) {
                   src={urlFor(city.image).url()} 
                   alt={isAr ? city.nameAr : city.nameEn} 
                   fill 
-                  priority={index < 2} // ✅ أول منطقتين تحمل صورهم فوراً (LCP)
                   fetchPriority={index < 2 ? "high" : "auto"}
                   sizes="(max-width: 768px) 100vw, 500px"
                   className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out opacity-95 group-hover:opacity-100" 

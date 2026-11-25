@@ -98,7 +98,7 @@ export default async function VisualSitemapPage({ params }) {
             <ul className="space-y-3">
               {data.projects.map(p => (
                 <li key={p._id}>
-                  <Link href={`/${lang}/projects/${p.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                  <Link prefetch={false} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <span className="font-bold text-slate-700 group-hover:text-[#C02026] text-sm overflow-visible pr-4">
                       {isAr ? p.titleAr : p.titleEn}
                     </span>
@@ -118,7 +118,7 @@ export default async function VisualSitemapPage({ params }) {
             <ul className="space-y-3">
               {data.developers.map(d => (
                 <li key={d._id}>
-                  <Link href={`/${lang}/developers/${d.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                  <Link prefetch={false} href={`/${lang}/developers/${d.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <span className="font-bold text-slate-700 group-hover:text-[#C02026] text-sm overflow-visible pr-4">
                       {isAr ? d.nameAr : d.nameEn}
                     </span>
@@ -138,7 +138,7 @@ export default async function VisualSitemapPage({ params }) {
             <ul className="space-y-3">
               {data.districts.map(dist => (
                 <li key={dist._id}>
-                  <Link href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                  <Link prefetch={false} href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <span className="font-bold text-slate-700 group-hover:text-[#C02026] text-sm overflow-visible pr-4">
                       {isAr ? dist.nameAr : dist.nameEn}
                     </span>

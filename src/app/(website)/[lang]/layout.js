@@ -1,4 +1,4 @@
-import { Almarai, Plus_Jakarta_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import '@/app/globals.css';
 import Navbar from '@/components/Navbar'; 
 import Footer from '@/components/Footer';
@@ -9,18 +9,26 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 import Script from 'next/script';
 
 // 1. إعداد الخطوط
-const almarai = Almarai({
-  subsets: ['arabic'],
+// الخطوط محلية (woff2 من @fontsource) بدل Google Fonts: الـ build ما يعتمدش على الشبكة
+const almarai = localFont({
+  src: [
+    { path: '../../../fonts/almarai-arabic-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../../../fonts/almarai-arabic-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-almarai',
   display: 'swap',
-  weight: ['400', '700'],
+  adjustFontFallback: 'Arial',
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+const jakarta = localFont({
+  src: [
+    { path: '../../../fonts/plus-jakarta-sans-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../../../fonts/plus-jakarta-sans-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: '../../../fonts/plus-jakarta-sans-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-jakarta',
   display: 'swap',
-  weight: ['400', '600', '700'],
+  adjustFontFallback: 'Arial',
 });
 
 async function getSiteSettings() {
