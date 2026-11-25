@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { notFound } from 'next/navigation';
 
 import nextDynamic from 'next/dynamic';
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }) {
 
   const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url()
-    : `${baseUrl}/og-image.jpg`;
+    : await getDefaultOgImage();
 
   return {
     title: { absolute: title },

@@ -51,6 +51,30 @@ const nextConfig: NextConfig = {
       { source: '/en/about/', destination: '/en/about-us/', permanent: true },
       { source: '/ar/locations/fifth-settlement/', destination: '/ar/districts/fifth-settlement/', permanent: true },
       { source: '/en/locations/fifth-settlement/', destination: '/en/districts/fifth-settlement/', permanent: true },
+
+      // 🔁 Slugs قديمة (GSC 404) ← أقرب مشروع حالي. أي رابط آخر محذوف يفضل 404 عمداً.
+      // ملاحظة: redirects في Next غير حساسة لحالة الأحرف، فلا نضيف قاعدة تغيّر الحالة فقط
+      // (مثل hyde-park-new-cairo ← hyde-park-New-Cairo) لأنها تصنع loop.
+      ...[
+        ['projects/upove', 'projects/upove-community'],
+        ['projects/zed-east-new-cairo', 'projects/zed-east'],
+        ['projects/riverdistrict', 'projects/river-district'],
+        ['projects/modon-golf', 'projects/modon-golf-town'],
+        ['projects/sage-lakes-', 'projects/sage-lakes-residence'],
+        ['projects/n-line-', 'projects/n-line-suites'],
+        ['projects/oro', 'projects/oro-New-Capital'],
+        ['developers/khuta', 'developers/khota'],
+        ['locations/undefined', 'locations'],
+      ].map(([from, to]) => ({
+        source: `/:lang(ar|en)/${from}/`,
+        destination: `/:lang/${to}/`,
+        permanent: true,
+      })),
+
+      // slug بمسافة في آخره (مثل /projects/azha%20/) ← نفس الـ slug بعد التنضيف
+      { source: '/:lang(ar|en)/projects/:slug([^/]+)%20/', destination: '/:lang/projects/:slug/', permanent: true },
+      // /projects/{slug}/-/ ← /projects/{slug}/
+      { source: '/:lang(ar|en)/projects/:slug([^/]+)/-/', destination: '/:lang/projects/:slug/', permanent: true },
     ];
   },
 };

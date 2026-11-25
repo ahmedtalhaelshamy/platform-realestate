@@ -1,6 +1,7 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
@@ -56,7 +57,7 @@ export async function generateMetadata({ params }) {
 
   const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url()
-    : `${BASE_URL}/og-image.jpg`;
+    : await getDefaultOgImage();
 
   return {
     title: {

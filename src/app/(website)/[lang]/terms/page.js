@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }) {
   // توجيه صورة الـ OG لـ Bunny لضمان سرعة المعاينة
   const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url() 
-    : `${baseUrl}/og-image.jpg`;
+    : await getDefaultOgImage();
 
   return {
     // 🚀 استخدام absolute لضمان السيطرة اليدوية ومنع التكرار
