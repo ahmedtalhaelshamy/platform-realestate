@@ -1,6 +1,7 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { MapPin, ArrowRight, LayoutGrid, Phone, MessageCircle, Info, Building2, Sparkles, CheckCircle, Cpu, HelpCircle, ChevronDown } from 'lucide-react';
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }) {
   
   const name = isAr ? getSafeText(data.nameAr) : getSafeText(data.nameEn);
   const title = isAr ? getSafeText(data.seoTitleAr || name) : getSafeText(data.seoTitleEn || name);
-  const ogImageUrl = hasImage(data.image) ? urlFor(data.image).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = hasImage(data.image) ? urlFor(data.image).url() : await getDefaultOgImage();
   
   return {
     title: { absolute: title },

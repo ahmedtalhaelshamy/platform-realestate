@@ -4,6 +4,7 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 import { client } from '@/sanity/client'; 
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 
 /**
  * 🛠️ دالة الأمان لمنع خطأ الـ Objects
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }) {
 
   const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).width(1200).height(630).format('webp').url() 
-    : `${baseUrl}/og-image.jpg`;
+    : await getDefaultOgImage();
 
   return {
     title: {

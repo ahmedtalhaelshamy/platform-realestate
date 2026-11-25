@@ -1,6 +1,7 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -62,7 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const ogImage = hasImage(district.image) 
     ? urlFor(district.image).url()
-    : `${BASE_URL}/og-image.jpg`;
+    : await getDefaultOgImage();
 
   const currentPath = `${BASE_URL}/${lang}/districts/${slug}/`;
 
@@ -142,7 +143,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
 
   const breadcrumbItems = [
     { label: isAr ? 'المناطق' : 'The Hotspots', href: `/${lang}/locations/` },
-    { label: parentLocName, href: `/${lang}/locations/${district.location.slug}/` },
+    { label: parentLocName, href: district.location?.slug ? `/${lang}/locations/${district.location.slug}/` : undefined },
     { label: distName }
   ];
 
@@ -176,7 +177,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
       "containedInPlace": {
         "@type": "Place",
         "name": parentLocName,
-        "url": `${BASE_URL}/${lang}/locations/${district.location.slug}/`
+        "url": district.location?.slug ? `${BASE_URL}/${lang}/locations/${district.location.slug}/` : undefined
       }
     }
   ];
@@ -361,9 +362,9 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
                         {isAr ? `فرص إضافية استثمارية مختارة في ${parentLocName} بالكامل` : `Regional investment picks across the entire ${parentLocName} area`}
                     </p>
                 </div>
-                <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-widest shadow-premium group shrink-0">
+                {district.location?.slug && <Link href={`/${lang}/locations/${district.location.slug}/`} className="bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-widest shadow-premium group shrink-0">
                     {isAr ? 'كل المشاريع' : 'All Listings'} <ArrowUpRight size={18} className="inline-block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </Link>
+                </Link>}
             </header>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14">
               {locationProjects.map((proj: any) => (

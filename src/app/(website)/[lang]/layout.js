@@ -7,6 +7,10 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Script from 'next/script';
+import { notFound } from 'next/navigation';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
+
+const SUPPORTED_LANGS = ['ar', 'en'];
 
 // 1. إعداد الخطوط
 const almarai = Almarai({
@@ -40,8 +44,10 @@ async function getSiteSettings() {
 
 export async function generateMetadata({ params }) {
   const { lang } = await params;
+  // لغة غير مدعومة: لا نورّث أي canonical/alternates ونمنع الفهرسة فقط
+  if (!SUPPORTED_LANGS.includes(lang)) return { robots: { index: false, follow: false } };
   const isAr = lang === 'ar';
-  const settings = await getSiteSettings();
+  const [settings, defaultOg] = await Promise.all([getSiteSettings(), getDefaultOgImage()]);
 
   const sanityTitle = isAr ? settings?.seo?.metaTitleAr : settings?.seo?.metaTitleEn;
   const sanityDesc = isAr ? settings?.seo?.metaDescAr : settings?.seo?.metaDescEn;
@@ -58,36 +64,25 @@ export async function generateMetadata({ params }) {
     },
     description: finalDesc,
     metadataBase: new URL(baseUrl),
-    alternates: {
-      canonical: `${baseUrl}/${lang}/`, 
-      languages: {
-        'ar': `${baseUrl}/ar/`,
-        'en': `${baseUrl}/en/`,
-        'x-default': `${baseUrl}/ar/`, 
-      },
-    },
+    // ملاحظة: canonical / alternates / robots تُعرَّف في كل صفحة على حدة (لا تُورَّث من الـ layout)
+    // حتى لا ترث صفحات الـ 404 canonical الرئيسية أو "index, follow".
     openGraph: {
       title: finalTitle,
       description: finalDesc,
-      url: `${baseUrl}/${lang}/`,
       siteName: defaultSiteName,
       locale: isAr ? 'ar_EG' : 'en_US',
       type: 'website',
-      images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+      images: [{ url: defaultOg, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: finalTitle,
       description: finalDesc,
-      images: ['/og-image.png'],
+      images: [defaultOg],
     },
     icons: {
       icon: '/favicon.ico',
       apple: '/apple-icon.png',
-    },
-    robots: {
-      index: true,
-      follow: true,
     },
   };
 }
@@ -101,8 +96,9 @@ export const viewport = {
 
 export default async function WebsiteLayout({ children, params }) {
   const { lang } = await params;
+  if (!SUPPORTED_LANGS.includes(lang)) notFound();
   const isAr = lang === 'ar';
-  const settings = await getSiteSettings();
+  const [settings, defaultOg] = await Promise.all([getSiteSettings(), getDefaultOgImage()]);
   const baseUrl = 'https://platformrealestate.co';
 
   // ✅ تجميع روابط السوشيال ميديا لإخبار جوجل أنهم نفس الكيان (Entity Linking)
@@ -132,7 +128,7 @@ export default async function WebsiteLayout({ children, params }) {
         "name": isAr ? CONTACT_INFO.siteNameAr : CONTACT_INFO.siteNameEn,
         "url": baseUrl,
         "logo": `${baseUrl}/icon.png`,
-        "image": `${baseUrl}/og-image.png`,
+        "image": defaultOg,
         "sameAs": socialLinks.length > 0 ? socialLinks : undefined,
         "address": {
           "@type": "PostalAddress",

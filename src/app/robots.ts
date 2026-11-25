@@ -1,64 +1,54 @@
 import { MetadataRoute } from 'next';
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://platformrealestate.co';
+/**
+ * robots.txt موحّد:
+ * - كل البوتات (بما فيها Googlebot و Bingbot) تدخل كل الصفحات العامة.
+ * - لا بوت يدخل /api/ و /studio/ (ولا /admin/ و /private/).
+ * - بوتات البحث بالذكاء الاصطناعي مسموح لها صراحةً بكل الصفحات العامة.
+ * - روابط الـ Query (فلاتر/بحث) مستبعدة للبوتات العامة لمنع تكرار المحتوى،
+ *   وGooglebot/Bingbot وبوتات معاينة الروابط والإعلانات مستثناة منها حتى لا تتعطل روابط الحملات (utm / gclid).
+ *
+ * ملاحظة: البوت يتبع المجموعة الأكثر تحديداً فقط، لذلك تتكرر قواعد المنع في كل مجموعة.
+ */
+const BASE_URL = 'https://platformrealestate.co';
 
+const PRIVATE_PATHS = ['/api/', '/studio/', '/admin/', '/private/'];
+
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: [
-          '/',
-          '/_next/static/', 
-          // ✅ تم الإبقاء عليه للاحتياط ولكن Bunny هو الأساس الآن
-          '/_next/image/',  
-          '/api/og/',       
-        ],
-        disallow: [
-          '/studio/',       // لوحة تحكم سانتي
-          '/admin/',        
-          '/api/',          // حماية الـ endpoints
-          '/private/',      
-          '/*?*',           // منع أرشفة الفلاتر (Query Params) لمنع المحتوى المكرر
-          '/*_type=*',      
-          '/*_id=*',        
-        ],
-      },
-      {
-        /**
-         * 🤖 AI Intelligence Protection
-         * منع بوتات الذكاء الاصطناعي من سرقة مجهودك التحليلي
-         */
-        userAgent: ['GPTBot', 'CCBot', 'ChatGPT-User', 'anthropic-ai', 'Claude-Web', 'Google-Extended'],
-        disallow: [
-          '/ar/projects/', 
-          '/en/projects/', 
-          '/ar/developers/', 
-          '/en/developers/',
-          '/ar/locations/',
-          '/en/locations/'
-        ], 
-      },
-      {
-        /**
-         * 📱 Social Media & Search Bots
-         * السماح الكامل لهذه البوتات لضمان ظهور الـ OG Tags والـ Rich Snippets
-         */
         userAgent: [
-          'Googlebot', // تأكيد السماح لجوجل بالزحف الكامل
-          'AdsBot-Google', 
-          'Twitterbot', 
-          'facebookexternalhit', 
-          'LinkedInBot', 
-          'WhatsApp', 
+          '*',
+          // بوتات البحث/الاستشهاد بالذكاء الاصطناعي
+          'OAI-SearchBot',
+          'ChatGPT-User',
+          'GPTBot',
+          'PerplexityBot',
+          'Claude-SearchBot',
+          'Google-Extended',
+        ],
+        allow: ['/', '/_next/static/', '/_next/image/'],
+        disallow: [...PRIVATE_PATHS, '/*?*'],
+      },
+      {
+        // معاينات المشاركة والإعلانات: تحتاج فتح روابط فيها Query (utm / gclid / fbclid)
+        userAgent: [
+          // Googlebot و Bingbot هنا (بدون /*?*) للحفاظ على سلوكهم الحالي مع روابط الـ Query
+          'Googlebot',
+          'Bingbot',
+          'AdsBot-Google',
+          'Googlebot-Image',
+          'Twitterbot',
+          'facebookexternalhit',
+          'LinkedInBot',
+          'WhatsApp',
           'Applebot',
-          'Bingbot'
-        ], 
+        ],
         allow: '/',
-        disallow: ['/studio/', '/private/'],
-      }
+        disallow: PRIVATE_PATHS,
+      },
     ],
-    // ✅ الرابط الموحد لضمان التزامن مع ملف sitemap.ts
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }

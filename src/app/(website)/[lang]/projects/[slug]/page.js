@@ -1,6 +1,7 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { notFound } from 'next/navigation';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -35,13 +36,13 @@ function getSafeText(input) {
 /**
  * 🖼️ حارس الصور المطور
  */
-const getSafeImageUrl = (source) => {
-  if (!hasImage(source)) return `${BASE_URL}/og-image.jpg`; 
+const getSafeImageUrl = (source, fallback) => {
+  if (!hasImage(source)) return fallback; 
   try {
     const sanityUrl = urlFor(source).url();
     return sanityUrl.replace('https://cdn.sanity.io', BUNNY_DOMAIN);
   } catch (error) {
-    return `${BASE_URL}/og-image.jpg`;
+    return fallback;
   }
 };
 
@@ -77,7 +78,7 @@ export async function generateMetadata({ params }) {
     description: cleanDesc.substring(0, 160),
     metadataBase: new URL(BASE_URL),
     alternates: { canonical: currentPath, languages: { 'ar': `${BASE_URL}/ar/projects/${slug}/`, 'en': `${BASE_URL}/en/projects/${slug}/`, 'x-default': `${BASE_URL}/ar/projects/${slug}/` } },
-    openGraph: { title: cleanTitle, description: cleanDesc, url: currentPath, images: [{ url: getSafeImageUrl(seo?.ogImage || data.mainImage), width: 1200, height: 630 }], locale: isAr ? 'ar_EG' : 'en_US', type: 'article' },
+    openGraph: { title: cleanTitle, description: cleanDesc, url: currentPath, images: [{ url: getSafeImageUrl(seo?.ogImage || data.mainImage, await getDefaultOgImage()), width: 1200, height: 630 }], locale: isAr ? 'ar_EG' : 'en_US', type: 'article' },
   };
 }
 
@@ -126,7 +127,7 @@ export default async function ProjectDetailPage({ params }) {
 
   const breadcrumbItems = [
     { label: isAr ? 'المشاريع' : 'Projects', href: `/${lang}/projects/` },
-    { label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), href: `/${lang}/locations/${data.locationData?.slug}/` },
+    { label: sanitizedData.districtName || (isAr ? 'المنطقة' : 'District'), href: data.locationData?.slug ? `/${lang}/locations/${data.locationData.slug}/` : undefined },
     { label: sanitizedData.computedH1 }
   ];
 
@@ -159,7 +160,7 @@ export default async function ProjectDetailPage({ params }) {
         '@id': `${currentUrl}#listing`,
         'name': sanitizedData.computedH1,
         'description': aiInsight ? aiInsight.join(' ') : getSafeText(isAr ? data.seo?.metaDescAr : data.seo?.metaDescEn),
-        'image': getSafeImageUrl(data.mainImage),
+        'image': getSafeImageUrl(data.mainImage, await getDefaultOgImage()),
         'url': currentUrl,
         'brand': { '@type': 'Brand', 'name': sanitizedData.developerName },
         'address': { '@type': 'PostalAddress', 'addressLocality': sanitizedData.districtName, 'addressRegion': sanitizedData.cityName, 'addressCountry': 'EG' }

@@ -10,6 +10,7 @@ import { PortableText } from '@portabletext/react';
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import Link from 'next/link';
 
@@ -74,7 +75,7 @@ export async function generateMetadata({ params }) {
   const devName = getSafeText(isAr ? data.nameAr : data.nameEn);
   const title = getSafeText(isAr ? (data.seoTitleAr || devName) : (data.seoTitleEn || devName));
   const description = getSafeText(isAr ? data.seoDescAr : data.seoDescEn);
-  const ogImage = hasImage(data.logo) ? urlFor(data.logo).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImage = hasImage(data.logo) ? urlFor(data.logo).url() : await getDefaultOgImage();
 
   return { 
     title: { absolute: title },

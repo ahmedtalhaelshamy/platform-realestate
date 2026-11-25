@@ -1,6 +1,7 @@
 import { client } from "@/sanity/client";
 import { urlFor } from "@/sanity/image";
 import { hasImage } from "@/sanity/hasImage";
+import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }) {
   if (!post) return { title: { absolute: isAr ? "المقال غير موجود" : "Post Not Found" } };
   
   const cleanTitle = getSafeText(post.seoTitle || post.title);
-  const ogImageUrl = hasImage(post.mainImage) ? urlFor(post.mainImage).url() : `${BASE_URL}/og-image.jpg`;
+  const ogImageUrl = hasImage(post.mainImage) ? urlFor(post.mainImage).url() : await getDefaultOgImage();
   
   return {
     title: { absolute: cleanTitle },

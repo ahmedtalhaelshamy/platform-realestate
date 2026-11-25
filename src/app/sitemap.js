@@ -33,7 +33,6 @@ export default async function sitemap() {
     
     return languages.map((lang) => ({
       url: `${baseUrl}/${lang}${routePath}`,
-      lastModified: new Date(),
       changeFrequency: route === '' ? 'daily' : 'weekly',
       priority: route === '' ? 1.0 : 0.8,
       alternates: {
@@ -54,7 +53,7 @@ export default async function sitemap() {
       
       return languages.map(lang => ({
         url: `${baseUrl}/${lang}${itemPath}`,
-        lastModified: item._updatedAt ? new Date(item._updatedAt) : new Date(),
+        lastModified: item._updatedAt ? new Date(item._updatedAt) : undefined,
         changeFrequency: 'weekly',
         priority: priority,
         alternates: {
