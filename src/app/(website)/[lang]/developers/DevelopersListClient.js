@@ -137,7 +137,7 @@ export default function DevelopersListClient({
                   <ul className="max-h-[26rem] overflow-y-auto hide-scrollbar py-2">
                     {searchSuggestions.map((item) => (
                       <li key={`${item.typeLabel}-${item._id}`}>
-                        <Link 
+                        <Link prefetch={false} 
                           href={item.url} 
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group ${isAr ? 'text-right' : 'text-left'}`}
@@ -192,7 +192,7 @@ export default function DevelopersListClient({
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-10" itemScope itemType="https://schema.org/ItemList">
           {filteredDevelopers.map((dev, index) => (
-            <Link 
+            <Link prefetch={false} 
               key={dev._id} 
               href={`/${lang}/developers/${dev.slug}/`} 
               className="group flex flex-col items-center text-center"
@@ -234,7 +234,7 @@ export default function DevelopersListClient({
                 {isAr ? 'أخبار العمالقة' : 'TITAN INTEL'}
               </h2>
             </div>
-            <Link href={`/${lang}/blog/`} className="group flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#C02026] transition-all shadow-xl">
+            <Link prefetch={false} href={`/${lang}/blog/`} className="group flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#C02026] transition-all shadow-xl">
                {isAr ? 'كل الأخبار' : 'All Insights'}
                <ArrowRight size={16} className={`transition-transform group-hover:translate-x-2 ${isAr ? 'rotate-180 group-hover:-translate-x-2' : ''}`} />
             </Link>
@@ -242,7 +242,7 @@ export default function DevelopersListClient({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8" itemScope itemType="https://schema.org/ItemList">
             {initialPosts.slice(0, 3).map((post, index) => (
-              <Link 
+              <Link prefetch={false} 
                 key={post.slug} 
                 href={`/${lang}/blog/${post.slug}/`} 
                 className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500"

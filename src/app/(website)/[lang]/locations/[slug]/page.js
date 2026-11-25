@@ -71,7 +71,8 @@ export default async function LocationDetailPage({ params }) {
     },
     "districts": *[_type == "district" && location->slug.current == $slug] | order(order asc) {
       _id, nameAr, nameEn, "slug": slug.current, image,
-      "projects": *[_type == "project" && references(^._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc, _createdAt desc) { 
+      "projectsCount": count(*[_type == "project" && references(^._id) && !(_id in path("drafts.**"))]),
+      "projects": *[_type == "project" && references(^._id) && !(_id in path("drafts.**"))] | order(isNewLaunch desc, _createdAt desc)[0...6] { 
           _id, titleAr, titleEn, price, installments, downPayment, isNewLaunch, isReadyToMove, isVerified, "slug": slug.current, mainImage, 
           "developer": developer->{nameAr, nameEn}, "location": location->{nameAr, nameEn}, "districtData": district->{ nameAr, nameEn }
       }
@@ -156,7 +157,7 @@ export default async function LocationDetailPage({ params }) {
         {/* 2. DISTRICTS NAV */}
         <div className="flex flex-wrap justify-center gap-6 md:gap-12 mb-32 relative z-40">
           {districts.map((dist) => (
-            <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex flex-col items-center gap-5 transition-all duration-500 hover:-translate-y-2">
+            <Link prefetch={false} key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex flex-col items-center gap-5 transition-all duration-500 hover:-translate-y-2">
               <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-1.5 bg-white shadow-premium border border-slate-100 group-hover:ring-4 group-hover:ring-brand-red overflow-hidden transition-all duration-700">
                 <div className="w-full h-full rounded-full overflow-hidden relative bg-slate-50">
                   {hasImage(dist.image) ? <Image src={urlFor(dist.image).url()} fill sizes="128px" alt="dist" className="object-cover group-hover:scale-110 transition-transform duration-700" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><LayoutGrid size={32}/></div>}
@@ -185,6 +186,13 @@ export default async function LocationDetailPage({ params }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
                     {district.projects.map((project) => <ProjectCard key={project._id} data={project} lang={lang} />)}
                   </div>
+                  {district.projectsCount > district.projects.length && (
+                    <div className="flex justify-center mt-12">
+                      <Link prefetch={false} href={`/${lang}/districts/${district.slug}/`} className="group inline-flex items-center gap-3 bg-brand-dark text-white hover:bg-brand-red px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                        {isAr ? `عرض كل مشاريع ${getSafeText(district.nameAr)} (${district.projectsCount})` : `View all ${getSafeText(district.nameEn)} projects (${district.projectsCount})`} <ArrowRight size={18} className="group-hover:translate-x-2 rtl:rotate-180" />
+                      </Link>
+                    </div>
+                  )}
                 </section>
               )
             ))}
@@ -198,7 +206,7 @@ export default async function LocationDetailPage({ params }) {
                 </header>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {locationData.relatedPosts.map((post) => (
-                    <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-red-50">
+                    <Link prefetch={false} key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-red-50">
                       <div className="aspect-video relative overflow-hidden bg-slate-100">
                         {hasImage(post.mainImage) && <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />}
                       </div>

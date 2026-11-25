@@ -178,7 +178,7 @@ export default function CompareClient({ lang }) {
                               fill 
                               sizes="(max-width: 768px) 280px, 480px"
                               className="object-cover transition-transform duration-1000 group-hover:scale-110" 
-                              priority={idx < 2}
+                              priority={idx === 0}
                             />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-80" />

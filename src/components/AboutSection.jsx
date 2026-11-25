@@ -126,7 +126,6 @@ export default async function AboutSection({ lang }) {
                   src={urlFor(data.storyImage).url()}
                   alt={isAr ? `عن شركة بلاتفورم العقارية` : `About Platform Real Estate`}
                   fill
-                  priority={true} // أهم تعديل للأداء: تحميل فوري للصورة الرئيسية
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
                 />

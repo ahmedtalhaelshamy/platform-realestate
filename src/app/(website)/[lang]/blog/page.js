@@ -179,7 +179,7 @@ export default async function BlogPage({ params }) {
                         className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
                         alt={post.imageAlt || postTitle}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        priority={index < 3}
+                        priority={index === 0}
                       />
                     ) : (
                       <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
@@ -216,7 +216,7 @@ export default async function BlogPage({ params }) {
                     </div>
 
                     <h3 className="mb-6 text-2xl font-black text-slate-950 leading-[1.3] line-clamp-2 min-h-[3.8rem] group-hover:text-[#C02026] transition-colors duration-500 italic uppercase tracking-tighter">
-                      <Link href={`/${lang}/blog/${post.slug}/`}>{postTitle}</Link>
+                      <Link prefetch={false} href={`/${lang}/blog/${post.slug}/`}>{postTitle}</Link>
                     </h3>
 
                     <p className="mb-10 text-slate-500 text-base md:text-lg leading-relaxed font-medium line-clamp-3 min-h-[5.2rem] italic opacity-80">
@@ -224,7 +224,7 @@ export default async function BlogPage({ params }) {
                     </p>
 
                     <div className="mt-auto pt-8 border-t border-slate-50 flex items-center justify-between">
-                      <Link 
+                      <Link prefetch={false} 
                         href={`/${lang}/blog/${post.slug}/`} 
                         className="flex items-center gap-3 text-xs font-black text-slate-950 uppercase tracking-[0.3em] group/btn"
                       >
