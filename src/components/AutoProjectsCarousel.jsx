@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { urlFor } from '@/sanity/client'; 
+import { hasImage } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact'; 
 
 // استيراد ستايلات Swiper
@@ -149,7 +150,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
       {/* 🖼️ Image Section - Bunny.net Optimized */}
       <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
         <Link href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
-          {project?.mainImage ? (
+          {hasImage(project?.mainImage) ? (
             <Image 
               src={urlFor(project.mainImage).url()} 
               alt={isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}

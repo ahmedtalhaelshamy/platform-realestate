@@ -1,4 +1,5 @@
 import createImageUrlBuilder from '@sanity/image-url';
+import { hasImage, emptyImageBuilder } from './hasImage';
 
 // سحب البيانات مباشرة من البيئة (Environment Variables)
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -7,6 +8,9 @@ const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 const builder = createImageUrlBuilder({ projectId, dataset });
 
 export const urlFor = (source) => {
+  // صورة بدون asset: نرجع builder آمن بدل رمي خطأ يُسقط الصفحة
+  if (!hasImage(source)) return emptyImageBuilder;
+
   const urlBuilder = builder.image(source);
   
   // حفظ الدالة الأصلية للـ url

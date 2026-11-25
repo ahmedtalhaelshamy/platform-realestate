@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { urlFor } from '@/sanity/image'; 
+import { hasImage } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact'; 
 import { 
   MapPin, ArrowUpRight, Phone, MessageCircle, 
@@ -97,7 +98,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
         <Link href={projectUrl} className="block w-full h-full">
           {/* ✅ تم حذف unoptimized ليعمل Bunny Loader تلقائياً */}
           <Image 
-            src={project.mainImage ? urlFor(project.mainImage).url() : "/placeholder.jpg"}
+            src={hasImage(project.mainImage) ? urlFor(project.mainImage).url() : "/placeholder.jpg"}
             alt={projectName}
             fill
             sizes="(max-width: 640px) 100vw, 400px"

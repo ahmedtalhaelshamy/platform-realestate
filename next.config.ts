@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-/** * 🚀 Platform Real Estate - Next.js Configuration (v16.1.6 Optimized)
+/** * 🚀 Platform Real Estate - Next.js Configuration (Next.js 15)
  * تم التعديل لحل مشكلة "loader does not implement width" 
  * وتفعيل الربط الكامل مع Bunny.net CDN
  * وإضافة توجيه الدومين الأساسي للغة العربية مع الحفاظ على الـ Trailing Slash

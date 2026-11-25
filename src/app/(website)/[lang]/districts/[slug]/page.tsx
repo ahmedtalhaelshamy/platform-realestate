@@ -1,5 +1,6 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -59,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = getSafeText(isAr ? (district.seoTitleAr || name) : (district.seoTitleEn || name));
   const description = getSafeText(isAr ? district.seoDescAr : district.seoDescEn);
 
-  const ogImage = district.image 
+  const ogImage = hasImage(district.image) 
     ? urlFor(district.image).url()
     : `${BASE_URL}/og-image.jpg`;
 
@@ -194,7 +195,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
       
       {/* 1. HERO SECTION */}
       <section className="relative h-[55vh] md:h-[70vh] w-full bg-brand-dark overflow-hidden">
-        {district.image ? (
+        {hasImage(district.image) ? (
         <Image 
           src={urlFor(district.image).url()} 
           alt={distName} 
@@ -395,12 +396,12 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
               {district.relatedPosts.map((post: any) => (
                 <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500">
                   <div className="aspect-[16/10] overflow-hidden relative bg-slate-200">
-                    <Image 
+                    {hasImage(post.mainImage) && <Image 
                       src={urlFor(post.mainImage).url()} 
                       alt={post.title}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
+                    />}
                   </div>
                   <div className="p-10 flex flex-col flex-1 text-start">
                     <span className="text-[10px] font-black text-[#C02026] uppercase tracking-widest mb-4 block">

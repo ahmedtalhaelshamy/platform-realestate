@@ -6,6 +6,7 @@ import { CONTACT_INFO } from '@/components/constants/contact';
 import { Search, Sparkles, Building2, Cpu, CheckCircle2 } from 'lucide-react';
 import { Suspense } from 'react';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 
 // ✅ 1. PERFORMANCE & CACHING
 export const dynamic = 'force-static';
@@ -45,7 +46,7 @@ export async function generateMetadata({ params, searchParams }) {
     title = isAr ? `نتائج البحث عن ${sParams.search}` : `Results for ${sParams.search}`;
   }
 
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url()
     : `${CONTACT_INFO.domain}/og-image.jpg`;
 

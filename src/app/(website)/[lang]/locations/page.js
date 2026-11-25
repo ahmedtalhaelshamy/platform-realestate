@@ -1,5 +1,6 @@
 import { client } from '@/sanity/client';
 import { urlFor } from '@/sanity/image';
+import { hasImage } from '@/sanity/hasImage';
 import Link from 'next/link';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/Breadcrumbs'; 
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }) {
     ? (seo?.metaDescAr || 'دليلك الشامل لأفضل المناطق الاستثمارية والسكنية في القاهرة الجديدة، العاصمة الإدارية، والساحل الشمالي.') 
     : (seo?.metaDescEn || 'Your comprehensive guide to top investment locations including New Cairo, NAC, and North Coast.'));
 
-  const ogImageUrl = seo?.openGraphImage 
+  const ogImageUrl = hasImage(seo?.openGraphImage) 
     ? urlFor(seo.openGraphImage).url()
     : `${BASE_URL}/og-image.jpg`;
 
@@ -174,7 +175,7 @@ export default async function LocationsIndexPage({ params }) {
                   href={`/${lang}/locations/${loc.slug}/`}
                   className="group relative h-[450px] md:h-[600px] rounded-[3rem] overflow-hidden shadow-xl transition-all duration-700 block bg-slate-100 hover:-translate-y-4 hover:shadow-premium outline-none focus-visible:ring-4 focus-visible:ring-[#C02026]/20"
                 >
-                  {loc.image ? (
+                  {hasImage(loc.image) ? (
                     <Image 
                       src={urlFor(loc.image).url()} 
                       alt={locName} 
@@ -256,7 +257,7 @@ export default async function LocationsIndexPage({ params }) {
                   className="group flex flex-col h-full bg-white/5 rounded-[3rem] overflow-hidden border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500"
                 >
                   <div className="aspect-[16/10] overflow-hidden relative">
-                    {post.mainImage && (
+                    {hasImage(post.mainImage) && (
                       <Image 
                         src={urlFor(post.mainImage).url()} 
                         alt={post.title}
