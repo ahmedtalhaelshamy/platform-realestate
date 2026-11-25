@@ -6,7 +6,9 @@ import { hasImage } from '@/sanity/hasImage';
 import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { notFound } from 'next/navigation';
 
-import FeaturedProjects from '@/components/sections/FeaturedProjects'; 
+import nextDynamic from 'next/dynamic';
+// سلايدر swiper تحت الـ Hero: chunk منفصل
+const FeaturedProjects = nextDynamic(() => import('@/components/sections/FeaturedProjects'));
 import SearchFilter from '@/components/SearchFilter';
 import AboutSection from '@/components/AboutSection';
 import CityCarousel from '@/components/CityCarousel'; 
@@ -95,7 +97,7 @@ async function getPageData() {
       "developer": developer->{ nameAr, nameEn, logo },
       isNewLaunch, isFeatured, isReadyToMove, isInvestmentOpportunity
     },
-    "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(order asc) {
+    "developers": *[_type == "developer" && !(_id in path("drafts.**"))] | order(count(*[_type == "project" && references(^._id)]) desc, order asc)[0...24] {
       _id, nameAr, nameEn, logo, "slug": slug.current, badges, 
       "projectsCount": count(*[_type == "project" && references(^._id)])
     }
@@ -261,7 +263,7 @@ export default async function HomePage({ params }) {
               <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
                   <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
-                      <Link 
+                      <Link prefetch={false} 
                         key={`${dev._id}-${idx}`} 
                         href={`/${lang}/developers/${dev.slug}/`} 
                         className="hover:scale-110 transition-transform duration-700 shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand-red rounded-3xl"
@@ -272,6 +274,14 @@ export default async function HomePage({ params }) {
                   </div>
                   <div className="absolute inset-y-0 start-0 w-32 md:w-80 bg-gradient-to-r rtl:bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
                   <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
+              </div>
+              <div className="flex justify-center px-6 -mt-16">
+                <Link 
+                  href={`/${lang}/developers/`} 
+                  className="flex items-center gap-4 text-brand-dark font-black text-sm uppercase tracking-widest border-b-4 border-brand-red pb-2 hover:bg-brand-red hover:text-white px-4 transition-all duration-500 rounded-t-xl"
+                >
+                  {isAr ? 'عرض كل المطورين' : 'View All Developers'} <ArrowRight size={18} className="rtl:rotate-180" />
+                </Link>
               </div>
           </section>
 

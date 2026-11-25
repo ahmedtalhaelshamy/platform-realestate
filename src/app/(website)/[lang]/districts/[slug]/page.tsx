@@ -395,7 +395,7 @@ export default async function DistrictPage({ params }: { params: Promise<{ slug:
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
               {district.relatedPosts.map((post: any) => (
-                <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500">
+                <Link prefetch={false} key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-slate-50 rounded-[3rem] overflow-hidden border border-transparent hover:bg-white hover:shadow-premium transition-all duration-500">
                   <div className="aspect-[16/10] overflow-hidden relative bg-slate-200">
                     {hasImage(post.mainImage) && <Image 
                       src={urlFor(post.mainImage).url()} 

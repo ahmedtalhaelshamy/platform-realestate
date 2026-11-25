@@ -100,8 +100,6 @@ export default function Navbar({ lang }) {
   <Image 
     src="/logo.webp" 
     fill 
-    priority
-    fetchPriority="high" 
     decoding="async"
     sizes="150px" 
     alt="Platform Real Estate" 

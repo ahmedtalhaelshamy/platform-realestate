@@ -172,7 +172,7 @@ export default function RelatedProjects({ lang, currentId, locationId }) {
 
           {/* 🔗 Explore More Card */}
           <div className="min-w-[300px] flex items-center justify-center ps-10 snap-start">
-            <Link 
+            <Link prefetch={false} 
               href={`/${lang}/projects/`} 
               className="group flex flex-col items-center gap-8 outline-none rounded-3xl focus-visible:ring-4 focus-visible:ring-brand-red p-6"
               aria-label={isAr ? "عرض جميع المشاريع" : "View all projects"}

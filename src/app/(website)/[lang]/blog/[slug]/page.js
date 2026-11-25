@@ -234,7 +234,7 @@ export default async function PostPage({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {/* 🏢 Projects */}
                {post.relatedProjects?.map((proj) => (
-                 <Link key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                 <Link prefetch={false} key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
                       {hasImage(proj.mainImage) && <Image src={urlFor(proj.mainImage).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
@@ -247,7 +247,7 @@ export default async function PostPage({ params }) {
 
                {/* 🏗️ Developers */}
                {post.relatedDevelopers?.map((dev) => (
-                 <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                 <Link prefetch={false} key={dev._id} href={`/${lang}/developers/${dev.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden bg-slate-50 p-3">
                       {hasImage(dev.logo) && <Image src={urlFor(dev.logo).url()} alt="dev" fill className="object-contain group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
@@ -260,7 +260,7 @@ export default async function PostPage({ params }) {
 
                {/* 🌍 Locations */}
                {post.relatedLocations?.map((loc) => (
-                 <Link key={loc._id} href={`/${lang}/locations/${loc.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                 <Link prefetch={false} key={loc._id} href={`/${lang}/locations/${loc.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
                       {hasImage(loc.image) && <Image src={urlFor(loc.image).url()} alt="loc" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
@@ -273,7 +273,7 @@ export default async function PostPage({ params }) {
 
                {/* 📍 Districts */}
                {post.relatedDistricts?.map((dist) => (
-                 <Link key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                 <Link prefetch={false} key={dist._id} href={`/${lang}/districts/${dist.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
                       {hasImage(dist.image) && <Image src={urlFor(dist.image).url()} alt="dist" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>

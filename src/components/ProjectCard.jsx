@@ -95,7 +95,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
       
       {/* 🖼️ Media Section - Optimized Image Delivery */}
       <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
-        <Link href={projectUrl} className="block w-full h-full">
+        <Link prefetch={false} href={projectUrl} className="block w-full h-full">
           {/* ✅ تم حذف unoptimized ليعمل Bunny Loader تلقائياً */}
           <Image 
             src={hasImage(project.mainImage) ? urlFor(project.mainImage).url() : "/placeholder.jpg"}
@@ -149,7 +149,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
           </div>
         </div>
 
-        <Link href={projectUrl} className="group/link block">
+        <Link prefetch={false} href={projectUrl} className="group/link block">
           <h3 className={`text-xl font-black text-slate-900 ${isAr ? 'leading-snug' : 'leading-tight tracking-tighter uppercase italic'} group-hover/link:text-[#C02026] transition-colors line-clamp-2 min-h-[3.2rem]`}>
             {projectName}
           </h3>
@@ -193,7 +193,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
           <MessageCircle size={24} fill="currentColor" />
         </a>
 
-        <Link 
+        <Link prefetch={false} 
           href={projectUrl} 
           className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-200 hover:bg-slate-950 hover:text-white transition-all shadow-sm group/arrow"
         >

@@ -142,7 +142,7 @@ export default function ProjectsClient({ initialProjects = [], lang }) {
                 <ProjectCard 
                   lang={lang} 
                   data={project} 
-                  isPriority={index < 6}
+                  isPriority={index === 0}
                 />
               </article>
             ))}

@@ -3,6 +3,7 @@ import { urlFor } from '@/sanity/image';
 import { hasImage } from '@/sanity/hasImage';
 import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import ProjectClientUI from '@/components/templates/ProjectClientUI';
 import { CONTACT_INFO } from '@/components/constants/contact';
 
@@ -47,6 +48,48 @@ const getSafeImageUrl = (source, fallback) => {
 };
 
 /**
+ * يجلب بيانات المشروع مرة واحدة لكل طلب (generateMetadata والصفحة يشتركان في نفس النتيجة)
+ */
+const getProject = cache(async (slug, lang) => {
+  const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
+    _id,
+    titleAr, titleEn, customH1Ar, customH1En,
+    seo { metaTitleAr, metaTitleEn, metaDescAr, metaDescEn, ogImage, schemaType },
+    mainImage, gallery, videoUrl,
+    price, downPayment, installments, minArea, finishingType, deliveryDate,
+    isNewLaunch, isReadyToMove, editorRating,
+    aiSummaryAr, aiSummaryEn, faqs, amenities, nearbyPlaces, inventory,
+    prosAr, prosEn, consAr, consEn,
+    introTitleAr, introTitleEn, introContentAr, introContentEn,
+    locationTitleAr, locationTitleEn, locationImage, locationContentAr, locationContentEn,
+    detailsTitleAr, detailsTitleEn, detailsImage, detailsContentAr, detailsContentEn,
+    areaTitleAr, areaTitleEn, areaImage, areaContentAr, areaContentEn,
+    facilitiesTitleAr, facilitiesTitleEn, facilitiesImage, facilitiesContentAr, facilitiesContentEn,
+    unitsTitleAr, unitsTitleEn, unitsImage, unitsContentAr, unitsContentEn,
+    pricesTitleAr, pricesTitleEn, pricesImage, pricesContentAr, pricesContentEn,
+    paymentTitleAr, paymentTitleEn, paymentImage, paymentContentAr, paymentContentEn,
+    opinionTitleAr, opinionTitleEn, opinionContentAr, opinionContentEn,
+    "slug": slug.current,
+    "brochureUrl": brochure.asset->url,
+    "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
+    "locationData": location->{ nameAr, nameEn, "slug": slug.current },
+    "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn, _id },
+    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
+        _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
+    },
+    "author": author->{ name, image, jobTitle },
+    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
+        _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
+    },
+    "relatedPosts": *[_type == "post" && language == $lang && references(^._id)] | order(_createdAt desc)[0...3] {
+      title, "slug": slug.current, mainImage, overview, _createdAt
+    }
+  }`;
+
+  return client.fetch(query, { slug, lang });
+});
+
+/**
  * 1️⃣ التوليد الثابت (Static Generation)
  */
 export async function generateStaticParams() {
@@ -64,8 +107,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
-  const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{ titleAr, titleEn, seo, mainImage }`;
-  const data = await client.fetch(query, { slug });
+  const data = await getProject(slug, lang);
   if (!data) return { title: { absolute: 'Project Not Found' } };
 
   const seo = data.seo;
@@ -89,30 +131,7 @@ export default async function ProjectDetailPage({ params }) {
   const { slug, lang } = await params;
   const isAr = lang === 'ar';
 
-  const query = `*[_type == "project" && slug.current == $slug && !(_id in path("drafts.**"))][0]{
-    ...,
-    _id,
-    aiSummaryAr,
-    aiSummaryEn,
-    faqs,
-    "slug": slug.current,
-    "brochureUrl": brochure.asset->url,
-    "districtData": district->{ nameAr, nameEn, "slug": slug.current, _id },
-    "locationData": location->{ nameAr, nameEn, "slug": slug.current },
-    "developer": developer->{ nameAr, nameEn, "slug": slug.current, logo, descriptionAr, descriptionEn, _id },
-    "developerProjects": *[_type == "project" && references(^.developer._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...4]{
-        _id, titleAr, titleEn, mainImage, "slug": slug.current, "districtData": district->{ nameAr, nameEn }
-    },
-    "author": author->{ name, image, jobTitle },
-    "relatedProjects": *[_type == "project" && references(^.district._ref) && _id != ^._id && !(_id in path("drafts.**"))][0...3]{
-        _id, titleAr, titleEn, price, mainImage, "slug": slug.current, projectType, "districtData": district->{ nameAr, nameEn }
-    },
-    "relatedPosts": *[_type == "post" && language == $lang && references(^._id)] | order(_createdAt desc)[0...3] {
-      title, "slug": slug.current, mainImage, overview, _createdAt
-    }
-  }`;
-
-  const data = await client.fetch(query, { slug, lang });
+  const data = await getProject(slug, lang);
   if (!data) return notFound();
 
   const sanitizedData = {

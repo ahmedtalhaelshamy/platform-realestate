@@ -255,7 +255,7 @@ export default async function DeveloperDetailPage({ params }) {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {relatedPosts.map((post) => (
-                      <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
+                      <Link prefetch={false} key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500">
                         <div className="aspect-[16/10] relative overflow-hidden bg-slate-100">
                           {hasImage(post.mainImage) && (
                             <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-[2s]" />

@@ -7,9 +7,11 @@ import { PortableText } from '@portabletext/react';
 import { urlFor } from '@/sanity/image'; 
 import { hasImage, filterImages } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact'; 
-import AutoProjectCarousel from '../AutoProjectsCarousel'; 
+import dynamic from 'next/dynamic';
+// مكونات ثقيلة (swiper / framer-motion) تحت الصفحة: تُحمَّل في chunk منفصل
+const AutoProjectCarousel = dynamic(() => import('../AutoProjectsCarousel'));
 import Breadcrumbs from '../Breadcrumbs'; 
-import ProjectGallery from '../ProjectGallery'; 
+const ProjectGallery = dynamic(() => import('../ProjectGallery')); 
 import InstallmentCalculator from '@/components/InstallmentCalculator';
 import { sendGAEvent } from '@next/third-parties/google';
 
@@ -550,7 +552,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             {data.developerProjects?.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     {data.developerProjects.map((p, i) => (
-                                        <Link 
+                                        <Link prefetch={false} 
                                             key={`tag-${i}`} 
                                             href={`/${lang}/projects/${p.slug}/`} 
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[#C02026] border border-white/10 hover:border-[#C02026] rounded-full text-xs font-bold text-white transition-all duration-300 shadow-sm"
@@ -568,7 +570,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             <h4 className="font-black mb-8 flex items-center justify-center md:justify-start gap-3 text-white uppercase tracking-widest text-sm"><div className="w-2 h-2 bg-[#C02026] rounded-full" /> {isArabic ? 'أبرز أعمال المطور الأخرى' : 'Landmark Projects'}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                {data.developerProjects.map((p, i) => (
-                                  <Link key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
+                                  <Link prefetch={false} key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
                                     {hasImage(p.mainImage) && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
                                       <Image src={urlFor(p.mainImage).url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt={txt(p.titleAr, p.titleEn)} unoptimized={true}/></div>}
                                     <div className="overflow-hidden">
@@ -664,7 +666,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-6 md:px-12">
             {relatedPosts.map((post) => (
-              <Link key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700">
+              <Link prefetch={false} key={post.slug} href={`/${lang}/blog/${post.slug}/`} className="group flex flex-col h-full bg-white rounded-[3.5rem] overflow-hidden border border-transparent hover:border-red-100 hover:shadow-2xl transition-all duration-700">
                 <div className="aspect-[16/10] overflow-hidden relative">
                   {hasImage(post.mainImage) && (
                     <Image 

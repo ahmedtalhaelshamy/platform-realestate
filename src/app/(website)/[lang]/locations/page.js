@@ -171,7 +171,7 @@ export default async function LocationsIndexPage({ params }) {
             {locations.map((loc, index) => {
               const locName = isAr ? getSafeText(loc.nameAr) : getSafeText(loc.nameEn);
               return (
-                <Link 
+                <Link prefetch={false} 
                   key={loc._id} 
                   href={`/${lang}/locations/${loc.slug}/`}
                   className="group relative h-[450px] md:h-[600px] rounded-[3rem] overflow-hidden shadow-xl transition-all duration-700 block bg-slate-100 hover:-translate-y-4 hover:shadow-premium outline-none focus-visible:ring-4 focus-visible:ring-[#C02026]/20"
@@ -183,7 +183,7 @@ export default async function LocationsIndexPage({ params }) {
                       fill 
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-[3s] ease-out will-change-transform"
-                      priority={index < 3} 
+                      priority={index === 0} 
                     />
                   ) : (
                       <div className="w-full h-full bg-slate-50 flex items-center justify-center">
@@ -242,7 +242,7 @@ export default async function LocationsIndexPage({ params }) {
                     {isAr ? 'تقارير حصرية من خبراء بلاتفورم حول أحدث تطورات المناطق العقارية في مصر.' : 'Exclusive insights from Platform experts on the latest real estate trends in Egypt.'}
                   </p>
                </div>
-               <Link 
+               <Link prefetch={false} 
                 href={`/${lang}/blog/`}
                 className="bg-white text-slate-950 hover:bg-[#C02026] hover:text-white px-10 py-5 rounded-[2rem] transition-all font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl group shrink-0"
                >
@@ -252,7 +252,7 @@ export default async function LocationsIndexPage({ params }) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {latestPosts.map((post) => (
-                <Link 
+                <Link prefetch={false} 
                   key={post.slug} 
                   href={`/${lang}/blog/${post.slug}/`}
                   className="group flex flex-col h-full bg-white/5 rounded-[3rem] overflow-hidden border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500"

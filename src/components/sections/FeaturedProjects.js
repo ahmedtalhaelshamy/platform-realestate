@@ -137,7 +137,7 @@ export default function FeaturedProjects({ projects = [], isAr, lang }) {
                  <ProjectCard 
                    lang={lang} 
                    data={project} 
-                   isPriority={index === 0} 
+                   isPriority={false} 
                  />
               </SwiperSlide>
             ))}

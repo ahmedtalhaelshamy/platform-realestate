@@ -257,7 +257,7 @@ async function ProjectsGrid({ filters, lang }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 lg:gap-16">
                 {projects.map((project, index) => (
                     <div key={project._id} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                      <ProjectCard lang={lang} data={project} isPriority={index < 3} />
+                      <ProjectCard lang={lang} data={project} isPriority={index === 0} />
                     </div>
                 ))}
             </div>

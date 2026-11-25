@@ -178,7 +178,7 @@ export default function SearchBar({ lang }) {
                 {(query ? suggestions.projects : data.projects.slice(0, 6)).map(p => {
                   const type = TYPE_CONFIG[p.projectType] || TYPE_CONFIG.default;
                   return (
-                    <Link key={p._id} href={`/${lang}/projects/${p.slug}/`} onClick={() => setIsFocused(false)} className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50/50 hover:bg-white hover:shadow-2xl border border-transparent hover:border-red-100 transition-all group">
+                    <Link prefetch={false} key={p._id} href={`/${lang}/projects/${p.slug}/`} onClick={() => setIsFocused(false)} className="flex items-center gap-5 p-5 rounded-3xl bg-slate-50/50 hover:bg-white hover:shadow-2xl border border-transparent hover:border-red-100 transition-all group">
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${type.bg} ${type.color} group-hover:scale-110 transition-transform`}>
                         <type.icon size={24} aria-hidden="true" />
                       </div>
@@ -206,7 +206,7 @@ export default function SearchBar({ lang }) {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.districts : data.districts.slice(0, 6)).map(d => (
-                      <Link key={d._id} href={`/${lang}/districts/${d.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-[#C02026] hover:text-white transition-all uppercase tracking-tighter italic border border-slate-100">
+                      <Link prefetch={false} key={d._id} href={`/${lang}/districts/${d.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-slate-50 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-[#C02026] hover:text-white transition-all uppercase tracking-tighter italic border border-slate-100">
                         {d.nameDisplay}
                       </Link>
                     ))}
@@ -218,7 +218,7 @@ export default function SearchBar({ lang }) {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {(query ? suggestions.developers : data.developers.slice(0, 6)).map(dev => (
-                      <Link key={dev._id} href={`/${lang}/developers/${dev.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-white border-2 border-slate-50 rounded-2xl text-[11px] font-black text-slate-900 hover:border-[#C02026] hover:text-[#C02026] transition-all italic">
+                      <Link prefetch={false} key={dev._id} href={`/${lang}/developers/${dev.slug}/`} onClick={() => setIsFocused(false)} className="px-5 py-3 bg-white border-2 border-slate-50 rounded-2xl text-[11px] font-black text-slate-900 hover:border-[#C02026] hover:text-[#C02026] transition-all italic">
                         {dev.nameDisplay}
                       </Link>
                     ))}

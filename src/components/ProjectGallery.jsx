@@ -90,7 +90,6 @@ export default function ProjectGallery({ images: rawImages = [], projectName = "
                   ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px" 
                   : "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 400px"
                 }
-                priority={i < 2} 
                 className="object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out will-change-transform"
               />
               
@@ -152,7 +151,6 @@ export default function ProjectGallery({ images: rawImages = [], projectName = "
                   fill
                   className="object-contain pointer-events-none drop-shadow-2xl select-none"
                   sizes="100vw"
-                  priority
                 />
               </motion.div>
             </motion.div>

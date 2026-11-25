@@ -100,7 +100,7 @@ export default function AutoProjectCarousel({ projects, lang, desktopSlides = 4 
           <SwiperSlide key={project._id || index} className="h-auto">
             <div className="h-full py-4">
                {/* ✅ تحسين الـ LCP: أول كارتين يحملوا صورهم فوراً من Bunny */}
-               <CarouselProjectCard project={project} lang={lang} isPriority={index < 2} />
+               <CarouselProjectCard project={project} lang={lang} isPriority={false} />
             </div>
           </SwiperSlide>
         ))}
@@ -149,7 +149,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
       
       {/* 🖼️ Image Section - Bunny.net Optimized */}
       <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
-        <Link href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
+        <Link prefetch={false} href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
           {hasImage(project?.mainImage) ? (
             <Image 
               src={urlFor(project.mainImage).url()} 
@@ -188,7 +188,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
 
         {/* Project Title */}
         <h3 className={`text-xl font-black text-slate-900 mb-3 leading-tight line-clamp-1 hover:text-brand-red transition-colors ${isArabic ? 'tracking-normal' : 'italic tracking-tighter uppercase'}`}>
-            <Link href={projectUrl} className="outline-none">
+            <Link prefetch={false} href={projectUrl} className="outline-none">
               {isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
             </Link>
         </h3>
@@ -219,7 +219,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
               </span>
               <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{isArabic ? 'يبدأ من' : 'Starts From'}</span>
             </div>
-            <Link 
+            <Link prefetch={false} 
               href={projectUrl} 
               className="bg-white/10 hover:bg-brand-red text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center group/arrow outline-none"
             >
