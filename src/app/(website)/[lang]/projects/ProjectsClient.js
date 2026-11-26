@@ -87,7 +87,7 @@ export default function ProjectsClient({ initialProjects = [], lang }) {
               />
               {searchQuery && (
                 <button 
-                  onClick={() => setSearchQuery("")} 
+                  aria-label={isAr ? "مسح البحث" : "Clear search"} onClick={() => setSearchQuery("")} 
                   className={`absolute ${isAr ? 'left-8' : 'right-8'} top-1/2 -translate-y-1/2 bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-[#C02026] hover:text-white transition-all`}
                 >
                   <X size={18} />

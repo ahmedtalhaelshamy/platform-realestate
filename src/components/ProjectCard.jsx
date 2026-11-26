@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { urlFor } from '@/sanity/image'; 
 import { hasImage } from '@/sanity/hasImage';
 import { CONTACT_INFO } from '@/components/constants/contact'; 
@@ -95,7 +95,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
       
       {/* 🖼️ Media Section - Optimized Image Delivery */}
       <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
-        <Link prefetch={false} href={projectUrl} className="block w-full h-full">
+        <PrefetchLink href={projectUrl} className="block w-full h-full">
           {/* ✅ تم حذف unoptimized ليعمل Bunny Loader تلقائياً */}
           <Image 
             src={hasImage(project.mainImage) ? urlFor(project.mainImage).url() : "/placeholder.jpg"}
@@ -105,7 +105,7 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
             className="object-cover transition-transform duration-[10s] group-hover:scale-110 will-change-transform"
             priority={isPriority}
           />
-        </Link>
+        </PrefetchLink>
 
         {/* Labels & Actions - Logical Props */}
         <div className="absolute top-4 start-4 end-4 z-20 flex justify-between items-start pointer-events-none">
@@ -120,12 +120,14 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
           <div className="flex flex-col gap-2 pointer-events-auto">
             <button 
               onClick={toggleCompare} 
+              aria-label={mounted && isInCompare ? (isAr ? `إزالة ${projectName} من المقارنة` : `Remove ${projectName} from compare`) : (isAr ? `أضف ${projectName} للمقارنة` : `Add ${projectName} to compare`)}
+              aria-pressed={mounted && isInCompare}
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all shadow-xl backdrop-blur-md border ${isInCompare ? 'bg-[#C02026] text-white border-[#C02026]' : 'bg-white/90 text-slate-800 border-white/20 hover:bg-[#C02026] hover:text-white'}`}
             >
               {mounted && isInCompare ? <Check size={20} /> : <GitCompare size={20} />}
             </button>
             <button 
-              onClick={handleShare} 
+              aria-label={isAr ? `مشاركة ${projectName}` : `Share ${projectName}`} onClick={handleShare} 
               className="w-11 h-11 rounded-2xl flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-800 border border-white/20 shadow-xl hover:bg-slate-950 hover:text-white transition-all"
             >
               <Share2 size={18} />
@@ -149,11 +151,11 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
           </div>
         </div>
 
-        <Link prefetch={false} href={projectUrl} className="group/link block">
+        <PrefetchLink href={projectUrl} className="group/link block">
           <h3 className={`text-xl font-black text-slate-900 ${isAr ? 'leading-snug' : 'leading-tight tracking-tighter uppercase italic'} group-hover/link:text-[#C02026] transition-colors line-clamp-2 min-h-[3.2rem]`}>
             {projectName}
           </h3>
-        </Link>
+        </PrefetchLink>
 
         <div className="flex items-start gap-2 text-slate-500 text-[11px] font-bold mb-6 mt-2">
           <MapPin size={14} className="text-[#C02026] shrink-0 mt-0.5" />
@@ -187,18 +189,19 @@ export default function ProjectCard({ data: project, lang, isPriority = false })
         
         <a 
           href={whatsappLink} 
+          aria-label={isAr ? `تواصل واتساب بخصوص ${projectName}` : `WhatsApp us about ${projectName}`}
           target="_blank" rel="noopener noreferrer" 
           className="w-14 h-14 rounded-2xl bg-[#25D366] text-white flex items-center justify-center hover:bg-[#20bd5a] shadow-xl transition-all active:scale-95"
         >
           <MessageCircle size={24} fill="currentColor" />
         </a>
 
-        <Link prefetch={false} 
+        <PrefetchLink 
           href={projectUrl} 
-          className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-200 hover:bg-slate-950 hover:text-white transition-all shadow-sm group/arrow"
+          aria-label={isAr ? `تفاصيل ${projectName}` : `${projectName} details`} className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-200 hover:bg-slate-950 hover:text-white transition-all shadow-sm group/arrow"
         >
           <ArrowUpRight size={22} className="group-hover/arrow:rotate-45 transition-transform" />
-        </Link>
+        </PrefetchLink>
       </div>
     </div>
   );

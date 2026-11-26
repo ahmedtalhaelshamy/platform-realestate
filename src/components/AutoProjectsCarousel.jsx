@@ -7,7 +7,7 @@ import {
   ArrowLeft, ArrowRight, MapPin, 
   Phone, MessageCircle, Building2, ArrowUpRight 
 } from 'lucide-react';
-import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import Image from 'next/image';
 import { urlFor } from '@/sanity/client'; 
 import { hasImage } from '@/sanity/hasImage';
@@ -149,7 +149,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
       
       {/* 🖼️ Image Section - Bunny.net Optimized */}
       <div className="relative aspect-[4/3] w-full rounded-[2rem] overflow-hidden mb-6 bg-slate-100 shrink-0">
-        <Link prefetch={false} href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
+        <PrefetchLink href={projectUrl} aria-label={isArabic ? project?.titleAr : project?.titleEn} className="outline-none">
           {hasImage(project?.mainImage) ? (
             <Image 
               src={urlFor(project.mainImage).url()} 
@@ -164,7 +164,7 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
               <Building2 size={48} aria-hidden="true" />
             </div>
           )}
-        </Link>
+        </PrefetchLink>
 
         {project?.isNewLaunch && (
           <div className="absolute top-4 start-4 z-10 pointer-events-none">
@@ -188,9 +188,9 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
 
         {/* Project Title */}
         <h3 className={`text-xl font-black text-slate-900 mb-3 leading-tight line-clamp-1 hover:text-brand-red transition-colors ${isArabic ? 'tracking-normal' : 'italic tracking-tighter uppercase'}`}>
-            <Link prefetch={false} href={projectUrl} className="outline-none">
+            <PrefetchLink href={projectUrl} className="outline-none">
               {isArabic ? getSafeText(project?.titleAr) : getSafeText(project?.titleEn)}
-            </Link>
+            </PrefetchLink>
         </h3>
 
         {/* Location Info */}
@@ -219,12 +219,12 @@ const CarouselProjectCard = ({ project, lang, isPriority }) => {
               </span>
               <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{isArabic ? 'يبدأ من' : 'Starts From'}</span>
             </div>
-            <Link prefetch={false} 
+            <PrefetchLink 
               href={projectUrl} 
-              className="bg-white/10 hover:bg-brand-red text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center group/arrow outline-none"
+              aria-label={isArabic ? `تفاصيل ${getSafeText(project?.titleAr)}` : `${getSafeText(project?.titleEn)} details`} className="bg-white/10 hover:bg-brand-red text-white w-10 h-10 rounded-xl transition-all flex items-center justify-center group/arrow outline-none"
             >
               <ArrowUpRight size={20} className="group-hover/arrow:rotate-45 transition-transform" />
-            </Link>
+            </PrefetchLink>
         </div>
 
         {/* 📞 Contact Actions */}

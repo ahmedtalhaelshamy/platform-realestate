@@ -10,6 +10,7 @@ import nextDynamic from 'next/dynamic';
 // سلايدر swiper تحت الـ Hero: chunk منفصل
 const FeaturedProjects = nextDynamic(() => import('@/components/sections/FeaturedProjects'));
 import SearchFilter from '@/components/SearchFilter';
+import MarqueeTrack from '@/components/MarqueeTrack';
 import AboutSection from '@/components/AboutSection';
 import CityCarousel from '@/components/CityCarousel'; 
 import { ShieldCheck, ArrowRight, Award, CheckCircle, Gem, Cpu, CheckCircle2, HelpCircle, ChevronDown } from 'lucide-react';
@@ -161,6 +162,7 @@ export default async function HomePage({ params }) {
                 alt={isAr ? "عقارات مصر - المنصة الأولى" : "Real Estate Egypt Premier Gateway"} 
                 priority={true} 
                 fetchPriority="high" 
+                quality={60}
                 fill
                 sizes="100vw"
                 className="object-cover animate-slow-zoom opacity-60 will-change-transform" 
@@ -260,8 +262,8 @@ export default async function HomePage({ params }) {
                 </h2>
               </div>
 
-              <div className="relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
-                  <div className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
+              <div className="marquee-region relative flex items-center group py-40" role="region" aria-label="Developers Logo Marquee">
+                  <MarqueeTrack uniqueCount={developers.length} className="flex w-max animate-marquee gap-16 md:gap-32 items-center px-12 group-hover:[animation-play-state:paused]">
                     {marqueeItems.map((dev, idx) => (
                       <Link prefetch={false} 
                         key={`${dev._id}-${idx}`} 
@@ -271,7 +273,7 @@ export default async function HomePage({ params }) {
                         <DeveloperLogoItem dev={dev} isAr={isAr} />
                       </Link>
                     ))}
-                  </div>
+                  </MarqueeTrack>
                   <div className="absolute inset-y-0 start-0 w-32 md:w-80 bg-gradient-to-r rtl:bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
                   <div className="absolute inset-y-0 end-0 w-32 md:w-80 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" aria-hidden="true" />
               </div>
@@ -314,10 +316,12 @@ export default async function HomePage({ params }) {
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
           @keyframes marqueeRTL { 0% { transform: translateX(0); } 100% { transform: translateX(33.33%); } }
-          .animate-marquee { display: flex; animation: marquee 120s linear infinite; }
+          .animate-marquee { display: flex; animation: marquee var(--marquee-duration) linear infinite; }
+          .animate-marquee[data-offscreen="true"] { animation-play-state: paused; }
           html[dir="rtl"] .animate-marquee { animation-name: marqueeRTL; }
           @keyframes slow-zoom { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
-          @media (max-width: 768px) { .animate-marquee { animation-duration: 60s; } }
+          @media (max-width: 768px) { .animate-marquee { animation-duration: var(--marquee-duration-mobile); } }
+          @media (prefers-reduced-motion: reduce) { .animate-marquee { animation: none; } .marquee-region { overflow-x: auto; } }
           .shadow-premium { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06); }
         `}} />
       </main>

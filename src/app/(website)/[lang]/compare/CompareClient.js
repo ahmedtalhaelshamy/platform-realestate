@@ -167,7 +167,7 @@ export default function CompareClient({ lang }) {
                     const title = getSafeText(isAr ? p.titleAr : p.titleEn);
                     return (
                       <th key={p._id} className="snap-center p-4 md:p-10 w-[280px] min-w-[280px] md:w-[480px] md:min-w-[480px] border-b border-slate-50 relative align-top">
-                        <button onClick={() => removeItem(p._id)} className="absolute top-6 end-6 md:top-8 md:end-8 z-30 w-8 h-8 md:w-12 md:h-12 bg-white/90 backdrop-blur shadow-xl rounded-full md:rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-600 transition-all border border-slate-100">
+                        <button aria-label={isAr ? `إزالة ${title} من المقارنة` : `Remove ${title} from compare`} onClick={() => removeItem(p._id)} className="absolute top-6 end-6 md:top-8 md:end-8 z-30 w-8 h-8 md:w-12 md:h-12 bg-white/90 backdrop-blur shadow-xl rounded-full md:rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-600 transition-all border border-slate-100">
                           <X size={18} className="md:w-[22px] md:h-[22px]" />
                         </button>
                         <div className="relative w-full aspect-[16/10] rounded-2xl md:rounded-[3rem] overflow-hidden mb-6 md:mb-10 shadow-lg md:shadow-2xl group bg-slate-100">

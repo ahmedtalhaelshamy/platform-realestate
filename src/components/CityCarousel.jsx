@@ -87,14 +87,14 @@ export default function CityCarousel({ lang }) {
             <button 
               onClick={() => scroll('prev')} 
               className="w-16 h-16 flex items-center justify-center border-2 border-slate-100 rounded-3xl hover:bg-slate-950 hover:text-white transition-all duration-500 shadow-sm active:scale-90"
-              aria-label="Previous"
+              aria-label={isAr ? "المنطقة السابقة" : "Previous area"}
             >
               {isAr ? <ChevronRight size={28} /> : <ChevronLeft size={28} />}
             </button>
             <button 
               onClick={() => scroll('next')} 
               className="w-16 h-16 flex items-center justify-center bg-[#C02026] text-white rounded-3xl hover:bg-slate-950 transition-all duration-500 shadow-xl active:scale-90"
-              aria-label="Next"
+              aria-label={isAr ? "المنطقة التالية" : "Next area"}
             >
               {isAr ? <ChevronLeft size={28} /> : <ChevronRight size={28} />}
             </button>

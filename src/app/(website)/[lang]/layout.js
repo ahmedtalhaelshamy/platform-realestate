@@ -7,6 +7,7 @@ import CompareFloatingBar from '@/components/CompareFloatingBar';
 import { client } from '@/sanity/client';
 import { CONTACT_INFO } from '@/components/constants/contact';
 import Script from 'next/script';
+import NavigationProgress from '@/components/NavigationProgress';
 import { notFound } from 'next/navigation';
 import { getDefaultOgImage } from '@/sanity/defaultOg';
 
@@ -21,13 +22,16 @@ const almarai = localFont({
   ],
   variable: '--font-almarai',
   display: 'swap',
+  // لا يُرسم حالياً في أي صفحة: يتحمّل فقط لو احتاجه نص
+  preload: false,
   adjustFontFallback: 'Arial',
 });
 
+// preload للأوزان الظاهرة أول الصفحة فقط (400 و 700).
+// وزن 600 معرّف في globals.css بنفس اسم العائلة (jakarta) بدون preload.
 const jakarta = localFont({
   src: [
     { path: '../../../fonts/plus-jakarta-sans-latin-400-normal.woff2', weight: '400', style: 'normal' },
-    { path: '../../../fonts/plus-jakarta-sans-latin-600-normal.woff2', weight: '600', style: 'normal' },
     { path: '../../../fonts/plus-jakarta-sans-latin-700-normal.woff2', weight: '700', style: 'normal' },
   ],
   variable: '--font-jakarta',
@@ -177,6 +181,7 @@ export default async function WebsiteLayout({ children, params }) {
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:z-[9999] focus:bg-brand-red focus:text-white focus:p-4 focus:rounded-lg">
           {isAr ? 'تخطي للمحتوى الرئيسي' : 'Skip to main content'}
         </a>
+        <NavigationProgress />
         <Navbar lang={lang} contactInfo={settings?.contactInfo} />
         <main id="main-content" className="flex-grow relative w-full outline-none" role="main">
           {children}

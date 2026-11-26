@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; 
+import Link from 'next/link';
+import { NAVIGATION_START_EVENT } from './NavigationProgress'; 
 import { 
   Search, MapPin, Building2, LayoutGrid, X, ArrowUpRight,
   Home, ShoppingBag, Briefcase, Stethoscope, Palmtree,
@@ -136,6 +137,7 @@ export default function SearchBar({ lang }) {
           e.preventDefault(); 
           if (query.trim()) {
             trackSearch(query);
+            window.dispatchEvent(new Event(NAVIGATION_START_EVENT));
             router.push(`/${lang}/projects/?search=${query}`); 
           }
         }}
@@ -155,7 +157,7 @@ export default function SearchBar({ lang }) {
         />
 
         {query && (
-          <button type="button" onClick={() => setQuery('')} className="p-3 text-slate-400 hover:text-red-500 transition-colors">
+          <button type="button" aria-label={isAr ? "مسح البحث" : "Clear search"} onClick={() => setQuery('')} className="p-3 text-slate-400 hover:text-red-500 transition-colors">
             <X size={22} />
           </button>
         )}

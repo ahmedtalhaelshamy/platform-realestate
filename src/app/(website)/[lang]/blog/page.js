@@ -193,7 +193,7 @@ export default async function BlogPage({ params }) {
                         <a 
                           href={whatsappLink} 
                           target="_blank" rel="noopener noreferrer"
-                          className="w-12 h-12 bg-[#25D366] text-white rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95"
+                          aria-label={isAr ? `تواصل واتساب بخصوص ${postTitle}` : `WhatsApp us about ${postTitle}`} className="w-12 h-12 bg-[#25D366] text-white rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95"
                         >
                           <MessageCircle size={24} fill="currentColor" />
                         </a>
@@ -257,7 +257,7 @@ export default async function BlogPage({ params }) {
       <a 
         href={`https://wa.me/${whatsappNumber}`} 
         className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-5 rounded-[2rem] shadow-2xl md:hidden border-4 border-white active:scale-90 transition-transform"
-        aria-label="WhatsApp Support"
+        aria-label={isAr ? "تواصل معنا عبر واتساب" : "Contact us on WhatsApp"}
       >
         <MessageCircle size={32} fill="currentColor" />
       </a>

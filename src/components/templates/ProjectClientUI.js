@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import PrefetchLink from '@/components/PrefetchLink';
 import { PortableText } from '@portabletext/react'; 
 import { urlFor } from '@/sanity/image'; 
 import { hasImage, filterImages } from '@/sanity/hasImage';
@@ -292,6 +293,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
             className="object-cover opacity-60 scale-105 animate-slow-zoom" 
             priority 
             fetchPriority="high"
+            quality={60}
             
           />
         )}
@@ -552,14 +554,14 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             {data.developerProjects?.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     {data.developerProjects.map((p, i) => (
-                                        <Link prefetch={false} 
+                                        <PrefetchLink 
                                             key={`tag-${i}`} 
                                             href={`/${lang}/projects/${p.slug}/`} 
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[#C02026] border border-white/10 hover:border-[#C02026] rounded-full text-xs font-bold text-white transition-all duration-300 shadow-sm"
                                         >
                                             <Building2 size={12} className="opacity-70" />
                                             {txt(p.titleAr, p.titleEn)}
-                                        </Link>
+                                        </PrefetchLink>
                                     ))}
                                 </div>
                             )}
@@ -570,14 +572,14 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
                             <h4 className="font-black mb-8 flex items-center justify-center md:justify-start gap-3 text-white uppercase tracking-widest text-sm"><div className="w-2 h-2 bg-[#C02026] rounded-full" /> {isArabic ? 'أبرز أعمال المطور الأخرى' : 'Landmark Projects'}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                {data.developerProjects.map((p, i) => (
-                                  <Link prefetch={false} key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
+                                  <PrefetchLink key={i} href={`/${lang}/projects/${p.slug}/`} className="group flex items-center gap-5 bg-white/5 p-4 rounded-[2rem] hover:bg-white/10 border border-white/5 transition-all">
                                     {hasImage(p.mainImage) && <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden shadow-xl">
                                       <Image src={urlFor(p.mainImage).url()} fill className="object-cover group-hover:scale-110 transition-all duration-700" alt={txt(p.titleAr, p.titleEn)} unoptimized={true}/></div>}
                                     <div className="overflow-hidden">
                                       <span className="font-black text-lg text-white group-hover:text-[#C02026] block truncate italic uppercase tracking-tighter">{txt(p.titleAr, p.titleEn)}</span>
                                       <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5 uppercase mt-1"><MapPin size={12} className="text-[#C02026]" /> {txt(p.districtData?.nameAr, p.districtData?.nameEn)}</span>
                                     </div>
-                                  </Link>
+                                  </PrefetchLink>
                                ))}
                             </div>
                         </div>
@@ -702,7 +704,7 @@ export default function ProjectClientUI({ data, lang, breadcrumbItems, similarPr
              className="flex-1 bg-[#25D366] text-white rounded-[1.5rem] flex items-center justify-center gap-3 font-black shadow-2xl active:scale-95 transition-all text-sm border-b-4 border-black/10">
             <MessageCircle size={24} /> <span className="uppercase tracking-widest">{isArabic ? 'واتساب' : 'WhatsApp'}</span>
           </a>
-          <button onClick={handleShare} className="w-16 bg-white text-slate-950 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-2xl active:scale-90 transition-all">
+          <button aria-label={isArabic ? "مشاركة المشروع" : "Share project"} onClick={handleShare} className="w-16 bg-white text-slate-950 rounded-[1.5rem] flex items-center justify-center border border-slate-100 shadow-2xl active:scale-90 transition-all">
             {copied ? <Check size={24} className="text-green-600"/> : <Share2 size={24} />}
           </button>
       </nav>

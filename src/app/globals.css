@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/*
+ * Plus Jakarta Sans وزن 600 بدون preload (غير ظاهر أول الصفحة).
+ * next/font/local لا يدعم preload لكل وزن، لذلك نعرّفه هنا بنفس اسم العائلة التي يولّدها
+ * من اسم المتغير `jakarta` في [lang]/layout.js — لو تغيّر اسم المتغير يلزم تغييره هنا.
+ */
+@font-face {
+  font-family: jakarta;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/plus-jakarta-sans-latin-600-normal.woff2') format('woff2');
+}
+
 /* 1. تفعيل النزول الناعم وتحسين الـ Rendering */
 html {
   scroll-behavior: smooth;

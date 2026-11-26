@@ -174,7 +174,7 @@ export default function Navbar({ lang }) {
 
             {/* 📱 Mobile Toggle */}
             <button 
-                aria-label={isOpen ? "Close menu" : "Open menu"}
+                aria-label={isOpen ? (isAr ? "إغلاق القائمة" : "Close menu") : (isAr ? "فتح القائمة" : "Open menu")}
                 onClick={() => setIsOpen(!isOpen)} 
                 className={`lg:hidden p-3 rounded-2xl transition-all active:scale-90 ${isOpen ? 'bg-slate-100 text-slate-900' : (isHomePage && !scrolled ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900')}`}
             >
@@ -195,7 +195,7 @@ export default function Navbar({ lang }) {
           <div className="relative w-28 h-10">
             <Image src="/logo.webp" alt="Platform Logo" fill loading="lazy" decoding="async" className="object-contain" sizes="112px" unoptimized={true} />  
           </div>
-          <button onClick={closeMenu} className="p-3 bg-slate-50 rounded-2xl text-slate-500"><X size={22}/></button>
+          <button onClick={closeMenu} aria-label={isAr ? "إغلاق القائمة" : "Close menu"} className="p-3 bg-slate-50 rounded-2xl text-slate-500"><X size={22}/></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-3 text-start">

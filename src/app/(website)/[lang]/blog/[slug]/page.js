@@ -5,6 +5,7 @@ import { getDefaultOgImage } from '@/sanity/defaultOg';
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
+import PrefetchLink from '@/components/PrefetchLink';
 import { Calendar, Clock, Globe, MessageCircle, PhoneCall, Building2, MapPin, ArrowRight, Briefcase, Navigation, Cpu, CheckCircle2, HelpCircle, ChevronDown } from "lucide-react";
 import Breadcrumbs from '@/components/Breadcrumbs'; 
 import { CONTACT_INFO } from '@/components/constants/contact';
@@ -234,7 +235,7 @@ export default async function PostPage({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {/* 🏢 Projects */}
                {post.relatedProjects?.map((proj) => (
-                 <Link prefetch={false} key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
+                 <PrefetchLink key={proj._id} href={`/${lang}/projects/${proj.slug}/`} className="group flex items-center gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-transparent hover:border-red-100">
                     <div className="relative w-20 h-20 shrink-0 rounded-[1.5rem] overflow-hidden">
                       {hasImage(proj.mainImage) && <Image src={urlFor(proj.mainImage).url()} alt="proj" fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={true} />}
                     </div>
@@ -242,7 +243,7 @@ export default async function PostPage({ params }) {
                       <span className="text-[9px] font-black text-[#C02026] uppercase mb-1 block">{isAr ? "مشروع عقاري" : "Project"}</span>
                       <h4 className="font-black text-slate-900 truncate group-hover:text-[#C02026] transition-colors">{isAr ? proj.titleAr : proj.titleEn}</h4>
                     </div>
-                 </Link>
+                 </PrefetchLink>
                ))}
 
                {/* 🏗️ Developers */}

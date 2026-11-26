@@ -123,7 +123,7 @@ export default function ProjectGallery({ images: rawImages = [], projectName = "
                   <span className="text-white/60 text-xs font-black uppercase tracking-widest hidden md:block">{projectName}</span>
               </div>
               <button 
-                onClick={() => setIndex(null)} 
+                aria-label={isArabic ? "إغلاق معرض الصور" : "Close gallery"} onClick={() => setIndex(null)} 
                 className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:bg-brand-red hover:text-white transition-all duration-300 shadow-2xl active:scale-90 outline-none"
               >
                 <X size={28} />
@@ -157,7 +157,7 @@ export default function ProjectGallery({ images: rawImages = [], projectName = "
 
             <div className="absolute inset-x-0 bottom-12 flex justify-center items-center gap-12 z-[100]">
               <button 
-                onClick={isArabic ? next : prev} 
+                aria-label={isArabic ? "الصورة التالية" : "Previous image"} onClick={isArabic ? next : prev} 
                 className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none"
               >
                 <ChevronLeft size={32} />
@@ -173,7 +173,7 @@ export default function ProjectGallery({ images: rawImages = [], projectName = "
               </div>
 
               <button 
-                onClick={isArabic ? prev : next} 
+                aria-label={isArabic ? "الصورة السابقة" : "Next image"} onClick={isArabic ? prev : next} 
                 className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hidden md:flex hover:bg-brand-red transition-all duration-300 shadow-xl outline-none"
               >
                 <ChevronRight size={32} />
